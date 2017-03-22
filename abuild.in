@@ -2194,7 +2194,6 @@ snapshot() {
 }
 
 usage() {
-	echo "$program $program_version"
 	cat <<-EOF
 		usage: $program [options] [-P REPODEST] [-s SRCDEST] [cmd] ...
 		       $program [-c] -n PKGNAME[-PKGVER]
@@ -2276,6 +2275,7 @@ while getopts "AcdfFhkKimnp:P:qrRs:u" opt; do
 done
 shift $(( $OPTIND - 1 ))
 
+echo "$program $program_version"
 # check so we are not root
 if [ $(id -u) -eq 0 ] && [ -z "$FAKEROOTKEY" ]; then
 	[ -z "$forceroot" ] && die "Do not run abuild as root"
