@@ -1,0 +1,22 @@
+pkgname=check1
+pkgver=1.0
+pkgrel=0
+pkgdesc="Test package: check1"
+url="https://adelielinux.org/"
+arch="all"
+options=""
+license="NCSA"
+depends=""
+makedepends=""
+install=""
+subpackages=""
+source=""
+
+check() {
+	mkdir -p "$srcdir"
+	touch "$srcdir"/checked
+}
+
+package() {
+	return 0
+}

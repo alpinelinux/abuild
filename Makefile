@@ -66,6 +66,9 @@ all:	$(USR_BIN_FILES) functions.sh
 
 clean:
 	@rm -f $(USR_BIN_FILES) functions.sh
+	@rm -f abuild-tar.o abuild-gzsplit.o abuild-sudo.o abuild-fetch.o
+	-@rm -r tests/abuild/*/src
+	-@rm -r tests/newapkbuild/*
 
 %.o: %.c
 	$(CC) $(CPPFLAGS) $(CFLAGS) $(CFLAGS-$@) -o $@ -c $<
@@ -106,6 +109,11 @@ install: $(USR_BIN_FILES) $(SAMPLES) abuild.conf functions.sh
 	cp $(AUTOTOOLS_TOOLCHAIN_FILES) $(DESTDIR)/$(prefix)/share/abuild/
 	cp functions.sh $(DESTDIR)/$(datadir)/
 
+check:	$(USR_BIN_FILES) functions.sh
+	@sh run-tests.sh
+
+test:	check
+
 .gitignore: Makefile
 	echo "*.tar.bz2" > $@
 	for i in $(USR_BIN_FILES); do\
@@ -113,4 +121,4 @@ install: $(USR_BIN_FILES) $(SAMPLES) abuild.conf functions.sh
 	done
 
 
-.PHONY: install
+.PHONY: install check test

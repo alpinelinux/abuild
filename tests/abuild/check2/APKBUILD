@@ -1,0 +1,22 @@
+pkgname=check2
+pkgver=1.0
+pkgrel=0
+pkgdesc="Test package: check2"
+url="https://adelielinux.org/"
+arch="all"
+options=""
+license="NCSA"
+depends=""
+makedepends=""
+install=""
+subpackages=""
+source=""
+
+check() {
+	# fail on purpose
+	return 1
+}
+
+package() {
+	return 0
+}

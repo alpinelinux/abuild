@@ -1,0 +1,19 @@
+pkgname=verify2
+pkgver=1.0
+pkgrel=0
+pkgdesc="Test package: verify2"
+url="https://adelielinux.org/"
+arch="all"
+options=""
+license="NCSA"
+depends=""
+makedepends=""
+install=""
+subpackages=""
+source="simple.txt"
+
+package() {
+	return 0
+}
+
+sha512sums="c4b863ff80b759fdfcf66c1d7c36ac0b161ea5e2d32505ec9142f75810db1f5608e29cac18d1888796eb1323c20e939d88a12099a6b5968dd485b53fe0ee1750  simple.txt"

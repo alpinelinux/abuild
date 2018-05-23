@@ -1,0 +1,21 @@
+pkgname=checkroot1
+pkgver=1.0
+pkgrel=0
+pkgdesc="Test package: checkroot1"
+url="https://adelielinux.org/"
+arch="all"
+options="!checkroot"
+license="NCSA"
+depends=""
+makedepends=""
+install=""
+subpackages=""
+source=""
+
+check() {
+	[ $UID -ne 0 ] || return 1
+}
+
+package() {
+	return 0
+}

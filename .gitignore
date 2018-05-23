@@ -1,6 +1,6 @@
 *.tar.bz2
 *.o
-abuild
+/abuild
 abuild-fetch
 abuild-gzsplit
 abuild-keygen
@@ -17,4 +17,6 @@ buildlab
 checkapk
 devbuild
 functions.sh
-newapkbuild
+/newapkbuild
+tests/abuild/*/src
+tests/newapkbuild/*
