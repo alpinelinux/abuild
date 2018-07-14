@@ -2102,14 +2102,14 @@ builddeps() {
 		|| return 1
 }
 
-# replace the md5sums in the APKBUILD
+# replace the checksums in the APKBUILD
 checksum() {
 	local s files
 	[ -z "$source" ] && [ -n "${md5sums}${sha256sums}${sha512sums}" ] \
 		&& msg "Removing checksums from APKBUILD"
-	sed -i -e '/^md5sums="/,/"\$/d; /^md5sums=''/,/''\$/d' "$APKBUILD"
-	sed -i -e '/^sha512sums="/,/"\$/d; /^sha512sums=''/,/''\$/d' "$APKBUILD"
-	sed -i -e '/^sha256sums="/,/"\$/d; /^sha256sums=''/,/''\$/d' "$APKBUILD"
+	sed -i -e '/^md5sums="[^"]\+".*$/d; /^md5sums=\x27[^\x27]\+\x27.*$/d' "$APKBUILD"
+	sed -i -e '/^sha512sums="[^"]\+".*$/d; /^sha512sums=\x27[^\x27]\+\x27.*$/d' "$APKBUILD"
+	sed -i -e '/^sha256sums=""[^"]\+".*$/d; /^sha256sums=\x27[^\x27]\+\x27.*$/d' "$APKBUILD"
 	[ -z "$source" ] && return 0
 	fetch
 	for s in $source; do
@@ -2121,6 +2121,9 @@ checksum() {
 	sha256sums=
 	sha512sums="$(cd "$srcdir" && sha512sum $files)" \
 		|| die "sha512sum failed"
+	case "$(tail -n 1 "$APKBUILD")" in
+		*[!\ ]*) echo >>"$APKBUILD";;
+	esac
 	echo "sha512sums=\"$sha512sums\"" >>"$APKBUILD"
 }
 
