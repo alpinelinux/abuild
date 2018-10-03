@@ -228,7 +228,17 @@ subpackages="\$pkgname-dev \$pkgname-doc"
 source="$source"
 __EOF__
 
-	abuild -f fetch checksum unpack
+	fetch_error="$(abuild -c -f fetch unpack 2>&1)"
+	fetch_return=$?
+	case "$fetch_error" in
+	*"abuild checksum"*)
+		true;;
+	"")
+		true;;
+	*)
+		echo "$fetch_error"
+		return $fetch_return;;
+	esac
 	# Figure out the builddir
 	for i in src/*; do
 		if [ -d "$i" ]; then
@@ -339,6 +349,7 @@ __EOF__
 }
 
 __EOF__
+	abuild -f checksum
 }
 
 usage() {
