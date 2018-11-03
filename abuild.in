@@ -201,14 +201,16 @@ default_sanitycheck() {
 			list_has ${i##*/} $md5sums $sha256sums $sha512sums \
 				|| die "${i##*/} is missing in checksums"
 
-			# verify that our source does not have git tag version
-			# name as tarball (typicallly github)
-			if is_remote "$i" && [ "${i#*::}" = "$i" ]; then
-				case ${i##*/} in
-				v$pkgver.tar.*|$pkgver.tar.*)
-					die "source ${i##*/} needs to be renamed to avoid possible collisions"
-					;;
-				esac
+			is_remote "$i" || continue
+			local fn="$(filename_from_uri "$i")"
+
+			# Check that file name contains at least the package
+			# name and package version. Otherwise it is not
+			# guaranteed to be unique.
+			if [ "${fn##$pkgname}" = "$fn" ]; then
+				die "source ${i##*/} file name doesn't contain \$pkgname"
+			elif [ "${fn##$pkgver}" = "$fn" ]; then
+				die "source ${i##*/} file name doesn't contain \$pkgver"
 			fi
 		done
 	fi
