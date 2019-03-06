@@ -52,6 +52,39 @@ hostspec_to_libc() {
 	esac
 }
 
+_print_repository_arg() {
+	local format='--repository %s'
+	local path="$1"
+
+	if [ $# -eq 1 ]; then
+		printf -- "$format" "$@"
+	else
+		shift
+		printf -- "$format " "$path/$1"
+		shift
+		if [ $# -gt 1 ]; then
+			_print_repository_arg "$path" "$@"
+		else
+			_print_repository_arg "$@"
+		fi
+	fi
+}
+
+repo_to_repositories() {
+	local path="$1"
+	
+	while [ "$path" != "${path%/}" ]; do
+		path="${path%/}"
+	done
+	
+	case "$path" in
+	*/main)			_print_repository_arg "$path" ;;
+	*/community)	_print_repository_arg "${path%/*}" main "$path" ;;
+	*/testing)		_print_repository_arg "${path%/*}" main community "$path" ;;
+	*)				_print_repository_arg "${path%/*}" main community testing "$path" ;;
+	esac
+}
+
 readconfig() {
 	local _APORTSDIR _BUILDDIR _PKGDEST _SRCPKGDEST _REPODEST _SRCDEST
 	local _CARCH _CHOST _CTARGET _CPPFLAGS _CFLAGS _CXXFLAGS _LDFLAGS

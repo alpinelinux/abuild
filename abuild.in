@@ -2104,7 +2104,7 @@ builddeps() {
 			$install_deps $recursive $upgrade $color_opt \
 			abuildindex || return 1
 	done
-	$SUDO_APK add --upgrade --repository "$REPODEST/$repo" \
+	$SUDO_APK add --upgrade $(repo_to_repositories "$REPODEST/$repo") \
 		$apk_opt_wait \
 		--virtual .makedepends-$pkgname $builddeps \
 		|| return 1
@@ -2354,13 +2354,13 @@ deps() {
 
 	local _quiet="$1"
 	[ -z "$_quiet" ] && msg "Installing for build:$builddeps"
-	$SUDO_APK add $_quiet $apk_opt_wait --repository "$REPODEST/$repo" \
+	$SUDO_APK add $_quiet $apk_opt_wait $(repo_to_repositories "$REPODEST/$repo") \
 		--virtual .makedepends-$pkgname \
 		$builddeps \
 		|| return 1
 	if [ -n "$CBUILDROOT" ]; then
 		[ -z "$_quiet" ] && msg "Installing for host:$hostdeps"
-		$SUDO_APK add $_quiet --root "$CBUILDROOT" --arch "$CTARGET_ARCH" --repository "$REPODEST/$repo" $apk_opt_wait \
+		$SUDO_APK add $_quiet --root "$CBUILDROOT" --arch "$CTARGET_ARCH" $(repo_to_repositories "$REPODEST/$repo") $apk_opt_wait \
 			--no-scripts --virtual .makedepends-$pkgname $hostdeps || return 1
 	fi
 }
