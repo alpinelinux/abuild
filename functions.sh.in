@@ -52,6 +52,9 @@ hostspec_to_libc() {
 	esac
 }
 
+# Yes, these _print_repository_* functions are very similar.
+# Do not be tempted to try to refactor them.
+# It is not going to be worth your effort.
 _print_repository_arg() {
 	local format='--repository %s'
 	local path="$1"
@@ -70,18 +73,43 @@ _print_repository_arg() {
 	fi
 }
 
-repo_to_repositories() {
+_print_repository_path() {
+	local format='%s\n'
 	local path="$1"
+
+	if [ $# -eq 1 ]; then
+		printf -- "$format" "$@"
+	else
+		shift
+		printf -- "$format" "$path/$1"
+		shift
+		if [ $# -gt 1 ]; then
+			_print_repository_path "$path" "$@"
+		else
+			_print_repository_path "$@"
+		fi
+	fi
+}
+
+repo_to_repositories() {
+	local func="$1"
+	local path="$2"
+
+	case "$func" in
+	arg)	func='_print_repository_arg' ;;
+	path)	func='_print_repository_path' ;;
+	*)		func=':' ;;
+	esac
 	
 	while [ "$path" != "${path%/}" ]; do
 		path="${path%/}"
 	done
 	
 	case "$path" in
-	*/main)			_print_repository_arg "$path" ;;
-	*/community)	_print_repository_arg "${path%/*}" main "$path" ;;
-	*/testing)		_print_repository_arg "${path%/*}" main community "$path" ;;
-	*)				_print_repository_arg "${path%/*}" main community testing "$path" ;;
+	*/main)			"$func" "$path" ;;
+	*/community)	"$func" "${path%/*}" main "$path" ;;
+	*/testing)		"$func" "${path%/*}" main community "$path" ;;
+	*)				"$func" "${path%/*}" main community testing "$path" ;;
 	esac
 }
 

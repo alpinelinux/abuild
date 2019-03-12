@@ -2104,7 +2104,7 @@ builddeps() {
 			$install_deps $recursive $upgrade $color_opt \
 			abuildindex || return 1
 	done
-	$SUDO_APK add --upgrade $(repo_to_repositories "$REPODEST/$repo") \
+	$SUDO_APK add --upgrade $(repo_to_repositories arg "$REPODEST/$repo") \
 		$apk_opt_wait \
 		--virtual .makedepends-$pkgname $builddeps \
 		|| return 1
@@ -2209,7 +2209,7 @@ rootbld() {
 		[ "$mirror" ] || mirror=http://dl-cdn.alpinelinux.org/alpine
 
 		envsubst
-		echo "$REPODEST/$repo"
+		repo_to_repositories path "$REPODEST/$repo"
 	) < "$repo_template" > "$BUILD_ROOT/etc/apk/repositories"
 
 	calcdeps
@@ -2354,13 +2354,13 @@ deps() {
 
 	local _quiet="$1"
 	[ -z "$_quiet" ] && msg "Installing for build:$builddeps"
-	$SUDO_APK add $_quiet $apk_opt_wait $(repo_to_repositories "$REPODEST/$repo") \
+	$SUDO_APK add $_quiet $apk_opt_wait $(repo_to_repositories arg "$REPODEST/$repo") \
 		--virtual .makedepends-$pkgname \
 		$builddeps \
 		|| return 1
 	if [ -n "$CBUILDROOT" ]; then
 		[ -z "$_quiet" ] && msg "Installing for host:$hostdeps"
-		$SUDO_APK add $_quiet --root "$CBUILDROOT" --arch "$CTARGET_ARCH" $(repo_to_repositories "$REPODEST/$repo") $apk_opt_wait \
+		$SUDO_APK add $_quiet --root "$CBUILDROOT" --arch "$CTARGET_ARCH" $(repo_to_repositories arg "$REPODEST/$repo") $apk_opt_wait \
 			--no-scripts --virtual .makedepends-$pkgname $hostdeps || return 1
 	fi
 }
