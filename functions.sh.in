@@ -56,8 +56,10 @@ hostspec_to_libc() {
 # Do not be tempted to try to refactor them.
 # It is not going to be worth your effort.
 _print_repository_arg() {
-	local format='--repository %s'
-	local path="$1"
+	local format path
+
+	format='--repository %s'
+	path="$1"
 
 	if [ $# -eq 1 ]; then
 		printf -- "$format" "$@"
@@ -74,8 +76,10 @@ _print_repository_arg() {
 }
 
 _print_repository_path() {
-	local format='%s\n'
-	local path="$1"
+	local format path
+
+	format='%s\n'
+	path="$1"
 
 	if [ $# -eq 1 ]; then
 		printf -- "$format" "$@"
@@ -92,8 +96,10 @@ _print_repository_path() {
 }
 
 repo_to_repositories() {
-	local func="$1"
-	local path="$2"
+	local func path
+
+	func="$1"
+	path="$2"
 
 	case "$func" in
 	arg)	func='_print_repository_arg' ;;
