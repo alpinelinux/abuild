@@ -96,10 +96,13 @@ _print_repository_path() {
 }
 
 repo_to_repositories() {
-	local func path
+	local func path _repo upstream_file upstreams
 
 	func="$1"
 	path="$2"
+	_repo="$repo"
+	upstream_file='.rootbld-repositories'
+	upstreams=""
 
 	case "$func" in
 	arg)	func='_print_repository_arg' ;;
@@ -110,13 +113,29 @@ repo_to_repositories() {
 	while [ "$path" != "${path%/}" ]; do
 		path="${path%/}"
 	done
-	
-	case "$path" in
-	*/main)			"$func" "$path" ;;
-	*/community)	"$func" "${path%/*}" main "$path" ;;
-	*/testing)		"$func" "${path%/*}" main community "$path" ;;
-	*)				"$func" "${path%/*}" main community testing "$path" ;;
-	esac
+
+	[ -n "$_repo" ] || _repo="${path##*/}"
+
+	upstream_file="${APORTSDIR:-${startdir}/../..}/${_repo}/${upstream_file}"
+	if [ -f "$upstream_file" ]; then
+		local _p; for _p in $(cat "$upstream_file"); do
+			while [ "${_p}" != "${_p%/}" ]; do
+				_p="${_p%/}"
+			done
+			_p="${_p##*/}"
+			[ "$_p" = "$_repo" ] || upstreams="${upstreams:+$upstreams }${_p}"
+		done
+
+	else
+		case "$_repo" in
+		main)		;;
+		community)	upstreams="main" ;;
+		testing)	upstreams="main community" ;;
+		*)		upstreams="main community testing" ;;
+		esac
+	fi
+
+	"$func" ${upstreams:+"${path%/*}" $upstreams} "$path"
 }
 
 readconfig() {
