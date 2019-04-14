@@ -129,7 +129,6 @@ repo_to_repositories() {
 	func="$1"
 	path="$(_strip_trailing_slash "$2")"
 	_repo="$repo"
-	upstream_file='.rootbld-repositories'
 	upstreams=""
 
 	case "$func" in
@@ -140,7 +139,11 @@ repo_to_repositories() {
 	
 	[ -n "$_repo" ] || _repo="$(_basename "$path")"
 
-	upstream_file="${APORTSDIR:-${startdir}/../..}/${_repo}/${upstream_file}"
+	local _b; for _b in upstream rootbld; do
+		upstream_file="${APORTSDIR:-${startdir}/../..}/${_repo}/.${_b}-repositories"
+		[ -f "$upstream_file" ] && break || :
+	done
+
 	if [ -f "$upstream_file" ]; then
 		local _p; for _p in $(cat "$upstream_file"); do
 			_p="$(_basename "$_p")"
