@@ -2196,8 +2196,6 @@ rootbld() {
 		buildhost=${gitref/./-}
 	fi
 
-	local repo_template=$aportsgit/$repo/.rootbld-repositories
-	[ -s "$repo_template" ] || die "rootbld: $repo_template does not exist"
 	(
 		for key in $(git config --list --name-only); do
 			k=${key#abuild.}
@@ -2208,9 +2206,9 @@ rootbld() {
 		export mirror version
 		[ "$mirror" ] || mirror=http://dl-cdn.alpinelinux.org/alpine
 
-		envsubst
+		repo_to_repositories path "$mirror/$version/$repo"
 		repo_to_repositories path "$REPODEST/$repo"
-	) < "$repo_template" > "$BUILD_ROOT/etc/apk/repositories"
+	) > "$BUILD_ROOT/etc/apk/repositories"
 
 	calcdeps
 	$SUDO_APK add --initdb --root "$BUILD_ROOT" --update \
