@@ -312,13 +312,17 @@ gpg_verify() {
 		[ -n "$(command -v gpg2)" ] && \
 		gpg2 --version >/dev/null
 	then
-		if [ -s "${startdir}/GPGKEYS" ]; then
+		local gpgkeys
+		for gpgkeys in "${startdir}/GPGKEYS" "${srcdir}/${pkgname}-GPGKEYS"; do
+			[ -s "$gpgkeys" ] || continue
+			msg "Importing from $gpgkeys"
 			gpg2 --homedir "${srcdir}/.gnupg" --quiet \
 				--keyid-format 0xlong \
 				--auto-key-retrieve \
 				--trust-model tofu+pgp \
-				--import "${startdir}/GPGKEYS"
-		fi
+				--key-origin "url,file://${gpgkeys}" \
+				--import "$gpgkeys"
+		done
 
 		local trust fingerprint
 		echo "$gpgfingerprints" | tr ',' '\n' | while IFS=: read -r trust fingerprint; do
@@ -361,6 +365,7 @@ gpg_verify() {
 		local uri filename srcpath gpgverified
 		for uri in $source; do
 			filename="$(filename_from_uri "$uri")"
+			[ "$filename" != "${pkgname}-GPGKEYS" ] || continue
 			srcpath="${srcdir}/${filename}"
 			gpgverified=false
 
@@ -506,6 +511,7 @@ fetch_gpg_signatures() {
 	uri="$1"
 	url="$(url_from_uri "$uri")"
 	filename="$(filename_from_uri "$uri")"
+	[ "$filename" != "${pkgname}-GPGKEYS" ] || return 0
 
 	fetched=false
 	for sigext in $gpg_signature_extensions; do
