@@ -304,9 +304,98 @@ md5check() {
 	sumcheck md5 "$md5sums"
 }
 
+gpg_verify() {
+	local allverified
+
+	if [ -n "$source" ] && \
+		[ -n "$gpgfingerprints" ] && \
+		[ -n "$(command -v gpg2)" ] && \
+		gpg2 --version >/dev/null
+	then
+		local trust fingerprint
+		echo "$gpgfingerprints" | tr ',' '\n' | while IFS=: read -r trust fingerprint; do
+			case "$(printf -- '%s' $trust)" in
+				good) trust='good' ;;
+				""|unknown) trust='unknown' ;;
+				*) fingerprint="$trust"; trust='unknown' ;;
+			esac
+			fingerprint="$(printf -- '%s' $fingerprint)"
+			# fingerprint="${fingerprint//[^A-F0-9a-f]}" # not POSIX, but does eliminate GPG errors
+			case "${#fingerprint}" in
+				40) ;;
+				*) continue ;;
+			esac
+
+			# use redirection because no output or errors matter
+			if ! gpg2 >/dev/null 2>&1 --homedir "${srcdir}/.gnupg" \
+				--keyid-format 0xlong \
+				--auto-key-retrieve \
+				--trust-model tofu+pgp \
+				--list-keys "$fingerprint"
+			then
+				gpg2 --homedir "${srcdir}/.gnupg" --quiet \
+					--keyid-format 0xlong \
+					--auto-key-retrieve \
+					--trust-model tofu+pgp \
+					--recv-key "$fingerprint"
+			fi
+
+			# use redirection because --quiet doesn't affect tofu policy logging
+			gpg2 >/dev/null 2>&1 --homedir "${srcdir}/.gnupg" \
+				--keyid-format 0xlong \
+				--auto-key-retrieve \
+				--trust-model tofu+pgp \
+				--tofu-policy "$trust" "$fingerprint"
+		done
+
+		allverified=true
+
+		local uri filename srcpath gpgverified
+		for uri in $source; do
+			filename="$(filename_from_uri "$uri")"
+			srcpath="${srcdir}/${filename}"
+			gpgverified=false
+
+			local sigext
+			for sigext in $gpg_signature_extensions; do
+				local sigfile
+				sigfile="${srcpath}.${sigext}"
+
+				[ -s "$sigfile" ] || continue
+				if gpg2 --homedir "${srcdir}/.gnupg" --verbose \
+					--keyid-format 0xlong \
+					--auto-key-retrieve \
+					--trust-model tofu+pgp \
+					--tofu-default-policy bad \
+					--verify "$sigfile" "$srcpath"
+				then
+					gpgverified=true
+					break
+				fi
+			done
+
+			if ! $gpgverified && is_remote "$uri"; then
+				allverified=false
+				error "${filename} does not have a valid GPG signature"
+			fi
+		done
+
+		if ! $allverified; then
+			return 1
+		fi
+	fi
+
+	return 0
+}
+
 # verify checksums
 verify() {
-	local verified=false algo=
+	local verified
+
+	verified=false
+	gpg_verify
+
+	local algo
 	for algo in sha512 sha256 sha1 md5; do
 		local sums=
 		eval sums=\"\$${algo}sums\"
@@ -354,12 +443,23 @@ is_remote() {
 }
 
 filename_from_uri() {
-	local uri="$1"
-	local filename="${uri##*/}"  # $(basename $uri)
+	local uri filename
+	uri="$1"
+	filename="${uri##*/}"  # $(basename $uri)
 	case "$uri" in
-	*::*) filename=${uri%%::*};;
+	*::*) filename="${uri%%::*}" ;;
 	esac
 	echo "$filename"
+}
+
+url_from_uri() {
+	local uri url
+	uri="$1"
+	case "$uri" in
+	*::*) url="${uri#*::}" ;;
+	*)    url="$uri" ;;
+	esac
+	echo "$url"
 }
 
 # try download from file from mirror first
@@ -389,11 +489,36 @@ symlinksrc() {
 	done
 }
 
+fetch_gpg_signatures() {
+	local fetched filename sigext uri url
+
+	[ -n "$gpgfingerprints" ] || return 0
+	[ -n "$gpg_signature_extensions" ] || return 0
+
+	uri="$1"
+	url="$(url_from_uri "$uri")"
+	filename="$(filename_from_uri "$uri")"
+
+	fetched=false
+	for sigext in $gpg_signature_extensions; do
+		uri_fetch_mirror "${filename}.${sigext}::${url}.${sigext}" && \
+		ln -sf "${SRCDEST}/${filename}.${sigext}" "$srcdir"/ && fetched=true || :
+	done
+
+	if ! $fetched; then
+		warning "Could not fetch any GPG signatures"
+		return 1
+	fi
+
+	return 0
+}
+
 default_fetch() {
 	local s
 	mkdir -p "$srcdir"
 	for s in $source; do
 		if is_remote "$s"; then
+			fetch_gpg_signatures "$s"
 			uri_fetch_mirror "$s" || return 1
 			ln -sf "$SRCDEST/$(filename_from_uri $s)" "$srcdir"/
 		else
@@ -2134,6 +2259,7 @@ checksum() {
 
 	[ -z "$source" ] && return 0
 	fetch
+	gpg_verify
 	for s in $source; do
 		files="$files $(filename_from_uri $s)"
 	done
@@ -2576,6 +2702,7 @@ cd "$startdir" || die
 . "$APKBUILD"
 
 builddir=${builddir:-"$srcdir/$pkgname-$pkgver"}
+gpg_signature_extensions="${gpg_signature_extensions:-sig asc}"
 
 # If REPODEST is set then it will override the PKGDEST
 if [ -z "$REPODEST" ]; then
