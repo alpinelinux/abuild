@@ -211,7 +211,7 @@ default_sanitycheck() {
 
 			# verify that our source does not have git tag version
 			# name as tarball (typicallly github)
-			if is_remote "$i" && [ "${i#*::}" = "$i" ]; then
+			if is_remote "$i" && [ "$(url_from_uri "$i")" = "$i" ]; then
 				case ${i##*/} in
 				v$pkgver.tar.*|$pkgver.tar.*)
 					die "source ${i##*/} needs to be renamed to avoid possible collisions"
@@ -430,25 +430,23 @@ sourcecheck() {
 	local uri
 	for uri in $source; do
 		is_remote $uri || continue
-		case "$uri" in
-		*::*)
-			uri=${uri##*::}
-			;;
-		esac
-		wget --spider -q "$uri" || return 1
+		wget --spider -q "$(url_from_uri "$uri")" || return 1
 	done
 	return 0
 }
 
 uri_fetch() {
-	local uri="$1"
+	local uri filename as
+	uri="$1"
+	filename="$(filename_from_uri "$uri")"
+	[ "$filename" != "${uri##*/}" ] && as="$filename" || as=""
 	mkdir -p "$SRCDEST"
-	msg "Fetching $uri"
+	msg "Fetching $(url_from_uri "$uri")${as:+ as $as}"
 	abuild-fetch -d "$SRCDEST" "$uri"
 }
 
 is_remote() {
-	case "${1#*::}" in
+	case "$(url_from_uri "$1")" in
 		http://*|ftp://*|https://*)
 			return 0;;
 	esac
