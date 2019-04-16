@@ -312,6 +312,14 @@ gpg_verify() {
 		[ -n "$(command -v gpg2)" ] && \
 		gpg2 --version >/dev/null
 	then
+		if [ -s "${startdir}/GPGKEYS" ]; then
+			gpg2 --homedir "${srcdir}/.gnupg" --quiet \
+				--keyid-format 0xlong \
+				--auto-key-retrieve \
+				--trust-model tofu+pgp \
+				--import "${startdir}/GPGKEYS"
+		fi
+
 		local trust fingerprint
 		echo "$gpgfingerprints" | tr ',' '\n' | while IFS=: read -r trust fingerprint; do
 			case "$(printf -- '%s' $trust)" in
