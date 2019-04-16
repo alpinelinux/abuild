@@ -363,7 +363,7 @@ gpg_verify() {
 		allverified=true
 
 		local uri filename srcpath gpgverified
-		for uri in $source; do
+		for uri in ${gpgsource:-$source}; do
 			filename="$(filename_from_uri "$uri")"
 			[ "$filename" != "${pkgname}-GPGKEYS" ] || continue
 			srcpath="${srcdir}/${filename}"
@@ -512,6 +512,7 @@ fetch_gpg_signatures() {
 	url="$(url_from_uri "$uri")"
 	filename="$(filename_from_uri "$uri")"
 	[ "$filename" != "${pkgname}-GPGKEYS" ] || return 0
+	list_has "$uri" ${gpgsource:-$source} || return 0
 
 	fetched=false
 	for sigext in $gpg_signature_extensions; do
@@ -520,7 +521,9 @@ fetch_gpg_signatures() {
 	done
 
 	if ! $fetched; then
-		warning "Could not fetch any GPG signatures"
+		error "Could not fetch any GPG signatures for ${filename}"
+		error2 "Try adjusting gpg_signature_extensions variable in APKBUILD"
+		error2 "Remove the URI from gpgsource if there is no GPG signature"
 		return 1
 	fi
 
