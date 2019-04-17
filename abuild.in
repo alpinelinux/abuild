@@ -13,6 +13,7 @@ datadir=@datadir@
 
 abuild_path=$(readlink -f $0)
 git=$(command -v git) || git=true
+gzip=$(which pigz || echo gzip)
 
 if ! [ -f "$datadir/functions.sh" ]; then
 	echo "$datadir/functions.sh: not found" >&2
@@ -1471,7 +1472,6 @@ human_size() {
 
 create_apks() {
 	local file= dir= name= ver= apk= datadir= size=
-	local gzip=$(command -v pigz || echo gzip)
 	getpkgver || return 1
 	if ! options_has "!tracedeps"; then
 		for file in "$pkgbasedir"/.control.*/.PKGINFO; do
@@ -1605,7 +1605,6 @@ check() {
 
 # predefined splitfunc doc
 default_doc() {
-	local gzip=$(which pigz || echo gzip)
 	depends="$depends_doc"
 	pkgdesc="$pkgdesc (documentation)"
 	install_if="docs $pkgname=$pkgver-r$pkgrel"
