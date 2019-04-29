@@ -1,6 +1,6 @@
 # /usr/share/abuild/functions.sh
 
-_strip_trailing_slash() {
+strip_trailing_slash() {
 	local path
 
 	path="$1"
@@ -12,24 +12,24 @@ _strip_trailing_slash() {
 	printf -- '%s' "$path"
 }
 
-_basename() {
+sh_basename() {
 	local path
 
-	path="$(_strip_trailing_slash "$1")"
+	path="$(strip_trailing_slash "$1")"
 
 	printf -- '%s' "${path##*/}"
 }
 
-_dirname() {
+sh_dirname() {
 	local path
 
-	path="$(_strip_trailing_slash "$1")"
+	path="$(strip_trailing_slash "$1")"
 
 	printf -- '%s' "${path%/*}"
 }
 
 sysconfdir=@sysconfdir@
-program="$(_basename "$0")"
+program="$(sh_basename "$0")"
 
 arch_to_hostspec() {
 	case "$1" in
@@ -80,10 +80,10 @@ hostspec_to_libc() {
 	esac
 }
 
-# Yes, these _print_repository_* functions are very similar.
+# Yes, these rtr_print_repository_* functions are very similar.
 # Do not be tempted to try to refactor them.
 # It is not going to be worth your effort.
-_print_repository_arg() {
+rtr_print_repository_arg() {
 	local format path
 
 	format='--repository %s'
@@ -96,14 +96,14 @@ _print_repository_arg() {
 		printf -- "$format " "$path/$1"
 		shift
 		if [ $# -gt 1 ]; then
-			_print_repository_arg "$path" "$@"
+			rtr_print_repository_arg "$path" "$@"
 		else
-			_print_repository_arg "$@"
+			rtr_print_repository_arg "$@"
 		fi
 	fi
 }
 
-_print_repository_path() {
+rtr_print_repository_path() {
 	local format path
 
 	format='%s\n'
@@ -116,42 +116,42 @@ _print_repository_path() {
 		printf -- "$format" "$path/$1"
 		shift
 		if [ $# -gt 1 ]; then
-			_print_repository_path "$path" "$@"
+			rtr_print_repository_path "$path" "$@"
 		else
-			_print_repository_path "$@"
+			rtr_print_repository_path "$@"
 		fi
 	fi
 }
 
 repo_to_repositories() {
-	local func path _repo upstream_file upstreams
+	local func path rtr_repo upstream_file upstreams
 
 	func="$1"
-	path="$(_strip_trailing_slash "$2")"
-	_repo="$repo"
+	path="$(strip_trailing_slash "$2")"
+	rtr_repo="$repo"
 	upstreams=""
 
 	case "$func" in
-	arg)	func='_print_repository_arg' ;;
-	path)	func='_print_repository_path' ;;
+	arg)	func='rtr_print_repository_arg' ;;
+	path)	func='rtr_print_repository_path' ;;
 	*)		func=':' ;;
 	esac
 	
-	[ -n "$_repo" ] || _repo="$(_basename "$path")"
+	[ -n "$rtr_repo" ] || rtr_repo="$(sh_basename "$path")"
 
-	local _b; for _b in upstream rootbld; do
-		upstream_file="${APORTSDIR:-${startdir}/../..}/${_repo}/.${_b}-repositories"
+	local b; for b in upstream rootbld; do
+		upstream_file="${APORTSDIR:-${startdir}/../..}/${_repo}/.${b}-repositories"
 		[ -f "$upstream_file" ] && break || :
 	done
 
 	if [ -f "$upstream_file" ]; then
-		local _p; for _p in $(cat "$upstream_file"); do
-			_p="$(_basename "$_p")"
-			[ "$_p" = "$_repo" ] || upstreams="${upstreams:+$upstreams }${_p}"
+		local p; for p in $(cat "$upstream_file"); do
+			p="$(sh_basename "$p")"
+			[ "$p" = "$rtr_repo" ] || upstreams="${upstreams:+$upstreams }${p}"
 		done
 
 	else
-		case "$_repo" in
+		case "$rtr_repo" in
 		main)		;;
 		community)	upstreams="main" ;;
 		testing)	upstreams="main community" ;;
@@ -159,7 +159,7 @@ repo_to_repositories() {
 		esac
 	fi
 
-	"$func" ${upstreams:+"$(_dirname "$path")" $upstreams} "$path"
+	"$func" ${upstreams:+"$(sh_dirname "$path")" $upstreams} "$path"
 }
 
 readconfig() {
