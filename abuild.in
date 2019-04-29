@@ -1685,17 +1685,16 @@ default_dbg() {
 		ddbg_srcfile=$(basename "$pkgdir/$f")
 		ddbg_dstdir=$(dirname "$subpkgdir/usr/lib/debug/$f.debug")
 		ddbg_dstfile=$(basename "$subpkgdir/usr/lib/debug/$f.debug")
-		[ -d "$ddbg_dstdir" ] || mkdir -p "$ddbg_dstdir"
+		[ ! -d "$ddbg_dstdir" ] && mkdir -p "$ddbg_dstdir"
 
-		(
-			cd "$ddbg_srcdir"
-			XATTR=$(getfattr --match="" --dump "${ddbg_srcfile}")
-			${CROSS_COMPILE}objcopy --only-keep-debug "$ddbg_srcfile" "$ddbg_dstfile"
-			${CROSS_COMPILE}objcopy --add-gnu-debuglink="$ddbg_dstfile" "$ddbg_srcdir/$ddbg_srcfile"
-			mv "$ddbg_dstfile" "$ddbg_dstdir"
-			${CROSS_COMPILE}strip "$ddbg_srcfile"
-			[ -n "$XATTR" ] && { echo "$XATTR" | setfattr --restore=-; }
-		)
+		cd "$ddbg_srcdir"
+		XATTR=$(getfattr --match="" --dump "${ddbg_srcfile}")
+		${CROSS_COMPILE}objcopy --only-keep-debug "$ddbg_srcfile" "$ddbg_dstfile"
+		${CROSS_COMPILE}objcopy --add-gnu-debuglink="$ddbg_dstfile" "$ddbg_srcdir/$ddbg_srcfile"
+		mv "$ddbg_dstfile" "$ddbg_dstdir"
+		${CROSS_COMPILE}strip "$ddbg_srcfile"
+		[ -n "$XATTR" ] && { echo "$XATTR" | setfattr --restore=-; }
+		cd "$OLDPWD"
 	done
 	return 0
 }
