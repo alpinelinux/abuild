@@ -1694,7 +1694,9 @@ default_dbg() {
 			${CROSS_COMPILE}objcopy --add-gnu-debuglink="$ddbg_dstfile" "$ddbg_srcdir/$ddbg_srcfile"
 			mv "$ddbg_dstfile" "$ddbg_dstdir"
 			${CROSS_COMPILE}strip "$ddbg_srcfile"
-			[ -n "$XATTR" ] && { echo "$XATTR" | setfattr --restore=-; }
+			if [ -n "$XATTR" ]; then
+				echo "$XATTR" | setfattr --restore=-
+			fi
 			exit 0
 		)
 	done
