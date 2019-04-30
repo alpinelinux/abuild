@@ -765,6 +765,9 @@ pre_split() {
 		return 0
 	fi
 	# the subpackages should not inherit these from main package
+	origdepends="$depends"
+	origindepends="$origdepends" # temporary transitioning variable for aports
+	depends=""
 	provides=""
 	install_if=""
 }
