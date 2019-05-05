@@ -116,6 +116,12 @@ check_python() {
 __EOF__
 }
 
+check_meson() {
+	cat >>APKBUILD<<__EOF__
+	ninja -C output test
+__EOF__
+}
+
 # Package sections
 package_make() {
 	cat >>APKBUILD<<__EOF__
