@@ -70,6 +70,32 @@ error() {
 	logcmd "ERROR: $pkgname: $1"
 }
 
+amove() {
+	[ -n "${1##/*}"   ] || set "${1#/}" "$2"
+	[ -n "$subpkgdir" ] || return 1
+	[ -e "$pkgdir/$1" ] || return 1
+
+	# store directory
+	d="$(pwd -L)"
+
+	cd "$pkgdir"
+	if [ -n "$2" ]; then # find mode
+		mkdir -p "$subpkgdir/$1"
+		find "$1" ! -path "$1" -prune ! -type d -name "$2" \
+			-exec mv '{}' "$subpkgdir/$1/" \;
+	else # file/dir mode
+		mkdir -p "$subpkgdir/${1%/*}"
+		mv "$1" "$subpkgdir/${1%/*}"
+	fi
+
+	# cleanup
+	rmdir -p "$1" || true
+	rmdir -p "${1%/*}" || true
+	cd "$subpkgdir"
+	rmdir -p "$1" || true
+	cd "$d"
+}
+
 cross_creating() {
 	test "$CHOST" != "$CTARGET" -a -n "$CBUILDROOT"
 }
