@@ -1,5 +1,6 @@
 *.tar.bz2
 *.o
+*.static
 abuild
 abuild-fetch
 abuild-gzsplit
@@ -12,6 +13,7 @@ abump
 ap
 apkbuild-cpan
 apkbuild-gem-resolver
+apkbuild-pypi
 apkgrel
 buildlab
 checkapk
