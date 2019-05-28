@@ -373,6 +373,10 @@ gpg_verify() {
 			for sigext in $gpg_signature_extensions; do
 				local sigfile
 				sigfile="${srcpath}.${sigext}"
+				if [ "." = "$sigext" ]; then
+					sigfile="${srcpath}"
+					sigext=""
+				fi
 
 				[ -s "$sigfile" ] || continue
 				if gpg2 --homedir "${srcdir}/.gnupg" --verbose \
@@ -380,7 +384,7 @@ gpg_verify() {
 					--auto-key-retrieve \
 					--trust-model tofu+pgp \
 					--tofu-default-policy bad \
-					--verify "$sigfile" "$srcpath"
+					--verify "$sigfile" ${sigext:+"$srcpath"}
 				then
 					gpgverified=true
 					break
@@ -514,8 +518,9 @@ fetch_gpg_signatures() {
 
 	fetched=false
 	for sigext in $gpg_signature_extensions; do
-		uri_fetch_mirror "${filename}.${sigext}::${url}.${sigext}" && \
-		ln -sf "${SRCDEST}/${filename}.${sigext}" "$srcdir"/ && fetched=true || :
+		[ "." = "$sigext" ] && sigext="" || sigext=".${sigext}"
+		uri_fetch_mirror "${filename}${sigext}::${url}${sigext}" && \
+		ln -sf "${SRCDEST}/${filename}${sigext}" "$srcdir"/ && fetched=true || :
 	done
 
 	if ! $fetched; then
