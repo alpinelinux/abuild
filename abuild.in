@@ -924,6 +924,14 @@ check_provides() {
 	return 0
 }
 
+delete_empty_dirs_after_split() {
+	# remove empty dir after spliting, ignore error (not empty)
+	local folders="/usr/lib /usr"
+	for i in ${folders}; do
+		rmdir "$pkgdir/$i" 2>/dev/null || :
+	done
+}
+
 prepare_metafiles() {
 	getpkgver || return 1
 	local name=${subpkgname:-$pkgname}
@@ -1149,7 +1157,8 @@ archcheck() {
 prepare_package() {
 	msg "Preparing ${subpkgname:+sub}package ${subpkgname:-$pkgname}..."
 	stripbin
-	prepare_metafiles \
+	delete_empty_dirs_after_split \
+		&& prepare_metafiles \
 		&& prepare_trace_rpaths \
 		&& prepare_symlinks \
 		&& prepare_pkgconfig_provides \
