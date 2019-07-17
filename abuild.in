@@ -103,7 +103,7 @@ cleanup() {
 		pkgdir) msg "Cleaning up pkgdir"; rm -rf "$pkgbasedir";;
 		srcdir) msg "Cleaning up srcdir"; cleanup_srcdir;;
 		deps)
-			if [ -z "$install_after" ] && [ -n "$uninstall_after" ]; then
+			if [ -n "$uninstall_after" ]; then
 				msg "Uninstalling dependencies..."
 				undeps
 			fi
@@ -873,7 +873,7 @@ check_license() {
 	fi
 	local i; for i in $license; do
 		list_has "$i" $exclude && continue
-		if ! grep -q -w -F "$i" "$license_list"; then
+		if ! grep -q -x -F "$i" "$license_list"; then
 			ret=1
 			warning "\"$i\" is not a known license"
 		fi
@@ -1114,7 +1114,7 @@ dir_has_arch_binaries() {
 
 # returns true if this is the -dev package
 is_dev_pkg() {
-	test "${subpkgname%-dev}" != "$subpkgname"
+	test "${1%-dev}" != "$1"
 }
 
 # returns true if this is the -static package
@@ -1139,7 +1139,7 @@ archcheck() {
 		[ "${subpkgarch:-$pkgarch}" != "noarch" ] && return 0
 		error "Arch specific binaries found so arch must not be set to \"noarch\""
 		return 1
-	elif [ "${subpkgarch:-$pkgarch}" != "noarch" ] && ! is_dev_pkg && ! is_static_pkg "$subpkgname"; then
+	elif [ "${subpkgarch:-$pkgarch}" != "noarch" ] && ! is_dev_pkg "$subpkgname" && ! is_static_pkg "$subpkgname"; then
 		# we dont want -dev package go to noarch
 		warning "No arch specific binaries found so arch should probably be set to \"noarch\""
 	fi
@@ -1719,7 +1719,7 @@ default_dev() {
 			usr/lib/qt*/mkspecs			\
 			usr/lib/cmake				\
 			$(find . -name include -type d)	\
-			$([ -z "${subpackages##*$pkgname-static*}" ] && find $libdirs \
+			$(subpackage_types_has static || find $libdirs \
 				-name '*.a' 2>/dev/null) \
 			$(find $libdirs -name '*.[cho]' \
 				-o -name '*.prl' 2>/dev/null); do
@@ -1747,7 +1747,7 @@ dev() {
 # predefined splitfunc static
 default_static() {
 	local i=
-	depends=""
+	depends="$depends_static"
 	pkgdesc="$pkgdesc (static library)"
 
 	cd "$pkgdir" || return 0
@@ -2509,7 +2509,6 @@ usage() {
 		 -f  Force specified cmd (skip checks: apk up to date, arch, libc)
 		 -F  Force run as root
 		 -h  Show this help
-		 -i  Install PKG after successful build
 		 -k  Keep built packages, even if APKBUILD or sources are newer
 		 -K  Keep buildtime temp dirs and files (srcdir/pkgdir/deps)
 		 -m  Disable colors (monochrome)
@@ -2530,7 +2529,7 @@ usage() {
 		  cleanoldpkg Remove binary packages except current version
 		  cleanpkg    Remove already built binary and source package
 		  deps        Install packages listed in makedepends and depends
-		  fetch       Fetch sources to \$SRCDEST and verify checksums
+		  fetch       Fetch sources to \$SRCDEST (consider: 'abuild fetch verify')
 		  index       Regenerate indexes in \$REPODEST
 		  listpkg     List target packages
 		  package     Install project into $pkgdir
@@ -2557,7 +2556,7 @@ usage() {
 APKBUILD="${APKBUILD:-./APKBUILD}"
 unset force
 unset recursive
-while getopts "AcdD:fFhkKimnp:P:qrRs:uv" opt; do
+while getopts ":AcdD:fFhkKmnP:qrRs:uv" opt; do
 	case $opt in
 		'A') echo "$CARCH"; exit 0;;
 		'c') enable_colors
@@ -2580,6 +2579,7 @@ while getopts "AcdD:fFhkKimnp:P:qrRs:uv" opt; do
 		'u') upgrade="-u"
 		     recursive="-R";;
 		'v') set -x;;
+		'?') die "Unrecognized option: $OPTARG";;
 	esac
 done
 shift $(( $OPTIND - 1 ))
@@ -2616,9 +2616,9 @@ builddir=${builddir:-"$srcdir/$pkgname-$pkgver"}
 
 # If REPODEST is set then it will override the PKGDEST
 if [ -z "$REPODEST" ]; then
-	warning "REPODEST is not set and is now required. Defaulting to ~/packages"
+	warning "REPODEST is not set and is now required. Defaulting to $HOME/packages"
 	[ -n "$PKGDEST" ] && die "PKGDEST is no longer supported."
-	REPODEST="~/packages"
+	REPODEST="$HOME/packages"
 fi
 
 # for recursive action

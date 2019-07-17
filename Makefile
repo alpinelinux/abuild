@@ -1,6 +1,6 @@
 
 PACKAGE		:= abuild
-VERSION		:= 3.4.0_rc4
+VERSION		:= 3.4.0
 P=$(PACKAGE)-$(VERSION)
 
 ABUILD_DEPS	:=

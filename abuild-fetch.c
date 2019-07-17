@@ -29,6 +29,7 @@ THE SOFTWARE.
 #include <errno.h>
 #include <fcntl.h>
 #include <limits.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -77,7 +78,7 @@ int fork_exec(char *argv[], int showerr)
 }
 
 /* create or wait for an NFS-safe lockfile and fetch url with curl or wget */
-int fetch(char *url, const char *destdir)
+int fetch(char *url, const char *destdir, bool insecure)
 {
 	int lockfd, status=0;
 	char outfile[PATH_MAX], partfile[PATH_MAX];
@@ -132,6 +133,12 @@ int fetch(char *url, const char *destdir)
 
 	if (access(outfile, F_OK) == 0)
 		goto fetch_done;
+
+	/* enable insecure mode when http. This may be useful when it redirects to https */
+	if (insecure || strstr(url, "http://") == url) {
+		add_opt(&curlcmd, "--insecure");
+		add_opt(&wgetcmd, "--no-check-certificate");
+	}
 
 	if (access(partfile, F_OK) == 0) {
 		printf("Partial download found. Trying to resume.\n");
@@ -189,16 +196,20 @@ void sighandler(int sig)
 int main(int argc, char *argv[])
 {
 	int opt;
+	bool insecure = false;
 	char *destdir = "/var/cache/distfiles";
 
 	program = argv[0];
-	while ((opt = getopt(argc, argv, "hd:")) != -1) {
+	while ((opt = getopt(argc, argv, "hd:k")) != -1) {
 		switch (opt) {
 		case 'h':
 			return usage(0);
 			break;
 		case 'd':
 			destdir = optarg;
+			break;
+		case 'k':
+			insecure = true;
 			break;
 		default:
 			printf("Unknown option '%c'\n", opt);
@@ -218,5 +229,5 @@ int main(int argc, char *argv[])
 	signal(SIGQUIT, sighandler);
 	signal(SIGTERM, sighandler);
 
-	return fetch(argv[0], destdir);
+	return fetch(argv[0], destdir, insecure);
 }
