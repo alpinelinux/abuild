@@ -685,6 +685,10 @@ postcheck() {
 			error "Found /usr/var, localstatedir is most likely wrong"
 			return 1
 		fi
+		if [ -d "$dir"/usr/share/pkgconfig ]; then
+			error "Found /usr/share/pkgconfig, pkgconfig files should be in /usr/lib/pkgconfig"
+			return 1
+		fi
 	fi
 
 	# remove *.la files if libtool is not set
