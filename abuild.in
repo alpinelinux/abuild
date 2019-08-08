@@ -1225,6 +1225,46 @@ prepare_command_provides() {
 	done
 }
 
+prepare_py_provides() {
+	local dir="${subpkgdir:-$pkgdir}" py_providers=""
+	options_has "!tracedeps" && return 0
+	cd "$dir" || return 1
+
+	# Find all directories under site-packages, ignore __pycache__ and
+	# .egg-info packages, store the basename with the proper pyX.Y prefix
+	# one per-line
+	py_providers="$(find 'usr/lib/python'*/site-packages \
+		-print0 -mindepth 1 -maxdepth 1 \
+		-type f -iname '*.py' -o -type d \
+		2>/dev/null | xargs -0 -I '{}' sh -c '
+		d="{}"
+
+		# Check if we were given a directory then check if there
+		# is a file called __init__.py inside, this is required
+		# to import modules, if there is no __init__.py then the
+		# installed directory is not actually a module, this is a
+		# special case for packages that use c-extensions and
+		# install their .c and .h files to $sitelib.
+		if [ -d "$d" ] && [ ! -f "$d"/__init__.py ]; then
+			exit 0
+		fi
+
+		# Find out which version of python we are building for
+		# this will find out by looking at the MAJOR and MINOR
+		# versions in /usr/lib/pythonMAJOR.MINOR
+		pyver="${d##*usr/lib/python}"
+		pyver="${pyver%%/*}"
+
+		# Strip the .py prefix if it exists
+		d="${d%%.py*}"
+
+		echo "py$pyver:${d##*/}"
+	')"
+	local i; for i in $py_providers; do
+		echo "$i=$pkgver-r$pkgrel" >> "$controldir"/.provides-py
+	done
+}
+
 # check if dir has arch specific binaries
 dir_has_arch_binaries() {
 	local dir="$1"
@@ -1294,6 +1334,7 @@ prepare_package() {
 		&& prepare_symlinks \
 		&& prepare_pkgconfig_provides \
 		&& prepare_command_provides \
+		&& prepare_py_provides \
 		|| return 1
 	archcheck
 }
@@ -1445,6 +1486,10 @@ trace_apk_deps() {
 	fi
 	if [ -f "$dir"/.provides-command ]; then
 		sed 's/^/provides = cmd:/' "$dir"/.provides-command | sort -u \
+			>> "$dir"/.PKGINFO
+	fi
+	if [ -f "$dir"/.provides-py ]; then
+		sed 's/^/provides = /' "$dir"/.provides-py | sort -u \
 			>> "$dir"/.PKGINFO
 	fi
 	[ -z "$autodeps" ] && return 0
