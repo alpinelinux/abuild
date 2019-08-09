@@ -18,9 +18,8 @@ SCRIPTS		:= abuild $(addprefix abuild-,keygen sign) abump \
 USR_BIN_FILES	:= $(SCRIPTS) $(BINS)
 MAN_1_PAGES	:= newapkbuild.1
 MAN_5_PAGES	:= APKBUILD.5
-SAMPLES		:= sample.APKBUILD sample.initd sample.confd \
-		   sample.pre-install sample.post-install
-AUTOTOOLS_TOOLCHAIN_FILES := config.sub config.guess
+SAMPLES		:= $(addprefix sample.,APKBUILD initd confd $(addsuffix -install,pre post)))
+AUTOTOOLS_TOOLCHAIN_FILES := $(addprefix config.,sub guess)
 
 SCRIPT_SOURCES	:= $(addsuffix .in,$(SCRIPTS))
 
@@ -38,10 +37,12 @@ TAR		:= tar
 COMPILE		= $(CC) $(CPPFLAGS) $(CFLAGS) $(CFLAGS-$@) -c $^
 LINK		= $(CC) -o $@ $^ $(LDFLAGS) $(LDFLAGS-$@) $(LIBS-$@)
 
-SED_REPLACE	:= -e 's:@VERSION@:$(FULL_VERSION):g' \
-			-e 's:@prefix@:$(prefix):g' \
-			-e 's:@sysconfdir@:$(sysconfdir):g' \
-			-e 's:@datadir@:$(datadir):g' \
+SED_REPLACE	:= $(addprefix -e ,\
+			's:@VERSION@:$(FULL_VERSION):g' \
+			's:@prefix@:$(prefix):g' \
+			's:@sysconfdir@:$(sysconfdir):g' \
+			's:@datadir@:$(datadir):g' \
+			)
 
 ABUILD_DEPS	+= openssl-dev
 SSL_CFLAGS	?= $(shell pkg-config --cflags openssl)
