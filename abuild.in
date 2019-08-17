@@ -1465,13 +1465,18 @@ scan_symlink_targets() {
 
 #find pkg-config dependencies
 scan_pkgconfig_depends() {
-	local provides_pc="$1" controldir= name= datadir=
+	local provides_pc="$1" controldir= name= datadir= subpkgconfigdirs=
 	[ -e "$provides_pc" ] || return 0
 	controldir="${provides_pc%/*}"
 	name="$(pkginfo_val pkgname "$controldir"/.PKGINFO)"
 	datadir="$pkgbasedir"/$name
+	for subpkgconfigdir in "$pkgbasedir"/*/usr/lib/pkgconfig; do
+		if [ -e "$subpkgconfigdir" ]; then
+			subpkgconfigdirs="$subpkgconfigdirs:$subpkgconfigdir"
+		fi
+	done
 	for i in $(sort -u "$provides_pc"); do
-		PKG_CONFIG_PATH="$datadir"/usr/lib/pkgconfig pkg-config \
+		PKG_CONFIG_PATH="$subpkgconfigdirs":"$datadir"/usr/lib/pkgconfig pkg-config \
 				--print-requires \
 				--print-requires-private ${i%=*} \
 				| sed -E 's/\s*([<>=]+)\s*/\1/' \
