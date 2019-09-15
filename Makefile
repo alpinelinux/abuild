@@ -18,7 +18,7 @@ SCRIPTS		:= abuild $(addprefix abuild-,keygen sign) abump \
 USR_BIN_FILES	:= $(SCRIPTS) $(BINS)
 MAN_1_PAGES	:= newapkbuild.1
 MAN_5_PAGES	:= APKBUILD.5
-SAMPLES		:= $(addprefix sample.,APKBUILD initd confd $(addsuffix -install,pre post)))
+SAMPLES		:= $(addprefix sample.,APKBUILD initd confd $(addsuffix -install,pre post))
 AUTOTOOLS_TOOLCHAIN_FILES := $(addprefix config.,sub guess)
 
 SCRIPT_SOURCES	:= $(addsuffix .in,$(SCRIPTS))
