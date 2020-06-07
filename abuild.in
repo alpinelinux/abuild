@@ -2248,11 +2248,12 @@ checksum() {
 	local s files
 	[ -z "$source" ] && [ -n "${md5sums}${sha256sums}${sha512sums}" ] \
 		&& msg "Removing checksums from APKBUILD"
-	sed -E -i -e '/^(md5|sha[0-9]+)sums=".*[^"]$/,/"$/d' \
+	sed -E -i \
 		-e '/^(md5|sha[0-9]+)sums=".*"$/d' \
+		-e '/^(md5|sha[0-9]+)sums="/,/"$/d' \
 		\
-		-e "/^(md5|sha[0-9]+)sums='.*[^']\$/,/'\$/d" \
 		-e "/^(md5|sha[0-9]+)sums='.*'\$/d" \
+		-e "/^(md5|sha[0-9]+)sums='/,/'\$/d" \
 		APKBUILD
 
 	[ -z "$source" ] && return 0
@@ -2266,7 +2267,7 @@ checksum() {
 	sha256sums=
 	sha512sums="$(cd "$srcdir" && sha512sum $files)" \
 		|| die "sha512sum failed"
-	echo "sha512sums=\"$sha512sums\"" >>"$APKBUILD"
+	printf 'sha512sums="\n%s\n"\n' "$sha512sums" >>"$APKBUILD"
 }
 
 rootbld_actions() {
