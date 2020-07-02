@@ -63,7 +63,25 @@ teardown() {
 
 @test "abuild: test -dbg subpackage" {
 	cd testrepo/dbgpkg
+	arch=$($ABUILD -A)
 	$ABUILD
+
+	mkdir "$tmpdir/dbgpkg-1.0-r0"
+	cd "$tmpdir/dbgpkg-1.0-r0"
+	tar -xf "$REPODEST"/testrepo/$arch/dbgpkg-1.0-r0.apk
+	! [ -e usr/lib/debug ]
+	debuginfo=$(readelf -wk usr/bin/hello | grep '^  Separate debug info file: [^/]*\.debug$')
+	debuginfo_file=${debuginfo#"  Separate debug info file: "}
+	[ "$(nm usr/bin/hello 2>&1)" = "nm: usr/bin/hello: no symbols" ]
+	[ usr/bin/hello -ef usr/bin/hello-hard ]
+
+	mkdir "$tmpdir/dbgpkg-dbg-1.0-r0"
+	cd "$tmpdir/dbgpkg-dbg-1.0-r0"
+	tar -xf "$REPODEST"/testrepo/$arch/dbgpkg-dbg-1.0-r0.apk
+	! [ -e usr/bin ]
+	[ -n "$(nm usr/lib/debug/usr/bin/$debuginfo_file)" ]
+	! [ -e usr/lib/debug/usr/bin/hello-sym.debug ]
+	! [ -e usr/lib/debug/usr/bin/hello.debug ] || ! [ -e usr/lib/debug/usr/bin/hello-hard.debug ]
 }
 
 @test "abuild: test SETFATTR in -dbg subpackage" {
@@ -120,24 +138,6 @@ teardown() {
 	cd "$tmpdir"/foo
 	run $ABUILD checksum
 	[ $status -ne 0 ]
-}
-
-@test "abuild: test that -dbg should be first" {
-	mkdir -p "$tmpdir"/foo
-	cat > "$tmpdir"/foo/APKBUILD <<-EOF
-		# Maintainer: Test user <user@example.com>
-		pkgname="foo"
-		pkgver="1.0"
-		pkgrel=0
-		pkgdesc="dummy package for test"
-		url="https://alpinelinux.org"
-		license="MIT"
-		subpackages="\$pkgname-dev \$pkgname-dbg"
-		package() { :; }
-	EOF
-	cd "$tmpdir"/foo
-	run $ABUILD sanitycheck
-	[[ $output[1] == *WARNING*dbg* ]]
 }
 
 @test "abuild: verify main package does not inherit subpackage dependencies" {

@@ -27,6 +27,8 @@ check() {
 
 package() {
 	install -D -m755 hello "$pkgdir"/usr/bin/hello
+	ln "$pkgdir"/usr/bin/hello "$pkgdir"/usr/bin/hello-hard
+	ln -s "$pkgdir"/usr/bin/hello "$pkgdir"/usr/bin/hello-sym
 }
 
 sha512sums="

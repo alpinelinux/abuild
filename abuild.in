@@ -210,14 +210,6 @@ default_sanitycheck() {
 		esac
 	done
 
-	# check that -dbg comes first
-	if subpackages_has "$pkgname-dbg"; then
-		set -- $subpackages
-		if [ "$1" != "$pkgname-dbg" ]; then
-			warning "$pkgname-dbg should be first in subpackages"
-		fi
-	fi
-
 	for i in $install; do
 		local n=${i%.*}
 		local suff=${i##*.}
@@ -1898,23 +1890,27 @@ default_dbg() {
 	local f
 	pkgdesc="$pkgdesc (debug symbols)"
 
-	scanelf -R "$pkgdir" | grep ET_DYN | sed "s:$pkgdir\/::g" | sed "s:ET_DYN ::g" | while read f; do
-		local ddbg_srcdir=$(dirname "$pkgdir/$f")
-		local ddbg_srcfile=$(basename "$pkgdir/$f")
-		local ddbg_dstdir=$(dirname "$subpkgdir/usr/lib/debug/$f.debug")
-		local ddbg_dstfile=$(basename "$subpkgdir/usr/lib/debug/$f.debug")
-		mkdir -p "$ddbg_dstdir"
-
-		cd "$ddbg_srcdir"
-		local xattr=$(getfattr --match="" --dump "${ddbg_srcfile}")
-		${CROSS_COMPILE}objcopy --only-keep-debug "$ddbg_srcfile" "$ddbg_dstfile"
-		${CROSS_COMPILE}objcopy --add-gnu-debuglink="$ddbg_dstfile" "$ddbg_srcdir/$ddbg_srcfile"
-		mv "$ddbg_dstfile" "$ddbg_dstdir"
-		${CROSS_COMPILE}strip "$ddbg_srcfile"
-		if [ -n "$xattr" ]; then
-			echo "$xattr" | "$SETFATTR" --restore=-
+	# assume $pkgbasedir is all one filesystem
+	mkdir "$pkgbasedir/.dbg-tmp"
+	# note: the subpkgdir doesn't exist when the glob is evaluated
+	scanelf -Ry "$pkgbasedir"/* | while read type src; do
+		if [ "$type" != ET_DYN ]; then
+			continue
+		fi
+		local dst=$subpkgdir/usr/lib/debug/${src#"$pkgbasedir"/*/}.debug
+		mkdir -p "${dst%/*}"
+		local ino=$(stat -c %i "$src")
+		if ! [ -e "$pkgbasedir/.dbg-tmp/$ino" ]; then
+			local tmp=$pkgbasedir/.dbg-tmp/${src##*/}
+			${CROSS_COMPILE}objcopy --only-keep-debug "$src" "$dst"
+			${CROSS_COMPILE}objcopy --add-gnu-debuglink="$dst" --strip-unneeded -R .comment "$src" "$tmp"
+			# preserve attributes, links
+			cat "$tmp" > "$src"
+			rm "$tmp"
+			ln "$dst" "$pkgbasedir/.dbg-tmp/$ino"
 		fi
 	done
+	rm -r "$pkgbasedir/.dbg-tmp"
 	return 0
 }
 
