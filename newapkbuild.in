@@ -84,12 +84,7 @@ build_meson() {
 # TODO For cross compilation a cross_file needs to be created.
 
 	cat >>APKBUILD<<__EOF__
-	meson \\
-		--prefix=/usr \\
-		--sysconfdir=/etc \\
-		--mandir=/usr/share/man \\
-		--localstatedir=/var \\
-		--buildtype=plain \\
+	abuild-meson \\
 		. output
 	meson compile \${JOBS:+-j \${JOBS}} -C output
 __EOF__
