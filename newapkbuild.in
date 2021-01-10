@@ -131,7 +131,7 @@ __EOF__
 
 check_python() {
 	cat >>APKBUILD<<__EOF__
-	python3 setup.py test
+	pytest
 __EOF__
 }
 
@@ -238,8 +238,12 @@ newaport() {
 		source="https://downloads.sourceforge.net/$pn/$pn-$pv.tar.gz"
 	fi
 
-	if [ -z "$depends" ] &&[ "$buildtype" = "python" ]; then
+	if [ -z "$depends" ] && [ "$buildtype" = "python" ]; then
 		depends="python3"
+	fi
+
+	if [ -z "$checkdepends" ] && [ "$buildtype" = "python" ]; then
+		checkdepends="py3-pytest"
 	fi
 
 	case "$buildtype" in
@@ -282,6 +286,7 @@ license="$license"
 depends="$depends"
 depends_dev=""
 makedepends="$makedepends"
+checkdepends="$checkdepends"
 install="$install"
 subpackages="\$pkgname-dev \$pkgname-doc"
 source="$source"
