@@ -1,15 +1,23 @@
+load helpers
+
 setup() {
 	export ABUILD="$PWD/../abuild"
 	export ABUILD_SHAREDIR="$PWD/.."
 	export ABUILD_CONF=/dev/null
 	tmpdir="$BATS_TMPDIR"/abuild
 	export REPODEST="$tmpdir"/packages
-	mkdir -p $tmpdir
 	export CLEANUP="srcdir bldroot pkgdir deps"
+	export WORKDIR="$tmpdir"/work
+
+	mkdir -p "$tmpdir" "$WORKDIR"
 }
 
 teardown() {
 	rm -rf "$tmpdir"
+}
+
+build_repo() {
+	:
 }
 
 @test "abuild: help text" {
@@ -127,4 +135,17 @@ teardown() {
 	cd "$tmpdir"/foo
 	run $ABUILD sanitycheck
 	[[ $output[1] == *WARNING*dbg* ]]
+}
+
+@test "abuild: verify main package does not inherit subpackage dependencies" {
+	cd testrepo/subpkg-dep-leak/
+
+	$ABUILD
+
+	pkg_field subpkg-dep-leak-1.0-r0 depend >"$WORKDIR"/actual_main_dependencies
+	pkg_field subpkg-dep-leak-subpkg-1.0-r0 depend >"$WORKDIR"/actual_subpkg_dependencies
+
+	diff main_dependencies "$WORKDIR"/actual_main_dependencies
+	diff subpkg_dependencies "$WORKDIR"/actual_subpkg_dependencies
+	false
 }
