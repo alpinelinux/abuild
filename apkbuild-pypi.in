@@ -216,6 +216,9 @@ sub get_deps {
 
     $apk =~ s/pymakedepends=""/pymakedepends="$reqs"/;
 
+    # remove empty variables
+    $apk =~ s/.*=""\n//g;
+
     open my $fh, '>:utf8', 'APKBUILD';
 
     print $fh $apk;
