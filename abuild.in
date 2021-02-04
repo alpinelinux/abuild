@@ -804,6 +804,13 @@ postcheck() {
 			e=1
 		fi
 	fi
+	# check that we don't have any files names with newline
+	i=$(find "$dir" -name $'*\n*')
+	if [ -n "$i" ]; then
+		error "Found filenames with newline:"
+		echo "$i"
+		e=1
+	fi
 	# check directory permissions
 	i=$(find "$dir" -type d -perm -777 | sed "s|^$dir|\t|")
 	if [ -n "$i" ]; then

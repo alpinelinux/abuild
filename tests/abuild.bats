@@ -24,13 +24,20 @@ teardown() {
 
 @test "abuild: build failure" {
 	cd testrepo/buildfail
-	run $ABUILD cleanpkg all
+	run $ABUILD all
+	[ $status -ne 0 ]
+}
+
+@test "abuild: test check for invalid file names" {
+	cd testrepo/invalid-filename
+	run $ABUILD all
+	echo "$output"
 	[ $status -ne 0 ]
 }
 
 @test "abuild: test check for /usr/lib64" {
 	cd testrepo/lib64test
-	run $ABUILD cleanpkg all
+	run $ABUILD all
 	[ $status -ne 0 ]
 }
 
@@ -55,3 +62,4 @@ teardown() {
 
 	[ "$checksums" = "$checksums2" ]
 }
+
