@@ -306,9 +306,18 @@ sub format_depends {
     my $deps = shift;
 
     $columns = 102;
+
+    $deps =~ s/ {2,}/ /g;
+    $deps =~ s/^\s//g;
+    $deps =~ s/\s$//g;
+
     if (length($deps) >= $columns) {
-        $deps =~ s/ {2,}/ /g;
-        $deps = wrap("\n\t", "\t", $deps) . "\n\t";
+        $deps = wrap("\t", "\t", $deps);
+    }
+    $deps =~ s/\s$//g;
+
+    if (length($deps) >= $columns) {
+        $deps = "\n" . $deps . "\n\t";
     }
     return $deps;
 }
@@ -448,15 +457,15 @@ sub do_depends {
 			die "Can't find license line in APKBUILD";
 	}
 	$text =~ s/^depends=\"([^\"]*)\"$/depends=\"$deps\"/mg or
-		$text =~ s/(license=.*\n)/$1depends=\"$deps\"\n/gm or
+		$text =~ s/(license=.*\n)/$1depends=\"$deps\"/gm or
 			die "Can't insert depends line in APKBUILD";
 
 	$text =~ s/^makedepends=\"([^\"]*)\"$/makedepends=\"$makedeps\"/mg or
-		$text =~ s/(depends=.*\n)/$1makedepends=\"$makedeps\"\n/gm or
+		$text =~ s/(depends=.*\n)/$1makedepends=\"$makedeps\"/gm or
 			die "Can't insert makedepends line in APKBUILD";
 
 	$text =~ s/^checkdepends=\"([^\"]*)\"$/checkdepends=\"$checkdeps\"/mg or
-		$text =~ s/(makedepends=.*\n)/$1checkdepends=\"$checkdeps\"\n/gm or
+		$text =~ s/(makedepends=.*\n)/$1checkdepends=\"$checkdeps\"/gm or
 			die "Can't insert checkdepends line in APKBUILD";
 
 	# remove empty variables
