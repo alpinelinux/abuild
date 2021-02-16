@@ -51,7 +51,7 @@ makedepends="perl-dev"
 checkdepends=""
 subpackages="$pkgname-doc"
 source="[% source %]"
-builddir="$srcdir/$_pkgreal-$pkgver"
+builddir="[% builddir %]"
 
 build() {
 	:
@@ -130,6 +130,17 @@ sub write_apkbuild {
 			$pkgrel++;
 		}
 	}
+
+	my $builddir;
+
+	my $pkgver = $moddata->{version} =~ s/^[^0-9]+//r;
+	if ($pkgver ne $moddata->{version}) {
+		# Appears to only be needed for Class::DBI
+		$builddir = "\$srcdir/\$_pkgreal-" . $moddata->{version};
+        } else {
+		$builddir = "\$srcdir/\$_pkgreal-\$pkgver";
+        }
+
 	my %repl = (
 		authors  => ($authors or "# Contributor: $packager\n# Maintainer: $packager"),
 		pkgname  => map_cpan_to_apk($moddata->{distribution}),
@@ -140,6 +151,7 @@ sub write_apkbuild {
 		pkgdesc  => $distdata->{abstract},
 		provides => ($provides or ''),
 		replaces => ($replaces or ''),
+		builddir => $builddir,
 	);
 	$repl{source} =~ s/-$repl{pkgver}/-\$pkgver/g;
 	$template =~ s/\[% (.*?) %\]/$repl{$1}/g;
@@ -323,27 +335,29 @@ sub format_depends {
 }
 
 sub do_depends {
+	my $modver = shift;
         my $oldapkbuild = shift;
 	my $apkbuild = read_apkbuild;
 
+	$modver = defined($modver) ? $modver : $apkbuild->{'pkgver'};
 	my $metaprefix = '';
 	if ( exists $apkbuild->{'_realname'} ) {
-		$metaprefix = "src/" . $apkbuild->{'_realname'} . "-" . $apkbuild->{'pkgver'} . "/";
+		$metaprefix = "src/" . $apkbuild->{'_realname'} . "-" . $modver . "/";
 	}
 	elsif ( exists $apkbuild->{'_pkgreal'} ) {
-		$metaprefix = "src/" . $apkbuild->{'_pkgreal'} . "-" . $apkbuild->{'pkgver'} . "/";
+		$metaprefix = "src/" . $apkbuild->{'_pkgreal'} . "-" . $modver . "/";
 	}
 	elsif ( exists $apkbuild->{'_pkgname'} ) {
-		$metaprefix = "src/" . $apkbuild->{'_pkgname'} . "-" . $apkbuild->{'pkgver'} . "/";
+		$metaprefix = "src/" . $apkbuild->{'_pkgname'} . "-" . $modver . "/";
 	}
 	elsif ( exists $apkbuild->{'_name'} ) {
-		$metaprefix = "src/" . $apkbuild->{'_name'} . "-" . $apkbuild->{'pkgver'} . "/";
+		$metaprefix = "src/" . $apkbuild->{'_name'} . "-" . $modver . "/";
 	}
 	elsif ( exists $apkbuild->{'_realpkgname'} ) {
-		$metaprefix = "src/" . $apkbuild->{'_realpkgname'} . "-" . $apkbuild->{'pkgver'} . "/";
+		$metaprefix = "src/" . $apkbuild->{'_realpkgname'} . "-" . $modver . "/";
 	}
 	elsif ( exists $apkbuild->{'_pkg_real'} ) {
-		$metaprefix = "src/" . $apkbuild->{'_pkg_real'} . "-" . $apkbuild->{'pkgver'} . "/";
+		$metaprefix = "src/" . $apkbuild->{'_pkg_real'} . "-" . $modver . "/";
 	}
 	else {
 		die "Unable to find meta file directory - check APKBUILD Perl Module Name";
@@ -579,7 +593,7 @@ given ( $ARGV[0] ) {
 		write_apkbuild($distdata, undef, $moddata);
 		prepare_tree;
 		update_functions;
-		do_depends;
+		do_depends $moddata->{version};
 	}
 	when ("recreate") {
 		#TODO: likely should keep pkgrel the same on recreate
@@ -593,7 +607,7 @@ given ( $ARGV[0] ) {
 		write_apkbuild($distdata, $apkbuild, $moddata);
 		prepare_tree;
 		update_functions;
-		do_depends($apkbuild);
+		do_depends($moddata->{version}, $apkbuild);
 	}
 	when ("upgrade") {
 		my ($apkbuild, $distdata, $moddata) = get_data;
@@ -611,7 +625,7 @@ given ( $ARGV[0] ) {
 			close $fh;
 
 			prepare_tree;
-			do_depends;
+			do_depends ($moddata->{version});
 		} else {
 			say "Up-to-data with CPAN";
 		}
