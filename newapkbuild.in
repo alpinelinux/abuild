@@ -363,6 +363,8 @@ __EOF__
 		check_make;;
 	cmake)
 		check_cmake;;
+	meson)
+		check_meson;;
 	python)
 		check_python;;
 	rust)
