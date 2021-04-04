@@ -625,7 +625,7 @@ given ( $ARGV[0] ) {
 			close $fh;
 
 			prepare_tree;
-			do_depends ($moddata->{version});
+			do_depends ($moddata->{version}, $apkbuild);
 		} else {
 			say "Up-to-data with CPAN";
 		}
