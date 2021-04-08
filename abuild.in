@@ -1061,6 +1061,13 @@ prepare_metafiles() {
 	esac
 
 	local size=$(du -sk | awk '{print $1 * 1024}')
+	# If package contains only empty files, the size might be 0. But due to
+	# apk-tools 2 considering packages with size = 0 virtual, nothing is
+	# extracted. That will be solved in apk-tools 3. As a workaround we can
+	# set the size to 1 if any files are present.
+	if [ "$size" -eq 0 ] && [ -n "$(find . ! -name .)" ]; then
+		size=1
+	fi
 
 	if [ "$arch" != "$apkbuild_arch" ]; then
 		local msg="Split function set arch=\"$arch\" for $name, use subpackages=pkg:split:arch format instead"
