@@ -15,6 +15,18 @@ setup() {
 		exit \${CURL_EXITCODE:-0}
 	EOF
 	chmod +x "$bindir"/curl
+
+	# fake wget
+	cat >> "$bindir"/wget <<-EOF
+		#!/bin/sh
+
+		PATH=/usr/local/bin:/usr/bin:/bin
+		touch "$tmpdir"/wget-invoked
+		echo "Fake wget invoked with: \$@"
+		exit \${WGET_EXITCODE:-0}
+	EOF
+	chmod +x "$bindir"/wget
+
 }
 
 teardown() {
@@ -32,5 +44,17 @@ teardown() {
 
 @test "abuild-fetch: test curl failure" {
 	run CURL_EXITCODE=1 $ABUILD_FETCH -d "$tmpdir" https://example.com/non-existing
+	[ $status -ne 0 ]
+}
+
+@test "abuild-fetch: test wget fallback" {
+	rm "$bindir"/curl
+	PATH="$bindir" $ABUILD_FETCH -d "$tmpdir" https://example.com/non-existing
+	[ -f "$tmpdir"/wget-invoked ]
+}
+
+@test "abuild-fetch: test wget fallback failure" {
+	rm "$bindir"/curl
+	run PATH="$bindir" WGET_EXITCODE=1 $ABUILD_FETCH -d "$tmpdir" https://example.com/non-existing
 	[ $status -ne 0 ]
 }
