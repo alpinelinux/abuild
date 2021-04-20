@@ -2,11 +2,13 @@ setup() {
 	export ABUILD="$PWD/../abuild"
 	export ABUILD_SHAREDIR="$PWD/.."
 	export ABUILD_CONF=/dev/null
-	export REPODEST="$BATS_TMPDIR"/packages
+	tmpdir="$BATS_TMPDIR"/abuild
+	export REPODEST="$tmpdir"/packages
+	mkdir -p $tmpdir
 }
 
 teardown() {
-	rm -rf "$REPODEST"
+	rm -rf "$tmpdir"
 }
 
 @test "abuild: help text" {
@@ -61,5 +63,20 @@ teardown() {
 	echo "$checksums2"
 
 	[ "$checksums" = "$checksums2" ]
+}
+
+@test "abuild: test checksum generation" {
+	mkdir -p "$tmpdir"/foo
+	cat >> "$tmpdir"/foo/APKBUILD <<-EOF
+		pkgname="foo"
+		pkgver="1.0"
+		source="test.txt"
+	EOF
+	echo "foo" > "$tmpdir"/foo/test.txt
+	cd "$tmpdir"/foo
+	abuild checksum
+	. ./APKBUILD && echo $sha512sums > sums
+	cat sums
+	sha512sum -c sums
 }
 
