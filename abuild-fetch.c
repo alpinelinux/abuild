@@ -51,7 +51,7 @@ void add_opt(struct cmdarray *cmd, char *opt)
 
 int usage(int eval)
 {
-	printf("usage: %s [-h] [-d DESTDIR] URL\n", program);
+	printf("usage: %s [-hk] [-d DESTDIR] URL\n", program);
 	return eval;
 }
 
