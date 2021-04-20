@@ -51,6 +51,10 @@ teardown() {
 	[ $status -ne 0 ]
 }
 
+@test "abuild-fetch: that --insecure is passed for http://" {
+	$ABUILD_FETCH -d "$tmpdir" http://example.com/non-existing | grep insecure
+}
+
 @test "abuild-fetch: test wget fallback" {
 	rm "$bindir"/curl
 	PATH="$bindir" $ABUILD_FETCH -d "$tmpdir" https://example.com/non-existing
@@ -61,6 +65,11 @@ teardown() {
 	rm "$bindir"/curl
 	run PATH="$bindir" WGET_EXITCODE=1 $ABUILD_FETCH -d "$tmpdir" https://example.com/non-existing
 	[ $status -ne 0 ]
+}
+
+@test "abuild-fetch: test that --no-check-certificate is passed to wget fallback with http://" {
+	rm "$bindir"/curl
+	PATH="$bindir" $ABUILD_FETCH -d "$tmpdir" http://example.com/non-existing | grep no-check-certificate
 }
 
 @test "abuild-fetch: test locking" {
