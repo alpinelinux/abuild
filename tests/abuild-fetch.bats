@@ -7,17 +7,21 @@ setup() {
 	export PATH="$bindir:$PATH"
 
 	# fake curl
-	cat >> "$bindir"/curl <<-EOF
+	cat > "$bindir"/curl <<-EOF
 		#!/bin/sh
 
-		touch "$tmpdir"/curl-invoked
+		touch \${STAMP:-"$tmpdir"/curl-invoked}
 		echo "Fake curl invoked with: \$@"
+		if [ -n "\$FIFO" ]; then
+			echo "waiting for fifo \$FIFO"
+			cat "\$FIFO"
+		fi
 		exit \${CURL_EXITCODE:-0}
 	EOF
 	chmod +x "$bindir"/curl
 
 	# fake wget
-	cat >> "$bindir"/wget <<-EOF
+	cat > "$bindir"/wget <<-EOF
 		#!/bin/sh
 
 		PATH=/usr/local/bin:/usr/bin:/bin
@@ -57,4 +61,35 @@ teardown() {
 	rm "$bindir"/curl
 	run PATH="$bindir" WGET_EXITCODE=1 $ABUILD_FETCH -d "$tmpdir" https://example.com/non-existing
 	[ $status -ne 0 ]
+}
+
+@test "abuild-fetch: test locking" {
+	fifo="$tmpdir"/fifo
+	mkfifo $fifo
+
+	STAMP="$tmpdir"/stamp1 FIFO="$tmpdir"/fifo $ABUILD_FETCH -d "$tmpdir" https://example.com/foo &
+	pid1=$!
+
+	# make sure to unblock the fake curl in case test failure so we dont block bats
+	teardown() {
+		if [ -d /proc/$pid1 ]; then
+			echo "done fifo" > "$tmpdir"/fifo
+		fi
+		rm -rf "$tmpdir"
+	}
+
+	ls -la "$tmpdir"
+
+	export STAMP="$tmpdir"/stamp2
+	$ABUILD_FETCH -d "$tmpdir" https://example.com/foo &
+	pid2=$!
+	ls -la "$tmpdir"
+	# second stamp should not exist til after first abuild-fetch completes
+	[ ! -f "$tmpdir"/stamp2 ]
+
+	echo "done fifo" > "$tmpdir"/fifo
+	wait $pid1
+	wait $pid2
+	ls -la "$tmpdir"
+	[ -f "$tmpdir"/stamp2 ]
 }
