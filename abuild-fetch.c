@@ -77,18 +77,45 @@ int fork_exec(char *argv[], int showerr)
 	return r;
 }
 
-/* create or wait for an NFS-safe lockfile and fetch url with curl or wget */
-int fetch(char *url, const char *destdir, bool insecure)
+static int aquire_lock(const char *lockfile)
 {
-	int lockfd, status=0;
-	char outfile[PATH_MAX-5], partfile[PATH_MAX];
-	char *name, *p;
 	struct flock fl = {
 		.l_type = F_WRLCK,
 		.l_whence = SEEK_SET,
 		.l_start = 1,
 		.l_len = 0,
 	};
+
+	int lockfd = open(lockfile, O_WRONLY|O_CREAT, 0660);
+	if (lockfd < 0)
+		err(1, "%s", lockfile);
+
+	if (fcntl(lockfd, F_SETLK, &fl) < 0) {
+		int i;
+		printf("Waiting for %s ...\n", lockfile);
+		for (i=0; i<10; i++) {
+			int r = fcntl(lockfd, F_SETLKW, &fl);
+			if (r == 0)
+				break;
+			if (r == -1 && errno != ESTALE)
+				err(1, "fcntl(F_SETLKW)");
+			sleep(1);
+		}
+	}
+	return lockfd;
+}
+
+static void release_lock(int lockfd)
+{
+	close(lockfd);
+}
+
+/* create or wait for an NFS-safe lockfile and fetch url with curl or wget */
+int fetch(char *url, const char *destdir, bool insecure)
+{
+	int lockfd, status=0;
+	char outfile[PATH_MAX-5], partfile[PATH_MAX];
+	char *name, *p;
 	struct cmdarray curlcmd = {
 		.argc = 5,
 		.argv = { "curl", "-L", "-f", "-o", partfile, NULL }
@@ -114,22 +141,7 @@ int fetch(char *url, const char *destdir, bool insecure)
 	snprintf(lockfile, sizeof(lockfile), "%s.lock", outfile);
 	snprintf(partfile, sizeof(partfile), "%s.part", outfile);
 
-	lockfd = open(lockfile, O_WRONLY|O_CREAT, 0660);
-	if (lockfd < 0)
-		err(1, "%s", lockfile);
-
-	if (fcntl(lockfd, F_SETLK, &fl) < 0) {
-		int i;
-		printf("Waiting for %s ...\n", lockfile);
-		for (i=0; i<10; i++) {
-			int r = fcntl(lockfd, F_SETLKW, &fl);
-			if (r == 0)
-				break;
-			if (r == -1 && errno != ESTALE)
-				err(1, "fcntl(F_SETLKW)");
-			sleep(1);
-		}
-	}
+	lockfd = aquire_lock(lockfile);
 
 	if (access(outfile, F_OK) == 0)
 		goto fetch_done;
@@ -175,7 +187,7 @@ int fetch(char *url, const char *destdir, bool insecure)
 
 fetch_done:
 	unlink(lockfile);
-	close(lockfd);
+	release_lock(lockfd);
 	lockfile[0] = '\0';
 	return status;
 }
