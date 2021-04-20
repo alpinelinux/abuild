@@ -23,6 +23,7 @@ THE SOFTWARE.
 */
 
 
+#include <sys/file.h>
 #include <sys/wait.h>
 
 #include <err.h>
@@ -90,6 +91,7 @@ static int aquire_lock(const char *lockfile)
 	if (lockfd < 0)
 		err(1, "%s", lockfile);
 
+	/* create NFS-safe lock */
 	if (fcntl(lockfd, F_SETLK, &fl) < 0) {
 		int i;
 		printf("Waiting for %s ...\n", lockfile);
@@ -102,11 +104,20 @@ static int aquire_lock(const char *lockfile)
 			sleep(1);
 		}
 	}
+
+	int r = flock(lockfd, LOCK_EX);
+	if (r == -1)
+		err(1, "flock: %s", lockfile);
+
 	return lockfd;
 }
 
 static void release_lock(int lockfd)
 {
+	int r = flock(lockfd, LOCK_UN);
+	if (r == -1)
+		err(1, "flock");
+
 	close(lockfd);
 }
 
