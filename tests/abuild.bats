@@ -49,6 +49,11 @@ teardown() {
 	$ABUILD cleanpkg
 }
 
+@test "abuild: test -dbg subpackage" {
+	cd testrepo/dbgpkg
+	$ABUILD
+}
+
 @test "abuild: verify that packages are reproducible built" {
 	cd testrepo/pkg1
 	arch=$($ABUILD -A)
