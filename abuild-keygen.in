@@ -16,6 +16,7 @@ if ! [ -f "$sharedir/functions.sh" ]; then
 fi
 . "$sharedir/functions.sh"
 
+set -e
 
 # ask for privkey unless non-interactive mode
 # returns value in global $privkey
@@ -32,7 +33,9 @@ get_privkey_file() {
 	default_name="${emailaddr:-$USER}-$(printf "%x" $(date +%s))"
 
 	privkey="$ABUILD_USERDIR/$default_name.rsa"
-	[ -n "$non_interactive" ] && return 0
+	if [ -n "$non_interactive" ]; then
+		return 0
+	fi
 	msg "Generating public/private rsa key pair for abuild"
 	echo -n "Enter file in which to save the key [$privkey]: "
 
