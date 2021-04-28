@@ -27,6 +27,7 @@ fi
 : ${ADDGROUP:="abuild-addgroup"}
 : ${CC:="gcc"}
 : ${CXX:="g++"}
+: ${SETFATTR:="setfattr"}
 
 apk_opt_wait="--wait 30"
 
@@ -1847,7 +1848,7 @@ default_dbg() {
 		mv "$ddbg_dstfile" "$ddbg_dstdir"
 		${CROSS_COMPILE}strip "$ddbg_srcfile"
 		if [ -n "$xattr" ]; then
-			echo "$xattr" | setfattr --restore=-
+			echo "$xattr" | "$SETFATTR" --restore=-
 		fi
 	done
 	return 0
@@ -2402,7 +2403,7 @@ stripbin() {
 		local XATTR=$(getfattr --match="" --dump "${filename}")
 		"${stripcmd}" "${filename}"
 		if [ -n "$XATTR" ]; then
-			echo "$XATTR" | setfattr --restore=-
+			echo "$XATTR" | "$SETFATTR" --restore=-
 		fi
 	done
 }
