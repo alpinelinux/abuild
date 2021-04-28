@@ -55,6 +55,17 @@ teardown() {
 	$ABUILD
 }
 
+@test "abuild: test SETFATTR in -dbg subpackage" {
+	cd testrepo/dbgpkg
+	ERROR_CLEANUP="$CLEANUP" SETFATTR=true $ABUILD
+}
+
+@test "abuild: test SETFATTR failure in -dbg subpackage" {
+	cd testrepo/dbgpkg
+	run ERROR_CLEANUP="$CLEANUP" SETFATTR=false $ABUILD
+	[ $status -ne 0 ]
+}
+
 @test "abuild: verify that packages are reproducible built" {
 	cd testrepo/pkg1
 	arch=$($ABUILD -A)
