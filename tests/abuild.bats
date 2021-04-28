@@ -91,7 +91,7 @@ teardown() {
 	EOF
 	echo "foo" > "$tmpdir"/foo/test.txt
 	cd "$tmpdir"/foo
-	abuild checksum
+	$ABUILD checksum
 	. ./APKBUILD && echo "$sha512sums" > sums
 	cat sums
 	sha512sum -c sums
