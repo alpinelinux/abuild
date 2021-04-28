@@ -97,3 +97,17 @@ teardown() {
 	sha512sum -c sums
 }
 
+@test "abuild: test duplicates in checksum generation" {
+	mkdir -p "$tmpdir"/foo "$tmpdir"/foo/dir1 "$tmpdir"/foo/dir2
+	cat >> "$tmpdir"/foo/APKBUILD <<-EOF
+		pkgname="foo"
+		pkgver="1.0"
+		source="dir1/testfile dir2/testfile"
+	EOF
+	echo "first" > "$tmpdir"/foo/dir1/testfile
+	echo "second" > "$tmpdir"/foo/dir2/testfile
+	cd "$tmpdir"/foo
+	run $ABUILD checksum
+	[ $status -ne 0 ]
+}
+

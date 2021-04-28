@@ -2260,7 +2260,11 @@ checksum() {
 	[ -z "$source" ] && return 0
 	fetch
 	for s in $source; do
-		files="$files $(filename_from_uri $s)"
+		local name="$(filename_from_uri $s)"
+		case " $files " in
+		*" $name "*) die "duplicate found in \$source: $name";;
+		esac
+		files="$files $name"
 	done
 
 	msg "Updating the sha512sums in APKBUILD..."
