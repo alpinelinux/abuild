@@ -5,6 +5,7 @@ setup() {
 	tmpdir="$BATS_TMPDIR"/abuild
 	export REPODEST="$tmpdir"/packages
 	mkdir -p $tmpdir
+	export CLEANUP="srcdir bldroot pkgdir deps"
 }
 
 teardown() {
@@ -26,13 +27,13 @@ teardown() {
 
 @test "abuild: build failure" {
 	cd testrepo/buildfail
-	run $ABUILD all
+	run ERROR_CLEANUP="$CLEANUP" $ABUILD all
 	[ $status -ne 0 ]
 }
 
 @test "abuild: test check for invalid file names" {
 	cd testrepo/invalid-filename
-	run $ABUILD all
+	run ERROR_CLEANUP="$CLEANUP" $ABUILD all
 	echo "$output"
 	[ $status -ne 0 ]
 }
