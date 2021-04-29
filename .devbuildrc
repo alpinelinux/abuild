@@ -1,2 +1,0 @@
-VERSION=$(awk -F= '$1 == "abuild_ver" {print $2}' abuild)
-SUFFIX=.tar.gz
