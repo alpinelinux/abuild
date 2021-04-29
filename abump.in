@@ -130,6 +130,6 @@ if [ $# -eq 0 ]; then
 	exit 2
 fi
 
-abuild_opts="-r $keep"
+abuild_opts="${ABUILD_OPTS- -r} $keep"
 
 do_bump "$@"
