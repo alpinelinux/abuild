@@ -210,6 +210,14 @@ default_sanitycheck() {
 		esac
 	done
 
+	# check that -dbg comes first
+	if subpackages_has "$pkgname-dbg"; then
+		set -- $subpackages
+		if [ "$1" != "$pkgname-dbg" ]; then
+			warning "$pkgname-dbg should be first in subpackages"
+		fi
+	fi
+
 	for i in $install; do
 		local n=${i%.*}
 		local suff=${i##*.}

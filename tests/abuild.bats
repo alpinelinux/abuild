@@ -111,3 +111,20 @@ teardown() {
 	[ $status -ne 0 ]
 }
 
+@test "abuild: test that -dbg should be first" {
+	mkdir -p "$tmpdir"/foo
+	cat >> "$tmpdir"/foo/APKBUILD <<-EOF
+		# Maintainer: Test user <user@example.com>
+		pkgname="foo"
+		pkgver="1.0"
+		pkgrel=0
+		pkgdesc="dummy package for test"
+		url="https://alpinelinux.org"
+		license="MIT"
+		subpackages="\$pkgname-dev \$pkgname-dbg"
+		package() { :; }
+	EOF
+	cd "$tmpdir"/foo
+	run $ABUILD sanitycheck
+	[[ $output[1] == *WARNING*dbg* ]]
+}
