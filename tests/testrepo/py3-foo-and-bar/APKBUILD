@@ -1,0 +1,15 @@
+# Maintainer: Test user <user@example.com>
+pkgname=py3-foo-and-bar
+pkgver=1.0.0
+pkgrel=0
+pkgdesc="dummy package for test"
+url="https://alpinelinux.org"
+license="MIT"
+builddir="$srcdir"
+_sitedir=usr/lib/python3.9/site-packages
+
+package() {
+	mkdir -p "$pkgdir"/$_sitedir/foo
+	touch "$pkgdir"/$_sitedir/foo/__init__.py
+	touch "$pkgdir"/$_sitedir/bar.py
+}

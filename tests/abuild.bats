@@ -167,3 +167,12 @@ teardown() {
 	grep 'depend = sed' pkg/.control.subpkg-dep-leak-subpkg/.PKGINFO
 	! grep 'depend = tar' pkg/.control.subpkg-dep-leak-subpkg/.PKGINFO
 }
+
+@test "abuild: test py-providers creation" {
+	cd testrepo/py3-foo-and-bar
+	$ABUILD rootpkg
+	run grep -x py3.9:foo=1.0.0-r0 pkg/.control.py3-foo-and-bar/.py-provides
+	run grep -x 'provides py3.9:foo=1.0.0-r0' pkg/.control.py3-foo-and-bar/.PKGINFO
+	run grep -x py3.9:bar=1.0.0-r0 pkg/.control.py3-foo-and-bar/.py-provides
+	run grep -x 'provides py3.9:bar=1.0.0-r0' pkg/.control.py3-foo-and-bar/.PKGINFO
+}
