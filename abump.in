@@ -92,7 +92,6 @@ usage() {
 		Options:
 		  -s, --security CVE1,CVE-2,...  Security update
 		  -f, --fixes ISSUE              Fixes ISSUE
-		  -R, --recursive                Run abuild with -R for recursive building
 		  -k, --keep                     Run abuild with -k to keep existing packages
 		  -q, --quiet
 		  -h, --help                     Show this help
@@ -101,14 +100,13 @@ usage() {
 }
 
 keep=
-recursive="-r"
 cvelist=
 fixes=
 
 [ -n "$APORTSDIR" ] || error "can't locate \$APORTSDIR"
 git rev-parse 2>/dev/null || die "not in a git tree"
 
-args=$(getopt -o f:s:Rkqh --long fixes:,security:,recursive,keep,quiet,help \
+args=$(getopt -o f:s:kqh --long fixes:,security:,keep,quiet,help \
 	-n "$program" -- "$@")
 if [ $? -ne 0 ]; then
 	usage
@@ -119,7 +117,6 @@ while true; do
 	case $1 in
 		-s|--security) cvelist=" ($2)"; shift;;
 		-f|--fixes) fixes="$2"; shift;;
-		-R|--recursive) recursive="-R";;
 		-k|--keep) keep="-k";;
 		-q|--quiet) quiet=1;; # suppresses msg
 		-h|--help) usage; exit;;
@@ -133,6 +130,6 @@ if [ $# -eq 0 ]; then
 	exit 2
 fi
 
-abuild_opts="$recursive $keep"
+abuild_opts="-r $keep"
 
 do_bump "$@"
