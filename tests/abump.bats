@@ -6,6 +6,7 @@ setup() {
 	export ABUILD_CONF=/dev/null
 	tmpdir="$BATS_TMPDIR"/abump
 	export ABUILD_USERDIR="$tmpdir"/.config
+	export PACKAGER="Test User <user@example.com>"
 	export REPODEST="$tmpdir"/packages
 	mkdir -p $tmpdir
 	export CLEANUP="srcdir bldroot pkgdir deps"
@@ -16,7 +17,7 @@ setup() {
 	$ABUILD_KEYGEN --append -n
 
 	cd "$tmpdir"
-	git init
+	git init --quiet
 }
 
 teardown() {
