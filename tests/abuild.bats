@@ -1,4 +1,4 @@
-load helpers
+#/usr/bin/env bats
 
 setup() {
 	export ABUILD="$PWD/../abuild"
@@ -14,10 +14,6 @@ setup() {
 
 teardown() {
 	rm -rf "$tmpdir"
-}
-
-build_repo() {
-	:
 }
 
 @test "abuild: help text" {
@@ -138,14 +134,36 @@ build_repo() {
 }
 
 @test "abuild: verify main package does not inherit subpackage dependencies" {
-	cd testrepo/subpkg-dep-leak/
+	mkdir -p "$tmpdir"/testrepo/subpkg-dep-leak
+	cd "$tmpdir"/testrepo/subpkg-dep-leak
+	cat > APKBUILD <<-EOF
+		# Maintainer: Natanael Copa <ncopa@alpinelinux.org>
+		pkgname="subpkg-dep-leak"
+		pkgver=1.0
+		pkgrel=0
+		pkgdesc="Dummy test package with subpackages and dependencies"
+		url="https://gitlab.alpinelinux.org/alpine/aports"
+		arch="noarch"
+		depends="tar scanelf"
+		license="MIT"
+		subpackages="\$pkgname-subpkg"
+		options="!check"
 
-	$ABUILD
+		package() {
+			mkdir -p "\$pkgdir"
+		}
 
-	pkg_field subpkg-dep-leak-1.0-r0 depend >"$WORKDIR"/actual_main_dependencies
-	pkg_field subpkg-dep-leak-subpkg-1.0-r0 depend >"$WORKDIR"/actual_subpkg_dependencies
+		subpkg() {
+			depends="sed"
+			mkdir -p "\$subpkgdir"
+		}
+	EOF
+	$ABUILD clean unpack prepare build rootpkg
 
-	diff main_dependencies "$WORKDIR"/actual_main_dependencies
-	diff subpkg_dependencies "$WORKDIR"/actual_subpkg_dependencies
-	false
+	grep 'depend = tar' pkg/.control.subpkg-dep-leak/.PKGINFO
+	grep 'depend = scanelf' pkg/.control.subpkg-dep-leak/.PKGINFO
+	! grep 'depend = sed' pkg/.control.subpkg-dep-leak/.PKGINFO
+
+	grep 'depend = sed' pkg/.control.subpkg-dep-leak-subpkg/.PKGINFO
+	! grep 'depend = tar' pkg/.control.subpkg-dep-leak-subpkg/.PKGINFO
 }
