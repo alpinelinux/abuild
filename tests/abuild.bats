@@ -88,7 +88,7 @@ teardown() {
 
 @test "abuild: test checksum generation" {
 	mkdir -p "$tmpdir"/foo
-	cat >> "$tmpdir"/foo/APKBUILD <<-EOF
+	cat > "$tmpdir"/foo/APKBUILD <<-EOF
 		pkgname="foo"
 		pkgver="1.0"
 		source="test.txt"
@@ -96,14 +96,14 @@ teardown() {
 	echo "foo" > "$tmpdir"/foo/test.txt
 	cd "$tmpdir"/foo
 	$ABUILD checksum
-	. ./APKBUILD && echo "$sha512sums" > sums
+	. ./APKBUILD && echo "$sha512sums" | sed '/^$/d' > sums
 	cat sums
 	sha512sum -c sums
 }
 
 @test "abuild: test duplicates in checksum generation" {
 	mkdir -p "$tmpdir"/foo "$tmpdir"/foo/dir1 "$tmpdir"/foo/dir2
-	cat >> "$tmpdir"/foo/APKBUILD <<-EOF
+	cat > "$tmpdir"/foo/APKBUILD <<-EOF
 		pkgname="foo"
 		pkgver="1.0"
 		source="dir1/testfile dir2/testfile"
@@ -117,7 +117,7 @@ teardown() {
 
 @test "abuild: test that -dbg should be first" {
 	mkdir -p "$tmpdir"/foo
-	cat >> "$tmpdir"/foo/APKBUILD <<-EOF
+	cat > "$tmpdir"/foo/APKBUILD <<-EOF
 		# Maintainer: Test user <user@example.com>
 		pkgname="foo"
 		pkgver="1.0"
