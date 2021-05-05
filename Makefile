@@ -95,7 +95,7 @@ help:
 	@echo "usage: make install [ DESTDIR=<path> ]"
 
 check: $(USR_BIN_FILE) functions.sh
-	cd tests && bats *.bats
+	cd tests && bats $${FILTER:+ --filter $$FILTER} *.bats
 
 install: $(USR_BIN_FILES) $(SAMPLES) abuild.conf functions.sh
 	install -d $(DESTDIR)/$(bindir) $(DESTDIR)/$(sysconfdir) \
