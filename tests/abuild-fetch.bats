@@ -11,9 +11,9 @@ setup() {
 		#!/bin/sh
 
 		touch \${STAMP:-"$tmpdir"/curl-invoked}
-		echo "Fake curl invoked with: \$@"
+		echo "[\$\$] Fake curl invoked with: \$@"
 		if [ -n "\$FIFO" ]; then
-			echo "waiting for fifo \$FIFO"
+			echo "[\$\$] waiting for fifo \$FIFO"
 			cat "\$FIFO"
 		fi
 		exit \${CURL_EXITCODE:-0}
@@ -73,32 +73,65 @@ teardown() {
 }
 
 @test "abuild-fetch: test locking" {
-	fifo="$tmpdir"/fifo
-	mkfifo $fifo
-
-	STAMP="$tmpdir"/stamp1 FIFO="$tmpdir"/fifo $ABUILD_FETCH -d "$tmpdir" https://example.com/foo &
-	pid1=$!
+	fifo1="$tmpdir"/fifo1
+	fifo2="$tmpdir"/fifo2
+	mkfifo $fifo1 $fifo2
 
 	# make sure to unblock the fake curl in case test failure so we dont block bats
 	teardown() {
 		if [ -d /proc/$pid1 ]; then
-			echo "done fifo" > "$tmpdir"/fifo
+			echo "done fifo1" > "$tmpdir"/fifo1
+		fi
+		if [ -d /proc/$pid2 ]; then
+			echo "done fifo2" > "$tmpdir"/fifo2
 		fi
 		rm -rf "$tmpdir"
 	}
 
-	ls -la "$tmpdir"
+	CURL_EXITCODE=1 STAMP="$tmpdir"/stamp1 FIFO="$tmpdir"/fifo1 $ABUILD_FETCH -d "$tmpdir" https://example.com/foo &
+	pid1=$!
 
-	export STAMP="$tmpdir"/stamp2
-	$ABUILD_FETCH -d "$tmpdir" https://example.com/foo &
+	# wait til curl is called
+	while !  [ -f "$tmpdir"/stamp1 ]; do
+		sleep 0.1
+	done
+
+	# try a second fetch, while the first one is still running
+	STAMP="$tmpdir"/stamp2 FIFO="$tmpdir"/fifo2 $ABUILD_FETCH -d "$tmpdir" https://example.com/foo &
 	pid2=$!
 	ls -la "$tmpdir"
 	# second stamp should not exist til after first abuild-fetch completes
 	[ ! -f "$tmpdir"/stamp2 ]
 
-	echo "done fifo" > "$tmpdir"/fifo
-	wait $pid1
+	# tell curl to similuate download complete of first
+	echo "done fifo1" > "$tmpdir"/fifo1
+	run wait $pid1
+	[ $status -ne 0 ]
+
+	# wait til second instance gets lock to simulate download start
+	while ! [ -f "$tmpdir"/stamp2 ]; do
+		sleep 0.1
+	done
+
+	# first instance is done. lets retry download. second instance should block us
+	rm "$tmpdir"/stamp1
+	STAMP="$tmpdir"/stamp1 FIFO="$tmpdir"/fifo1 $ABUILD_FETCH -d "$tmpdir" https://example.com/foo &
+	pid1=$!
+
+	sleep 0.2
+	# the first stamp should not exist, second instance should block the retry
+	[ ! -f "$tmpdir"/stamp1 ]
+
+	# simulate second download finished
+	echo "done fifo2" > "$tmpdir"/fifo2
 	wait $pid2
+
+	# first should get unblocked
+	echo "done fifo1" > "$tmpdir"/fifo1
+	wait $pid1
+
+	# verify that first actually called curl
+	[ -f "$tmpdir"/stamp1 ]
+
 	ls -la "$tmpdir"
-	[ -f "$tmpdir"/stamp2 ]
 }
