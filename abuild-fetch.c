@@ -80,45 +80,26 @@ int fork_exec(char *argv[], int showerr)
 
 static int aquire_lock(const char *lockfile)
 {
-	struct flock fl = {
-		.l_type = F_WRLCK,
-		.l_whence = SEEK_SET,
-		.l_start = 1,
-		.l_len = 0,
-	};
-
 	int lockfd = open(lockfile, O_WRONLY|O_CREAT, 0660);
 	if (lockfd < 0)
 		err(1, "%s", lockfile);
 
-	/* create NFS-safe lock */
-	if (fcntl(lockfd, F_SETLK, &fl) < 0) {
-		int i;
-		printf("Waiting for %s ...\n", lockfile);
-		for (i=0; i<10; i++) {
-			int r = fcntl(lockfd, F_SETLKW, &fl);
-			if (r == 0)
-				break;
-			if (r == -1 && errno != ESTALE)
-				err(1, "fcntl(F_SETLKW)");
-			sleep(1);
-		}
-	}
-
-	int r = flock(lockfd, LOCK_EX);
-	if (r == -1)
-		err(1, "flock: %s", lockfile);
+	if (lockf(lockfd, F_LOCK, 0) == -1)
+		err(1, "failed to aquire lock: %s", lockfile);
 
 	return lockfd;
 }
 
 static void release_lock(int lockfd)
 {
-	int r = flock(lockfd, LOCK_UN);
-	if (r == -1)
-		err(1, "flock");
+	if (lockf(lockfd, F_ULOCK, 0) == -1)
+		err(1, "failed to release lock");
 
-	close(lockfd);
+}
+
+static int try_lock(int lockfd)
+{
+	return lockf(lockfd, F_TLOCK, 0) == 0;
 }
 
 /* create or wait for an NFS-safe lockfile and fetch url with curl or wget */
@@ -197,9 +178,14 @@ int fetch(char *url, const char *destdir, bool insecure)
 		rename(partfile, outfile);
 
 fetch_done:
-	unlink(lockfile);
 	release_lock(lockfd);
-	lockfile[0] = '\0';
+
+	// give other processes the chance to aquire the lock if they have the file open
+	sleep(0);
+
+	if (status == 0 || try_lock(lockfd))
+		unlink(lockfile);
+	close(lockfd);
 	return status;
 }
 
