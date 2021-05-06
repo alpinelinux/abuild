@@ -3,8 +3,16 @@ setup() {
 	export ABUILD_SHAREDIR="$PWD/.."
 	tmpdir="$BATS_TMPDIR"/abuild-keygen
 	export ABUILD_USERDIR="$tmpdir"/user
-	export PACKAGER="Test User <user@example.com>"
 	mkdir -p "$ABUILD_USERDIR"
+
+	# provide a fake git
+	mkdir -p "$tmpdir"/bin
+	cat >"$tmpdir"/bin/git <<-EOF
+		#!/bin/sh
+		exit 1
+	EOF
+	chmod +x "$tmpdir"/bin/git
+	export PATH="$tmpdir/bin:$PATH"
 }
 
 teardown() {
