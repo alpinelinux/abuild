@@ -28,8 +28,8 @@ teardown() {
 }
 
 @test "abuild-keygen: --append option" {
-	$ABUILD_KEYGEN --append -n
-	grep ^PACKAGER_PRIVKEY= "$ABUILD_USERDIR"/abuild.conf
+	PACKAGER="Test User <user@example.com>" $ABUILD_KEYGEN --append -n
+	grep '^PACKAGER_PRIVKEY=.*user@example.com' "$ABUILD_USERDIR"/abuild.conf
 }
 
 @test "abuild-keygen: --install option fails without SUDO" {
