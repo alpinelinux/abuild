@@ -478,8 +478,8 @@ sub do_depends {
 		$text =~ s/(depends=.*\n)/$1makedepends=\"$makedeps\"/gm or
 			die "Can't insert makedepends line in APKBUILD";
 
-	$text =~ s/^checkdepends=\"([^\"]*)\"$/checkdepends=\"$checkdeps\"\n/mg or
-		$text =~ s/(makedepends=.*\n)/$1checkdepends=\"$checkdeps\"\n/gm or
+	$text =~ s/^checkdepends=\"([^\"]*)\"$/checkdepends=\"$checkdeps\"/mg or
+		$text =~ s/(makedepends=.*\n)/$1checkdepends=\"$checkdeps\"/gm or
 			die "Can't insert checkdepends line in APKBUILD";
 
 	# remove empty variables
