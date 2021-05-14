@@ -18,6 +18,8 @@ setup() {
 
 	cd "$tmpdir"
 	git init --quiet
+	git config user.email "user@example.com"
+	git config user.name "Test User"
 }
 
 teardown() {
