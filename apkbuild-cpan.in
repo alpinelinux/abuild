@@ -463,8 +463,10 @@ sub do_depends {
 			die "Can't find pkgdesc line in APKBUILD";
 	}
 	if (length(`find $metaprefix -name '*.xs'`)) {
-		$text =~ s/^arch=\"([^\"]*)\"$/arch="all"/mg or
-			die "Can't find arch line in APKBUILD";
+		if (!exists $oldapkbuild->{'arch'}) {
+			$text =~ s/^arch=\"([^\"]*)\"$/arch="all"/mg or
+				die "Can't find arch line in APKBUILD";
+		}
 	}
 	if ($license ne 'unknown') {
 		$text =~ s/^license=\"([^\"]*)\"$/license=\"$license\"/mg or
@@ -623,7 +625,6 @@ given ( $ARGV[0] ) {
 			open my $fh, '>', "APKBUILD" or die;
 			say $fh $text;
 			close $fh;
-
 			prepare_tree;
 			do_depends ($moddata->{version}, $apkbuild);
 		} else {
