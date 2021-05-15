@@ -1234,8 +1234,9 @@ prepare_py_provides() {
 	# .egg-info packages, store the basename with the proper pyX.Y prefix
 	# one per-line
 	py_providers="$(find 'usr/lib/python'*/site-packages \
-		-print0 -mindepth 1 -maxdepth 1 \
+		-mindepth 1 -maxdepth 1 \
 		-type f -iname '*.py' -o -type d \
+		-print0 \
 		2>/dev/null | xargs -0 -I '{}' sh -c '
 		d="{}"
 
