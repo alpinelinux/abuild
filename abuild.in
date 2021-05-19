@@ -1717,6 +1717,7 @@ create_apks() {
 
 		# explicitly sort package content
 		find "$@" -print0 | LC_ALL=C sort -z | tar --xattrs \
+			--xattrs-exclude=security.selinux \
 			--format=posix \
 			--pax-option=exthdr.name=%d/PaxHeaders/%f,atime:=0,ctime:=0 \
 			--mtime="@${SOURCE_DATE_EPOCH}" \
