@@ -2355,8 +2355,11 @@ rootbld() {
 		return
 	fi
 
-	[ "$CBUILD" = "$CHOST" ] || die "rootbld: cross-building not supported currently"
 	apk info -eq abuild-rootbld || die "rootbld: abuild-rootbld package not installed"
+
+	[ $CBUILD = $CHOST ] || die "rootbld: set CBUILD=$CHOST to build for $CHOST"
+	[ $CBUILD_ARCH = "$(apk --print-arch)" -o -f /proc/sys/fs/binfmt_misc/qemu-${CBUILD_ARCH/arm*/arm} ] || \
+		die "rootbld: binfmt registration missing for $CBUILD_ARCH binaries"
 
 	logcmd "chroot building building $repo/$pkgname-$pkgver-r$pkgrel"
 
@@ -2387,7 +2390,11 @@ rootbld() {
 		"$srcdir"
 
 	cp /etc/abuild.conf /etc/group /etc/passwd "$BUILD_ROOT/etc"
-	cp /etc/apk/keys/* "$BUILD_ROOT/etc/apk/keys"
+
+	local dir
+	for dir in /usr/share/apk/keys/$CBUILD_ARCH /etc/apk/keys; do
+		cp $dir/* "$BUILD_ROOT/etc/apk/keys"
+	done
 
 	if options_has "net"; then
 		cp /etc/resolv.conf "$BUILD_ROOT/etc"
@@ -2415,7 +2422,9 @@ rootbld() {
 	) < "$repo_template" > "$BUILD_ROOT/etc/apk/repositories"
 
 	calcdeps
-	$SUDO_APK add --initdb --root "$BUILD_ROOT" --update \
+	$SUDO_APK add --initdb --update \
+		--arch $CBUILD_ARCH \
+		--root "$BUILD_ROOT" \
 		abuild alpine-base build-base git $hostdeps $builddeps \
 		${USE_CCACHE:+ccache}
 
@@ -2438,6 +2447,7 @@ rootbld() {
 		--chdir "$startdir" \
 		--setenv PATH ${USE_CCACHE:+/usr/lib/ccache/bin:}/bin:/usr/bin:/sbin:/usr/sbin \
 		--setenv FAKEROOTDONTTRYCHOWN 1 \
+		--unsetenv CBUILD \
 		/usr/bin/abuild $force rootbld_actions
 	update_abuildrepo_index
 	cleanup $CLEANUP
