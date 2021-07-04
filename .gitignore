@@ -1,5 +1,7 @@
 *.tar.bz2
 *.o
+*.1
+*.5
 abuild
 abuild-fetch
 abuild-gzsplit

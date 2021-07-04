@@ -15,6 +15,7 @@ MAN_1_PAGES	:= newapkbuild.1
 MAN_5_PAGES	:= APKBUILD.5
 SAMPLES		:= sample.APKBUILD sample.initd sample.confd \
 		sample.pre-install sample.post-install
+MAN_PAGES	:= $(MAN_1_PAGES) $(MAN_5_PAGES)
 AUTOTOOLS_TOOLCHAIN_FILES := config.sub config.guess
 
 SCRIPT_SOURCES	:= $(addsuffix .in,$(SCRIPTS))
@@ -30,6 +31,7 @@ endif
 CHMOD		:= chmod
 SED		:= sed
 TAR		:= tar
+SCDOC		:= scdoc
 LINK		= $(CC) $(OBJS-$@) -o $@ $(LDFLAGS) $(LDFLAGS-$@) $(LIBS-$@)
 
 CFLAGS		?= -Wall -Werror -g
@@ -65,12 +67,18 @@ OBJS-abuild-fetch = abuild-fetch.o
 	${SED} ${SED_REPLACE} ${SED_EXTRA} $< > $@
 	${CHMOD} +x $@
 
+%.1: %.1.scd
+	${SCDOC} < $< > $@
+
+%.5: %.5.scd
+	${SCDOC} < $< > $@
+
 P=$(PACKAGE)-$(VERSION)
 
-all:	$(USR_BIN_FILES) functions.sh
+all:	$(USR_BIN_FILES) $(MAN_PAGES) functions.sh
 
 clean:
-	@rm -f $(USR_BIN_FILES) *.o functions.sh
+	@rm -f $(USR_BIN_FILES) $(MAN_PAGES) *.o functions.sh
 
 %.o: %.c
 	$(CC) $(CPPFLAGS) $(CFLAGS) $(CFLAGS-$@) -o $@ -c $<
@@ -97,7 +105,7 @@ help:
 check: $(USR_BIN_FILE) functions.sh
 	cd tests && bats $${FILTER:+ --filter $$FILTER} *.bats
 
-install: $(USR_BIN_FILES) $(SAMPLES) abuild.conf functions.sh
+install: $(USR_BIN_FILES) $(SAMPLES) $(MAN_PAGES) abuild.conf functions.sh
 	install -d $(DESTDIR)/$(bindir) $(DESTDIR)/$(sysconfdir) \
 		$(DESTDIR)/$(sharedir) $(DESTDIR)/$(mandir)/man1 \
 		$(DESTDIR)/$(mandir)/man5
