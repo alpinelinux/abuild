@@ -9,6 +9,9 @@ arch_to_hostspec() {
 	armel)		echo "armv5-alpine-linux-musleabi" ;;
 	armhf)		echo "armv6-alpine-linux-musleabihf" ;;
 	armv7)		echo "armv7-alpine-linux-musleabihf" ;;
+	loongarch32)	echo "loongarch32-alpine-linux-musl" ;;
+	loongarchx32)	echo "loongarchx32-alpine-linux-musl" ;;
+	loongarch64)	echo "loongarch64-alpine-linux-musl" ;;
 	mips)           echo "mips-alpine-linux-musl" ;;
 	mips64)         echo "mips64-alpine-linux-musl" ;;
 	mipsel)         echo "mipsel-alpine-linux-musl" ;;
@@ -32,6 +35,9 @@ hostspec_to_arch() {
 	armv6*-*-*-*eabihf)	echo "armhf" ;;
 	armv7*-*-*-*eabihf)	echo "armv7" ;;
 	i[0-9]86-*-*-*)		echo "x86" ;;
+	loongarch32-*-*-*)	echo "loongarch32" ;;
+	loongarchx32-*-*-*)	echo "loongarchx32" ;;
+	loongarch64-*-*-*)	echo "loongarch64" ;;
 	mips-*-*-*)             echo "mips" ;;
 	mips64-*-*-*)           echo "mips64" ;;
 	mipsel-*-*-*)           echo "mipsel" ;;
