@@ -75,7 +75,7 @@ int main(void)
 		}
 
 		if (zs.avail_in == 0 || r == Z_STREAM_END) {
-			len = (void *)zs.next_in - (void *)ibuf;
+			len = (char *)zs.next_in - (char *)ibuf;
 			if (write(fd, ibuf, len) != len) {
 				warn("Failed to write to %s", fn);
 				goto err;

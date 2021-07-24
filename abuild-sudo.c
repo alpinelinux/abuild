@@ -104,7 +104,7 @@ int main(int argc, const char *argv[])
 
 	if (name == NULL)
 		warnx("Could not find username for uid %d\n", uid);
-	setenv("USER", name ?: "", 1);
+	setenv("USER", name ? name : "", 1);
 
 	cmd = strrchr(argv[0], '/');
 	if (cmd)

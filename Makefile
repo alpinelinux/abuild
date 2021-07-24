@@ -34,7 +34,7 @@ TAR		:= tar
 SCDOC		:= scdoc
 LINK		= $(CC) $(OBJS-$@) -o $@ $(LDFLAGS) $(LDFLAGS-$@) $(LIBS-$@)
 
-CFLAGS		?= -Wall -Werror -g
+CFLAGS		?= -Wall -Werror -g -pedantic
 
 SED_REPLACE	:= -e 's:@VERSION@:$(FULL_VERSION):g' \
 			-e 's:@prefix@:$(prefix):g' \

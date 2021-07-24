@@ -122,15 +122,16 @@ static int usage(void)
 static ssize_t full_read(int fd, void *buf, size_t count)
 {
 	ssize_t total, n;
+	char *p = buf;
 
 	total = 0;
 	do {
-		n = read(fd, buf, count);
+		n = read(fd, p, count);
 		if (n < 0 && errno == EINTR)
 			continue;
 		if (n <= 0)
 			break;
-		buf += n;
+		p += n;
 		total += n;
 		count -= n;
 	} while (1);
@@ -144,15 +145,16 @@ static ssize_t full_read(int fd, void *buf, size_t count)
 static ssize_t full_write(int fd, const void *buf, size_t count)
 {
 	ssize_t total, n;
+	const char *p = buf;
 
 	total = 0;
 	do {
-		n = write(fd, buf, count);
+		n = write(fd, p, count);
 		if (n < 0 && errno == EINTR)
 			continue;
 		if (n <= 0)
 			break;
-		buf += n;
+		p += n;
 		total += n;
 		count -= n;
 	} while (1);
