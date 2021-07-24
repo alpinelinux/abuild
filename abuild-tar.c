@@ -290,7 +290,7 @@ static int do_it(const EVP_MD *md, int cut)
 	unsigned char digest[EVP_MAX_MD_SIZE];
 	struct buf data = BUF_INITIALIZER, pax = BUF_INITIALIZER;
 	struct tar_header hdr, paxhdr;
-	size_t size, aligned_size;
+	size_t name_len, size, aligned_size;
 	int dohash = 0, r, ret = 1;
 
 	memset(&paxhdr, 0, sizeof(paxhdr));
@@ -322,7 +322,8 @@ static int do_it(const EVP_MD *md, int cut)
 				EVP_Digest(data.ptr, size, digest, NULL, md, NULL);
 				add_legacy_checksum(&hdr, md, digest);
 			} else {
-				EVP_Digest(hdr.linkname, strlen(hdr.linkname), digest, NULL, md, NULL);
+				name_len = strnlen(hdr.linkname, sizeof(hdr.linkname));
+				EVP_Digest(hdr.linkname, name_len, digest, NULL, md, NULL);
 			}
 
 			buf_add_ext_header_hexdump(&pax, checksumhdr, digest, EVP_MD_size(md));
