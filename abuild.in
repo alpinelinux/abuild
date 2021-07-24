@@ -170,7 +170,7 @@ spell_error() {
 	die "APKBUILD contains '$1'. It should be '$2'"
 }
 
-# check if apkbuild is basicly sane
+# check if apkbuild is basically sane
 default_sanitycheck() {
 	local i= j= suggestion=
 	msg "Checking sanity of $APKBUILD..."
@@ -267,7 +267,7 @@ default_sanitycheck() {
 				|| die "${i##*/} is missing in checksums"
 
 			# verify that our source does not have git tag version
-			# name as tarball (typicallly github)
+			# name as tarball (typically github)
 			if is_remote "$i" && [ "${i#*::}" = "$i" ]; then
 				case ${i##*/} in
 				v$pkgver.tar.*|$pkgver.tar.*)
@@ -766,7 +766,7 @@ postcheck() {
 	fi
 
 	# Alpine Linux as a musl libc distro does not use /lib64 or /usr/lib64 under
-	# any circunstance, packages installing to it are 100% sure a packaging error
+	# any circumstance, packages installing to it are 100% sure a packaging error
 	# except when we are doing GNU Libc compatibility which should be rare enough
 	# to warrant a lib64 check
 	if ! options_has "lib64"; then

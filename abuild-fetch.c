@@ -78,14 +78,14 @@ int fork_exec(char *argv[], int showerr)
 	return r;
 }
 
-static int aquire_lock(const char *lockfile)
+static int acquire_lock(const char *lockfile)
 {
 	int lockfd = open(lockfile, O_WRONLY|O_CREAT, 0660);
 	if (lockfd < 0)
 		err(1, "%s", lockfile);
 
 	if (lockf(lockfd, F_LOCK, 0) == -1)
-		err(1, "failed to aquire lock: %s", lockfile);
+		err(1, "failed to acquire lock: %s", lockfile);
 
 	return lockfd;
 }
@@ -133,7 +133,7 @@ int fetch(char *url, const char *destdir, bool insecure)
 	snprintf(lockfile, sizeof(lockfile), "%s.lock", outfile);
 	snprintf(partfile, sizeof(partfile), "%s.part", outfile);
 
-	lockfd = aquire_lock(lockfile);
+	lockfd = acquire_lock(lockfile);
 
 	if (access(outfile, F_OK) == 0)
 		goto fetch_done;
@@ -180,7 +180,7 @@ int fetch(char *url, const char *destdir, bool insecure)
 fetch_done:
 	release_lock(lockfd);
 
-	// give other processes the chance to aquire the lock if they have the file open
+	// give other processes the chance to acquire the lock if they have the file open
 	sleep(0);
 
 	if (status == 0 || try_lock(lockfd))

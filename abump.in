@@ -37,7 +37,7 @@ do_bump() {
 		(
 		set -e
 
-		# calculate APKBUILD's path    #vim syntax higlight '
+		# calculate APKBUILD's path    #vim syntax highlight '
 		if [ "${name#*/}" != "$name" ] && ! [ -d "$APORTSDIR/${name%/*}" ]; then
 			die "'$p' should be of form 'foo-1.2.3' or 'main/foo-1.2.3'"
 		fi
