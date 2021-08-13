@@ -64,8 +64,10 @@ hostspec_to_libc() {
 
 readconfig() {
 	local _APORTSDIR _BUILDDIR _PKGDEST _SRCPKGDEST _REPODEST _SRCDEST
-	local _CARCH _CHOST _CTARGET _CPPFLAGS _CFLAGS _CXXFLAGS _LDFLAGS
+	local _CC=gcc _CXX=g++ _LD=ld _CARCH _CHOST _CTARGET _CPPFLAGS _CFLAGS _CXXFLAGS _LDFLAGS
 	local _JOBS _MAKEFLAGS _PACKAGER _USE_COLORS _USE_CCACHE
+	local _BUILDCC _BUILDCXX _BUILDLD _BUILDCPPFLAGS _BUILDCXXFLAGS _BUILDCFLAGS
+	local _BUILDLDFLAGS
 	local gitbase=
 	[ -n "${APORTSDIR+x}" ] && _APORTSDIR=$APORTSDIR
 	[ -n "${BUILDDIR+x}" ] && _BUILDDIR=$BUILDDIR
@@ -73,6 +75,9 @@ readconfig() {
 	[ -n "${SRCPKGDEST+x}" ] && _SRCPKGDEST=$SRCPKGDEST
 	[ -n "${REPODEST+x}" ] && _REPODEST=$REPODEST
 	[ -n "${SRCDEST+x}" ] && _SRCDEST=$SRCDEST
+	[ -n "${CC+x}" ] && _CC=$CC
+	[ -n "${CXX+x}" ] && _CXX=$CXX
+	[ -n "${LD+x}" ] && _LD=$LD	
 	[ -n "${CARCH+x}" ] && _CARCH=$CARCH
 	[ -n "${CHOST+x}" ] && _CHOST=$CHOST
 	[ -n "${CTARGET+x}" ] && _CTARGET=$CTARGET
@@ -80,6 +85,12 @@ readconfig() {
 	[ -n "${CFLAGS+x}" ] && _CFLAGS=$CFLAGS
 	[ -n "${CXXFLAGS+x}" ] && _CXXFLAGS=$CXXFLAGS
 	[ -n "${LDFLAGS+x}" ] && _LDFLAGS=$LDFLAGS
+	[ -n "${BUILDCC+x}" ] && _BUILDCC=$BUILDCC
+	[ -n "${BUILDCXX+x}" ] && _BUILDCXX=$BUILDCXX
+	[ -n "${BUILDCPPFLAGS+x}" ] && _BUILDCPPFLAGS=$BUILDCPPFLAGS
+	[ -n "${BUILDCXXFLAGS+x}" ] && _BUILDCXXFLAGS=$BUILDCXXFLAGS
+	[ -n "${BUILDCFLAGS+x}" ] && _BUILDCFLAGS=$BUILDCFLAGS
+	[ -n "${BUILDLDFLAGS+x}" ] && _BUILDLDFLAGS=$BUILDLDFLAGS
 	[ -n "${JOBS+x}" ] && _JOBS=$JOBS
 	[ -n "${MAKEFLAGS+x}" ] && _MAKEFLAGS=$MAKEFLAGS
 	[ -n "${PACKAGER+x}" ] && _PACKAGER=$PACKAGER
@@ -116,6 +127,9 @@ readconfig() {
 	SRCPKGDEST=${_SRCPKGDEST-$SRCPKGDEST}
 	REPODEST=${_REPODEST-$REPODEST}
 	SRCDEST=${_SRCDEST-$SRCDEST}
+	CC=${_CC-$CC}
+	CXX=${_CXX-$CXX}
+	LD=${_LD-$LD}
 	CARCH=${_CARCH-$CARCH}
 	CHOST=${_CHOST-$CHOST}
 	CTARGET=${_CTARGET-$CTARGET}
@@ -123,11 +137,28 @@ readconfig() {
 	CFLAGS=${_CFLAGS-$CFLAGS}
 	CXXFLAGS=${_CXXFLAGS-$CXXFLAGS}
 	LDFLAGS=${_LDFLAGS-$LDFLAGS}
+	BUILDCC=${_BUILDCC-$BUILDCC}
+	BUILDCXX=${_BUILDCXX-$BUILDCXX}
+	BUILDLD=${_BUILDLD-$BUILDLD}
+	BUILDCPPFLAGS=${_BUILDCPPFLAGS-$BUILDCPPFLAGS}
+	BUILDCXXFLAGS=${_BUILDCXXFLAGS-$BUILDCXXFLAGS}
+	BUILDCFLAGS=${_BUILDCFLAGS-$BUILDCFLAGS}
+	BUILDLDFLAGS=${_BUILDLDFLAGS-$BUILDLDFLAGS}
 	JOBS=${_JOBS-$JOBS}
 	MAKEFLAGS=${_MAKEFLAGS-$MAKEFLAGS}
 	PACKAGER=${_PACKAGER-$PACKAGER}
 	USE_COLORS=${_USE_COLORS-$USE_COLORS}
 	USE_CCACHE=${_USE_CCACHE-$USE_CCACHE}
+
+	# export BUILD variables because it is used as variables specific to the platform running the compiler
+	# instead of the platform the compiled binaries are supposed to run on
+	export BUILDCC="$CC"
+	export BUILDCXX="$CXX"
+	export BUILDLD="$LD"
+	export BUILDCPPFLAGS="$CPPFLAGS"
+	export BUILDCXXFLAGS="$CXXFLAGS"
+	export BUILDCFLAGS="$CFLAGS"
+	export BUILDLDFLAGS="$LDFLAGS"
 
 	[ -z "$CBUILD" ] && CBUILD="$(${APK:-apk} --print-arch 2>/dev/null || :)"
 	[ -z "$CHOST" ] && CHOST="$CBUILD"
@@ -168,9 +199,9 @@ readconfig() {
 			export HOSTCXXFLAGS="$CXXFLAGS"
 			export HOSTCFLAGS="$CFLAGS"
 			export HOSTLDFLAGS="$LDFLAGS"
-			export CC=${CROSS_COMPILE}gcc
-			export CXX=${CROSS_COMPILE}g++
-			export LD=${CROSS_COMPILE}ld
+			export CC=${CROSS_COMPILE}$CC
+			export CXX=${CROSS_COMPILE}$CXX
+			export LD=${CROSS_COMPILE}$LD
 			export CPPFLAGS="--sysroot=${CBUILDROOT} $CPPFLAGS"
 			export CXXFLAGS="--sysroot=${CBUILDROOT} $CXXFLAGS"
 			export CFLAGS="--sysroot=${CBUILDROOT} $CFLAGS"
