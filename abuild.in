@@ -1488,7 +1488,8 @@ trace_apk_deps() {
 			>> "$dir"/.PKGINFO
 	fi
 	if [ -f "$dir"/.provides-command ]; then
-		sed 's/^/provides = cmd:/' "$dir"/.provides-command | sort -u \
+		sed -e 's/^/provides = cmd:/' -e "s/\$/=$pkgver-r$pkgrel/" \
+			 "$dir"/.provides-command | sort -u \
 			>> "$dir"/.PKGINFO
 	fi
 	if [ -f "$dir"/.provides-py ]; then
