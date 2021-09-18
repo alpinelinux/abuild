@@ -2392,6 +2392,18 @@ rootbld_actions() {
 	done
 }
 
+rootbld_qemu_arch() {
+	local qarch=""
+
+	case "$CBUILD_ARCH" in
+	arm*) qarch="arm" ;;
+	x86)  qarch="i386" ;;
+	*)    qarch="$carch" ;;
+	esac
+
+	echo "${qarch}"
+}
+
 rootbld() {
 	if apk_up2date && [ -z "$force" ]; then
 		msg "Package is up to date"
@@ -2401,8 +2413,8 @@ rootbld() {
 	apk info -eq abuild-rootbld || die "rootbld: abuild-rootbld package not installed"
 
 	[ $CBUILD = $CHOST ] || die "rootbld: set CBUILD=$CHOST to build for $CHOST"
-	[ $CBUILD_ARCH = "$(apk --print-arch)" -o -f /proc/sys/fs/binfmt_misc/qemu-${CBUILD_ARCH/arm*/arm} ] || \
-		die "rootbld: binfmt registration missing for $CBUILD_ARCH binaries"
+	[ $CBUILD_ARCH = "$(apk --print-arch)" -o -f "/proc/sys/fs/binfmt_misc/qemu-$(rootbld_qemu_arch)" ] || \
+		die "rootbld: binfmt registration missing for $(rootbld_qemu_arch) binaries"
 
 	logcmd "chroot building building $repo/$pkgname-$pkgver-r$pkgrel"
 
