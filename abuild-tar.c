@@ -376,8 +376,6 @@ int main(int argc, char **argv)
 	int ndx;
 
 	OpenSSL_add_all_algorithms();
-	ENGINE_load_builtin_engines();
-	ENGINE_register_all_complete();
 
 	while (getopt_long(argc, argv, "", options, &ndx) != -1) {
 		if (ndx == 0)
