@@ -376,6 +376,10 @@ int main(int argc, char **argv)
 	int ndx;
 
 	OpenSSL_add_all_algorithms();
+#if defined(OPENSSL_VERSION_MAJOR) && OPENSSL_VERSION_MAJOR < 3
+	ENGINE_load_builtin_engines();
+	ENGINE_register_all_complete();
+#endif
 
 	while (getopt_long(argc, argv, "", options, &ndx) != -1) {
 		if (ndx == 0)
