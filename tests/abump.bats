@@ -13,6 +13,7 @@ setup() {
 	export APORTSDIR="$tmpdir"
 	export ABUILD_OPTS=""
 	export ABUILD_APK_INDEX_OPTS="--keys-dir=$ABUILD_USERDIR"
+	export PATH="$PWD/../:$PATH"
 
 	$ABUILD_KEYGEN --append -n
 

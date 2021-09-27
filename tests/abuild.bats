@@ -10,6 +10,7 @@ setup() {
 	export WORKDIR="$tmpdir"/work
 	export GIT_CONFIG_GLOBAL="$tmpdir"/gitconfig
 	export APORTSDIR="$PWD"/testrepo
+	export PATH="$PWD/../:$PATH"
 
 	mkdir -p "$tmpdir" "$WORKDIR"
 	printf "[color]\n\tui = always\n" > "$GIT_CONFIG_GLOBAL"
