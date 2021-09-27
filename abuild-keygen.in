@@ -33,7 +33,7 @@ get_privkey_file() {
 	default_name="${emailaddr:-$USER}-$(printf "%x" $(date +%s))"
 
 	privkey="$ABUILD_USERDIR/$default_name.rsa"
-	if [ -n "$non_interactive" ]; then
+	if [ -z "$interactive" ]; then
 		return 0
 	fi
 	msg "Generating public/private rsa key pair for abuild"
@@ -60,8 +60,8 @@ do_keygen() {
 
 	if [ -n "$install_pubkey" ]; then
 		msg "Installing $pubkey to /etc/apk/keys..."
-		$SUDO mkdir -p /etc/apk/keys
-		$SUDO cp -i "$pubkey" /etc/apk/keys/
+		$SUDO mkdir -p "${abuild_keygen_install_root}"/etc/apk/keys
+		$SUDO cp ${interactive:+-i} "$pubkey" "${abuild_keygen_install_root}"/etc/apk/keys/
 	else
 
 		msg ""
@@ -112,7 +112,7 @@ usage() {
 
 append_config=
 install_pubkey=
-non_interactive=
+interactive=1
 numbits=2048
 quiet=
 
@@ -126,7 +126,7 @@ while true; do
 	case $1 in
 		-a|--append) append_config=1;;
 		-i|--install) install_pubkey=1;;
-		-n) non_interactive=1;;
+		-n) unset interactive ;;
 		-b|--numbits) numbits="$2"; shift 1;;
 		-q|--quiet) quiet=1;; # suppresses msg
 		-h|--help) usage; exit;;

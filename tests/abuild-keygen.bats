@@ -4,6 +4,7 @@ setup() {
 	tmpdir="$BATS_TMPDIR"/abuild-keygen
 	export ABUILD_USERDIR="$tmpdir"/user
 	mkdir -p "$ABUILD_USERDIR"
+	export abuild_keygen_install_root=${ABUILD_USERDIR}
 
 	# provide a fake git
 	mkdir -p "$tmpdir"/bin
@@ -35,5 +36,13 @@ teardown() {
 @test "abuild-keygen: --install option fails without SUDO" {
 	run SUDO=false $ABUILD_KEYGEN --install
 	[ $status -ne 0 ]
+}
+
+@test "abuild-keygen: --install option (interactive)" {
+	yes | SUDO= $ABUILD_KEYGEN --install
+}
+
+@test "abuild-keygen: --install -n (non-interacive)" {
+	SUDO= $ABUILD_KEYGEN --install -n
 }
 
