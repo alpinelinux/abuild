@@ -9,6 +9,7 @@ setup() {
 	export CLEANUP="srcdir bldroot pkgdir deps"
 	export WORKDIR="$tmpdir"/work
 	export GIT_CONFIG_GLOBAL="$tmpdir"/gitconfig
+	export APORTSDIR="$PWD"/testrepo
 
 	mkdir -p "$tmpdir" "$WORKDIR"
 	printf "[color]\n\tui = always\n" > "$GIT_CONFIG_GLOBAL"
