@@ -11,6 +11,9 @@ setup() {
 	export GIT_CONFIG_GLOBAL="$tmpdir"/gitconfig
 	export APORTSDIR="$PWD"/testrepo
 	export PATH="$PWD/../:$PATH"
+	export SUDO=doas
+
+	abuild-keygen -ain >/dev/null 2>&1
 
 	mkdir -p "$tmpdir" "$WORKDIR"
 	printf "[color]\n\tui = always\n" > "$GIT_CONFIG_GLOBAL"
