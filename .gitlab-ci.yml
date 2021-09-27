@@ -1,0 +1,11 @@
+stages:
+  - verify
+
+tests:
+  image:
+    name: alpinelinux/abuild-ci
+  stage: verify
+  script: [pwd]
+  tags:
+    - docker-alpine
+    - x86_64
