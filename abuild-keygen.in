@@ -8,7 +8,7 @@
 
 program_version=@VERSION@
 sharedir=${ABUILD_SHAREDIR:-@sharedir@}
-SUDO="${SUDO:-sudo}"
+SUDO="${SUDO-sudo}"
 
 if ! [ -f "$sharedir/functions.sh" ]; then
 	echo "$sharedir/functions.sh: not found" >&2
