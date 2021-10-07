@@ -951,7 +951,7 @@ git_dirty() {
 
 # echo last commit hash id
 git_last_commit() {
-	$git log --format=oneline -n 1 -- "$startdir" | awk '{print $1}'
+	$git rev-list -n 1 HEAD -- "$startdir"
 }
 
 # date of last commit
