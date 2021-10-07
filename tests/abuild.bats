@@ -8,8 +8,10 @@ setup() {
 	export REPODEST="$tmpdir"/packages
 	export CLEANUP="srcdir bldroot pkgdir deps"
 	export WORKDIR="$tmpdir"/work
+	export GIT_CONFIG_GLOBAL="$tmpdir"/gitconfig
 
 	mkdir -p "$tmpdir" "$WORKDIR"
+	printf "[color]\n\tui = always\n" > "$GIT_CONFIG_GLOBAL"
 }
 
 teardown() {
@@ -176,3 +178,4 @@ teardown() {
 	run grep -x py3.9:bar=1.0.0-r0 pkg/.control.py3-foo-and-bar/.py-provides
 	run grep -x 'provides py3.9:bar=1.0.0-r0' pkg/.control.py3-foo-and-bar/.PKGINFO
 }
+
