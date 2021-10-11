@@ -196,6 +196,7 @@ teardown() {
 }
 
 @test "abuild: reject remote initd script with improper shebang" {
+	skip 'flaky'
 	cd testrepo/invalid-initd/
 	sed 's#@source@#test.initd::https://tpaste.us/ovyL?.initd#' APKBUILD.in >APKBUILD
 
