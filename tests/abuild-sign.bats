@@ -10,7 +10,6 @@ setup() {
 	export WORKDIR="$tmpdir"/work
 	export APORTSDIR="$PWD"/testrepo
 	export PATH="$PWD/../:$PATH"
-	export SUDO=doas
 	export ARCH=$(apk --print-arch)
 
 	abuild-keygen -ain >/dev/null 2>&1
