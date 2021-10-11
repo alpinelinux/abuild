@@ -1,5 +1,5 @@
 PACKAGE		:= abuild
-VERSION		:= 3.8.0
+VERSION		:= 3.9.0_rc1
 
 prefix		?= /usr
 bindir		?= $(prefix)/bin
