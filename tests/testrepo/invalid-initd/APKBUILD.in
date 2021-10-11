@@ -1,0 +1,21 @@
+# Maintainer: Natanael Copa <ncopa@alpinelinux.org>
+
+# test package
+pkgname="invalid-initd"
+pkgver="1.0"
+pkgrel=0
+pkgdesc="Dummy test package"
+url="https://gitlab.alpinelinux.org/alpine/aports"
+arch="noarch"
+license="MIT"
+subpackages=""
+source="@source@"
+builddir="$srcdir/$pkgname-$pkgver"
+
+prepare() {
+	mkdir -p "$builddir"
+}
+
+sha512sums="
+07a068119105559a79f42093bd5c1ec97323b24b485b837ed61f771180143c58715bd22137064639cdda0081e2b294255b5555ddbef98f399c47e2a67c74b058  test.initd
+"

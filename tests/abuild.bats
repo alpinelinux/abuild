@@ -184,3 +184,34 @@ teardown() {
 	run grep -x 'provides py3.9:bar=1.0.0-r0' pkg/.control.py3-foo-and-bar/.PKGINFO
 }
 
+@test "abuild: reject initd script with improper shebang" {
+	cd testrepo/invalid-initd/
+	sed 's#@source@#test.initd#' APKBUILD.in >APKBUILD
+
+	run $ABUILD unpack
+
+	[[ $output == *"is not an openrc"* ]]
+	[[ $status -ne 0 ]]
+}
+
+@test "abuild: reject remote initd script with improper shebang" {
+	cd testrepo/invalid-initd/
+	sed 's#@source@#test.initd::https://tpaste.us/ovyL?.initd#' APKBUILD.in >APKBUILD
+
+	$ABUILD fetch
+	run $ABUILD unpack
+
+	[[ $output == *"is not an openrc"* ]]
+	[[ $status -ne 0 ]]
+}
+
+@test "abuild: reject remote initd without initd extension with improper shebang" {
+	skip 'Not handled yet'
+	cd testrepo/invalid-initd/
+	sed 's#@source@#test.initd::https://tpaste.us/ovyL#' APKBUILD.in >APKBUILD
+
+	run $ABUILD fetch unpack
+
+	[[ $output == *"is not an openrc"* ]]
+	[[ $status -ne 0 ]]
+}
