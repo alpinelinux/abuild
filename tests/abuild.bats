@@ -12,7 +12,9 @@ setup() {
 	export APORTSDIR="$PWD"/testrepo
 	export PATH="$PWD/../:$PATH"
 
-	abuild-keygen -ain >/dev/null 2>&1
+	if ! abuild-sign --installed 2>/dev/null; then
+		abuild-keygen -ain >/dev/null 2>&1
+	fi
 
 	mkdir -p "$tmpdir" "$WORKDIR"
 	printf "[color]\n\tui = always\n" > "$GIT_CONFIG_GLOBAL"

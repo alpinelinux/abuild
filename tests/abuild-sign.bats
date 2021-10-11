@@ -12,7 +12,9 @@ setup() {
 	export PATH="$PWD/../:$PATH"
 	export ARCH=$(apk --print-arch)
 
-	abuild-keygen -ain >/dev/null 2>&1
+	if ! abuild-sign --installed 2>/dev/null; then
+		abuild-keygen -ain >/dev/null 2>&1
+	fi
 
 	mkdir -p "$tmpdir" "$WORKDIR"
 }
