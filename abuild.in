@@ -2300,14 +2300,14 @@ builddeps() {
 	esac
 	calcdeps "$BUILD_BASE"
 
+	# shall ccache be added?
+	[ -n "$USE_CCACHE" ] && builddeps="$builddeps ccache"
+
 	# find which deps are missing
 	local mbd mhd missing
 	mbd=$(get_missing_deps "" $builddeps) || return 1
 	mhd=$(get_missing_deps "--root $CBUILDROOT --arch $CTARGET_ARCH" $hostdeps) || return 1
 	missing=$(echo $mbd $mhd)
-
-	# shall ccache be added?
-	[ -n "$USE_CCACHE" ] && missing="$missing ccache"
 
 	if [ -z "$install_deps" ]; then
 		# if we dont have any missing deps we are done now
