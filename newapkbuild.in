@@ -30,6 +30,12 @@ is_github_url() {
 	return 1
 }
 
+prepare_rust() {
+	cat >>APKBUILD<<__EOF__
+	cargo fetch --locked
+__EOF__
+}
+
 # Build sections
 build_make() {
 	cat >>APKBUILD<<__EOF__
@@ -104,7 +110,7 @@ __EOF__
 
 build_rust() {
 	cat >>APKBUILD<<__EOF__
-	cargo build --release --locked
+	cargo build --frozen --release
 __EOF__
 }
 
@@ -150,7 +156,7 @@ __EOF__
 
 check_rust() {
 	cat >>APKBUILD<<__EOF__
-	cargo test --release --locked
+	cargo test --frozen --release
 __EOF__
 }
 
@@ -199,7 +205,7 @@ __EOF__
 
 package_rust() {
 	cat >>APKBUILD<<__EOF__
-	cargo install --locked --path . --root="\$pkgdir/usr"
+	cargo install --frozen --offline --path . --root="\$pkgdir/usr"
 	rm "\$pkgdir"/usr/.crates*
 __EOF__
 }
@@ -332,6 +338,21 @@ __EOF__
 			buildtype="rust"
 		fi
 	fi
+
+	case "$buildtype" in
+	rust)
+		cat >>APKBUILD<<__EOF__
+prepare() {
+	default_prepare
+
+__EOF__
+		prepare_rust
+		cat >>APKBUILD<<__EOF__
+}
+
+__EOF__
+		;;
+	esac
 
 	# Create build() function
 	cat >>APKBUILD<<__EOF__
