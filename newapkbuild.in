@@ -156,7 +156,7 @@ __EOF__
 
 check_rust() {
 	cat >>APKBUILD<<__EOF__
-	cargo test --frozen --release
+	cargo test --frozen
 __EOF__
 }
 
