@@ -4,10 +4,9 @@ setup() {
 	export ABUILD="$PWD/../abuild"
 	export ABUILD_SHAREDIR="$PWD/.."
 	export ABUILD_CONF=/dev/null
-	tmpdir="$BATS_TMPDIR"/abuild
-	export REPODEST="$tmpdir"/packages
+	export REPODEST="$BATS_TEST_TMPDIR"/packages
 	export CLEANUP="srcdir bldroot pkgdir deps"
-	export WORKDIR="$tmpdir"/work
+	export WORKDIR="$BATS_TEST_TMPDIR"/work
 	export APORTSDIR="$PWD"/testrepo
 	export PATH="$PWD/../:$PATH"
 	export ARCH=$(apk --print-arch)
@@ -16,11 +15,7 @@ setup() {
 		abuild-keygen -ain >/dev/null 2>&1
 	fi
 
-	mkdir -p "$tmpdir" "$WORKDIR"
-}
-
-teardown() {
-	rm -rf "$tmpdir"
+	mkdir -p "$BATS_TEST_TMPDIR" "$WORKDIR"
 }
 
 @test 'abuild-sign: do not record user name/id in index' {

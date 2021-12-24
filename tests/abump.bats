@@ -4,27 +4,26 @@ setup() {
 	export ABUILD_KEYGEN="$PWD/../abuild-keygen"
 	export ABUILD_SHAREDIR="$PWD/.."
 	export ABUILD_CONF=/dev/null
-	tmpdir="$BATS_TMPDIR"/abump
-	export ABUILD_USERDIR="$tmpdir"/.config
+	export ABUILD_USERDIR="$BATS_TEST_TMPDIR"/.config
 	export PACKAGER="Test User <user@example.com>"
-	export REPODEST="$tmpdir"/packages
-	mkdir -p $tmpdir
+	export REPODEST="$BATS_TEST_TMPDIR"/packages
+	mkdir -p $BATS_TEST_TMPDIR
 	export CLEANUP="srcdir bldroot pkgdir deps"
-	export APORTSDIR="$tmpdir"
+	export APORTSDIR="$BATS_TEST_TMPDIR"
 	export ABUILD_OPTS=""
 	export ABUILD_APK_INDEX_OPTS="--keys-dir=$ABUILD_USERDIR"
 	export PATH="$PWD/../:$PATH"
 
 	$ABUILD_KEYGEN --append -n
 
-	cd "$tmpdir"
+	cd "$BATS_TEST_TMPDIR"
 	git init --quiet
 	git config user.email "user@example.com"
 	git config user.name "Test User"
 }
 
 teardown() {
-	rm -rf "$tmpdir"
+	rm -rf "$BATS_TEST_TMPDIR"
 }
 
 @test "abump: help text" {
@@ -32,8 +31,8 @@ teardown() {
 }
 
 @test "abump: simple bump" {
-	mkdir -p "$tmpdir"/main/foo
-	cd "$tmpdir"/main/foo
+	mkdir -p "$BATS_TEST_TMPDIR"/main/foo
+	cd "$BATS_TEST_TMPDIR"/main/foo
 	echo "first" > foo-1.0.txt
 	echo "second" > foo-1.1.txt
 	cat > APKBUILD <<-EOF
@@ -60,8 +59,8 @@ teardown() {
 }
 
 @test "abump: test bumping same version" {
-	mkdir -p "$tmpdir"/main/foo
-	cd "$tmpdir"/main/foo
+	mkdir -p "$BATS_TEST_TMPDIR"/main/foo
+	cd "$BATS_TEST_TMPDIR"/main/foo
 	echo "first" > foo-1.0.txt
 	echo "second" > foo-1.1.txt
 	cat > APKBUILD <<-EOF
@@ -89,8 +88,8 @@ teardown() {
 }
 
 @test "abump: test bumping same version which is not in git" {
-	mkdir -p "$tmpdir"/main/foo
-	cd "$tmpdir"/main/foo
+	mkdir -p "$BATS_TEST_TMPDIR"/main/foo
+	cd "$BATS_TEST_TMPDIR"/main/foo
 	echo "first" > foo-1.0.txt
 	echo "second" > foo-1.1.txt
 	cat > APKBUILD <<-EOF

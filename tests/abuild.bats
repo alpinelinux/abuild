@@ -4,11 +4,10 @@ setup() {
 	export ABUILD="$PWD/../abuild"
 	export ABUILD_SHAREDIR="$PWD/.."
 	export ABUILD_CONF=/dev/null
-	tmpdir="$BATS_TMPDIR"/abuild
-	export REPODEST="$tmpdir"/packages
+	export REPODEST="$BATS_TEST_TMPDIR"/packages
 	export CLEANUP="srcdir bldroot pkgdir deps"
-	export WORKDIR="$tmpdir"/work
-	export GIT_CONFIG_GLOBAL="$tmpdir"/gitconfig
+	export WORKDIR="$BATS_TEST_TMPDIR"/work
+	export GIT_CONFIG_GLOBAL="$BATS_TEST_TMPDIR"/gitconfig
 	export APORTSDIR="$PWD"/testrepo
 	export PATH="$PWD/../:$PATH"
 
@@ -16,12 +15,8 @@ setup() {
 		abuild-keygen -ain >/dev/null 2>&1
 	fi
 
-	mkdir -p "$tmpdir" "$WORKDIR"
+	mkdir -p "$WORKDIR"
 	printf "[color]\n\tui = always\n" > "$GIT_CONFIG_GLOBAL"
-}
-
-teardown() {
-	rm -rf "$tmpdir"
 }
 
 @test "abuild: help text" {
@@ -67,8 +62,8 @@ teardown() {
 	arch=$($ABUILD -A)
 	$ABUILD
 
-	mkdir "$tmpdir/dbgpkg-1.0-r0"
-	cd "$tmpdir/dbgpkg-1.0-r0"
+	mkdir "$BATS_TEST_TMPDIR/dbgpkg-1.0-r0"
+	cd "$BATS_TEST_TMPDIR/dbgpkg-1.0-r0"
 	tar -xf "$REPODEST"/testrepo/$arch/dbgpkg-1.0-r0.apk
 	! [ -e usr/lib/debug ]
 	debuginfo=$(readelf -wk usr/bin/hello | grep '^  Separate debug info file: [^/]*\.debug$')
@@ -76,8 +71,8 @@ teardown() {
 	[ "$(nm usr/bin/hello 2>&1)" = "nm: usr/bin/hello: no symbols" ]
 	[ usr/bin/hello -ef usr/bin/hello-hard ]
 
-	mkdir "$tmpdir/dbgpkg-dbg-1.0-r0"
-	cd "$tmpdir/dbgpkg-dbg-1.0-r0"
+	mkdir "$BATS_TEST_TMPDIR/dbgpkg-dbg-1.0-r0"
+	cd "$BATS_TEST_TMPDIR/dbgpkg-dbg-1.0-r0"
 	tar -xf "$REPODEST"/testrepo/$arch/dbgpkg-dbg-1.0-r0.apk
 	! [ -e usr/bin ]
 	[ -n "$(nm usr/lib/debug/usr/bin/$debuginfo_file)" ]
@@ -113,14 +108,14 @@ teardown() {
 }
 
 @test "abuild: test checksum generation" {
-	mkdir -p "$tmpdir"/foo
-	cat > "$tmpdir"/foo/APKBUILD <<-EOF
+	mkdir -p "$BATS_TEST_TMPDIR"/foo
+	cat > "$BATS_TEST_TMPDIR"/foo/APKBUILD <<-EOF
 		pkgname="foo"
 		pkgver="1.0"
 		source="test.txt"
 	EOF
-	echo "foo" > "$tmpdir"/foo/test.txt
-	cd "$tmpdir"/foo
+	echo "foo" > "$BATS_TEST_TMPDIR"/foo/test.txt
+	cd "$BATS_TEST_TMPDIR"/foo
 	$ABUILD checksum
 	. ./APKBUILD && echo "$sha512sums" | sed '/^$/d' > sums
 	cat sums
@@ -128,22 +123,22 @@ teardown() {
 }
 
 @test "abuild: test duplicates in checksum generation" {
-	mkdir -p "$tmpdir"/foo "$tmpdir"/foo/dir1 "$tmpdir"/foo/dir2
-	cat > "$tmpdir"/foo/APKBUILD <<-EOF
+	mkdir -p "$BATS_TEST_TMPDIR"/foo "$BATS_TEST_TMPDIR"/foo/dir1 "$BATS_TEST_TMPDIR"/foo/dir2
+	cat > "$BATS_TEST_TMPDIR"/foo/APKBUILD <<-EOF
 		pkgname="foo"
 		pkgver="1.0"
 		source="dir1/testfile dir2/testfile"
 	EOF
-	echo "first" > "$tmpdir"/foo/dir1/testfile
-	echo "second" > "$tmpdir"/foo/dir2/testfile
-	cd "$tmpdir"/foo
+	echo "first" > "$BATS_TEST_TMPDIR"/foo/dir1/testfile
+	echo "second" > "$BATS_TEST_TMPDIR"/foo/dir2/testfile
+	cd "$BATS_TEST_TMPDIR"/foo
 	run $ABUILD checksum
 	[ $status -ne 0 ]
 }
 
 @test "abuild: verify main package does not inherit subpackage dependencies" {
-	mkdir -p "$tmpdir"/testrepo/subpkg-dep-leak
-	cd "$tmpdir"/testrepo/subpkg-dep-leak
+	mkdir -p "$BATS_TEST_TMPDIR"/testrepo/subpkg-dep-leak
+	cd "$BATS_TEST_TMPDIR"/testrepo/subpkg-dep-leak
 	cat > APKBUILD <<-EOF
 		# Maintainer: Natanael Copa <ncopa@alpinelinux.org>
 		pkgname="subpkg-dep-leak"
@@ -186,7 +181,8 @@ teardown() {
 }
 
 @test "abuild: reject initd script with improper shebang" {
-	cd testrepo/invalid-initd/
+	cp -r testrepo/invalid-initd "$BATS_TEST_TMPDIR"
+	cd "$BATS_TEST_TMPDIR/invalid-initd"
 	sed 's#@source@#test.initd#' APKBUILD.in >APKBUILD
 
 	run $ABUILD unpack
@@ -197,7 +193,8 @@ teardown() {
 
 @test "abuild: reject remote initd script with improper shebang" {
 	skip 'flaky'
-	cd testrepo/invalid-initd/
+	cp -r testrepo/invalid-initd "$BATS_TEST_TMPDIR"
+	cd "$BATS_TEST_TMPDIR/invalid-initd"
 	sed 's#@source@#test.initd::https://tpaste.us/ovyL?.initd#' APKBUILD.in >APKBUILD
 
 	$ABUILD fetch
@@ -209,7 +206,8 @@ teardown() {
 
 @test "abuild: reject remote initd without initd extension with improper shebang" {
 	skip 'Not handled yet'
-	cd testrepo/invalid-initd/
+	cp -r testrepo/invalid-initd "$BATS_TEST_TMPDIR"
+	cd "$BATS_TEST_TMPDIR/invalid-initd"
 	sed 's#@source@#test.initd::https://tpaste.us/ovyL#' APKBUILD.in >APKBUILD
 
 	run $ABUILD fetch unpack

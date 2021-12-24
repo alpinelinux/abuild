@@ -1,23 +1,18 @@
 setup() {
 	export ABUILD_KEYGEN="$PWD/../abuild-keygen"
 	export ABUILD_SHAREDIR="$PWD/.."
-	tmpdir="$BATS_TMPDIR"/abuild-keygen
-	export ABUILD_USERDIR="$tmpdir"/user
+	export ABUILD_USERDIR="$BATS_TEST_TMPDIR"/user
 	mkdir -p "$ABUILD_USERDIR"
 	export abuild_keygen_install_root=${ABUILD_USERDIR}
 
 	# provide a fake git
-	mkdir -p "$tmpdir"/bin
-	cat >"$tmpdir"/bin/git <<-EOF
+	mkdir -p "$BATS_TEST_TMPDIR"/bin
+	cat >"$BATS_TEST_TMPDIR"/bin/git <<-EOF
 		#!/bin/sh
 		exit 1
 	EOF
-	chmod +x "$tmpdir"/bin/git
-	export PATH="$tmpdir/bin:$PATH"
-}
-
-teardown() {
-	rm -rf "$tmpdir"
+	chmod +x "$BATS_TEST_TMPDIR"/bin/git
+	export PATH="$BATS_TEST_TMPDIR/bin:$PATH"
 }
 
 @test "abuild-keygen: help text" {
@@ -39,7 +34,7 @@ teardown() {
 }
 
 @test "abuild-keygen: --install option (interactive)" {
-	yes | SUDO= $ABUILD_KEYGEN --install
+	echo | SUDO= $ABUILD_KEYGEN --install
 }
 
 @test "abuild-keygen: --install -n (non-interacive)" {
