@@ -2441,6 +2441,7 @@ rootbld() {
 	$SUDO_APK add --initdb --update \
 		--arch $CBUILD_ARCH \
 		--root "$BUILD_ROOT" \
+		--cache-dir /etc/apk/cache \
 		abuild alpine-base build-base git $hostdeps $builddeps \
 		${USE_CCACHE:+ccache}
 
