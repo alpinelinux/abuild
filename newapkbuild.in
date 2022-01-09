@@ -208,7 +208,7 @@ __EOF__
 # Create new aport from templates
 newaport() {
 	local newname="${1##*/}"
-	local pn=${newname%-[0-9]*}
+	local pn=${newname%[-_][0-9]*}
 	local pv
 	local source=
 	is_url "$1" && source="$1"
@@ -222,7 +222,7 @@ newaport() {
 		pv=${pv#*[a-z]}
 		source="${source%.t*}/$pkgname-$pv.tar.gz"
 	elif [ "$pn" != "$newname" ]; then
-		pv=${newname#$pn-}
+		pv=${newname#$pn[-_]}
 		pv=${pv%.t*} #strip .tar.gz .tgz .tar.bz2 etc
 	fi
 	if [ -z "$pkgname" ]; then
