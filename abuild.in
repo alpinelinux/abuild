@@ -1038,6 +1038,18 @@ check_provides() {
 	return 0
 }
 
+check_depver() {
+	case "$1" in
+		*=*)
+			if ! $APK version --check --quiet "${1#*=}"; then
+				error "Invalid version: ${i#*=}"
+				return 1
+			fi
+			;;
+	esac
+	return 0
+}
+
 prepare_metafiles() {
 	getpkgver || return 1
 	local name=${subpkgname:-$pkgname}
@@ -1129,10 +1141,12 @@ prepare_metafiles() {
 	done
 	for i in $deps; do
 		if [ "$i" != "$name" ]; then
+			check_depver "$i" || die "Invalid version in dependency: $i"
 			echo "depend = $i" >> "$pkginfo"
 		fi
 	done
 	for i in $provides; do
+		check_depver "$i" || die "Invalid version in provides: $i"
 		echo "provides = $i" >> "$pkginfo"
 	done
 	for i in $triggers; do
