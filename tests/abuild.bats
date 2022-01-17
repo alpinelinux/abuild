@@ -217,3 +217,16 @@ teardown() {
 	[[ $output == *"is not an openrc"* ]]
 	[[ $status -ne 0 ]]
 }
+
+@test "abuild: valid pkgnames" {
+	cd testrepo/test-pkgname
+	$ABUILD sanitycheck && TESTNAME="foo" $ABUILD sanitycheck && TESTSUBNAME="foo" $ABUILD sanitycheck
+}
+
+@test "abuild: invalid pkgnames" {
+	cd testrepo/test-pkgname
+	! TESTNAME="" $ABUILD sanitycheck \
+		&& ! TESTNAME="-foo" $ABUILD sanitycheck \
+		&& ! TESTNAME="name with spaces" $ABUILD sanitycheck
+}
+

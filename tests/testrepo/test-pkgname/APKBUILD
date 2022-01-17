@@ -1,0 +1,32 @@
+# Maintainer: Natanael Copa <ncopa@alpinelinux.org>
+
+# test package
+pkgname=${TESTNAME-test-pkgname}
+pkgver="1.0"
+pkgrel=0
+pkgdesc="Dummy test package that fails to build"
+url="https://gitlab.alpinelinux.org/alpine/aports"
+arch="noarch"
+license="MIT"
+subpackages="${TESTSUBNAME-$pkgname-sub}:_sub"
+
+prepare() {
+	mkdir -p "$builddir"
+}
+
+build() {
+	touch foo
+}
+
+check() {
+	true
+}
+
+package() {
+	mkdir -p "$pkgdir"
+	cp -r * "$pkgdir"/
+}
+
+_sub() {
+	mkdir -p "$subpkgdir"
+}
