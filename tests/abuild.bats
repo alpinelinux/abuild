@@ -230,3 +230,9 @@ teardown() {
 		&& ! TESTNAME="name with spaces" $ABUILD sanitycheck
 }
 
+@test "abuild: invalid subpkgnames" {
+	cd testrepo/test-pkgname
+	! TESTSUBNAME="" $ABUILD sanitycheck \
+		&& ! TESTSUBNAME="-foo" $ABUILD sanitycheck
+}
+

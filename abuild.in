@@ -170,12 +170,18 @@ spell_error() {
 	die "APKBUILD contains '$1'. It should be '$2'"
 }
 
+verify_pkgname() {
+	local name=${1%%=*}
+	case "$name" in
+		""|*" "*|-*) return 1;;
+	esac
+	return 0
+}
+
 # check if apkbuild is basically sane
 default_sanitycheck() {
 	local i= j= suggestion=
 	msg "Checking sanity of $APKBUILD..."
-	[ -z "$pkgname" ] && die "Missing pkgname in APKBUILD"
-	[ -z "${pkgname##* *}" ] && die "pkgname contains spaces"
 	[ -z "$pkgver" ] && die "Missing pkgver in APKBUILD"
 	if [ "$pkgver" != "volatile" ] && [ -z "$nodeps" ]; then
 		$APK version --check --quiet "$pkgver" ||\
@@ -203,11 +209,9 @@ default_sanitycheck() {
 		die "provider_priority must be a number"
 	fi
 
-	# check so no package names starts with -
-	for i in $pkgname $subpackages; do
-		case $i in
-		-*) die "${i%%:*} is not a valid package name";;
-		esac
+	# check pkgname and subpkgnames
+	for i in "$pkgname" $subpackages; do
+		verify_pkgname "${i%%:*}" || die "${i%%:*} is not a valid package name"
 	done
 
 	for i in $install; do
@@ -462,7 +466,7 @@ initdcheck() {
 	local i line
 	for i in $source; do
 		case $i in
-		*.initd) 
+		*.initd)
 			line=$(head -n 1 "$srcdir"/"$(filename_from_uri $i)")
 			;;
 		*) continue ;;
