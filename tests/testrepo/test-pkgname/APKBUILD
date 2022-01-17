@@ -28,5 +28,6 @@ package() {
 }
 
 _sub() {
+	depends="$pkgname=${TESTDEPVER-$pkgver-r$pkgrel}"
 	mkdir -p "$subpkgdir"
 }

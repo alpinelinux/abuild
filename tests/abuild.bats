@@ -236,3 +236,8 @@ teardown() {
 		&& ! TESTSUBNAME="-foo" $ABUILD sanitycheck
 }
 
+@test "abuild: invalid subpkg's version" {
+	cd testrepo/test-pkgname
+	! TESTDEPVER="1.0-0" $ABUILD all
+}
+
