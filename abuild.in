@@ -674,6 +674,8 @@ runpart() {
 	if [ -d "$builddir" ]; then
 		case "$part" in
 			prepare|build|package|check)
+				# exclude aports from git repo discovery
+				export GIT_CEILING_DIRECTORIES="$startdir"
 				cd "$builddir";;
 		esac
 	fi
