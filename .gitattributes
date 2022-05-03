@@ -1,1 +1,2 @@
 *.bats gitlab-language=shell
+abuild.in gitlab-language=shell
