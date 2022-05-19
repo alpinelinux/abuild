@@ -239,3 +239,9 @@ setup() {
 	! TESTDEPVER="1.0-0" $ABUILD all
 }
 
+@test "abuild: check multi-line licenses" {
+	cd 'testrepo/test-licenses'
+	$ABUILD rootpkg
+	grep '^license = MIT AND GPL-3.0-only OR GPL-3.0-or-later AND BSD-Clause-4$' \
+	     "${APORTSDIR}/test-licenses/pkg/.control.test-licenses/.PKGINFO"
+}
