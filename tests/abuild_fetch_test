@@ -1,0 +1,13 @@
+#!/usr/bin/env atf-sh
+
+. $(atf_get_srcdir)/test_env.sh
+init_tests \
+	abuild_fetch_help
+
+abuild_fetch_help_body() {
+	atf_check -s exit:0 \
+		-o not-empty \
+		-e empty \
+		abuild-fetch -h
+}
+
