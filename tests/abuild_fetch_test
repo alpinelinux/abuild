@@ -8,7 +8,8 @@ init_tests \
 	abuild_fetch_curl_http \
 	abuild_fetch_wget_fallback \
 	abuild_fetch_wget_failure \
-	abuild_fetch_wget_http
+	abuild_fetch_wget_http \
+	abuild_fetch_locking
 
 create_fake_curl() {
 	mkdir bin
@@ -17,10 +18,13 @@ create_fake_curl() {
 		#!/bin/sh
 
 		echo "[\$\$] Fake curl invoked with: \$@"
-		if [ -n "\$FIFO" ]; then
-			echo "[\$\$] waiting for fifo \$FIFO"
-			cat "\$FIFO"
+		if [ -n "\$STAMP" ]; then
+			touch "\$STAMP"
 		fi
+		for fifo in \$FIFOS; do
+			echo "[\$\$] waiting for fifo \$fifo"
+			cat "\$fifo"
+		done
 		exit \${CURL_EXITCODE:-0}
 	EOF
 	chmod +x bin/curl
@@ -95,5 +99,77 @@ abuild_fetch_wget_http_body() {
 		-o match:"--no-check-certificate" \
 		-e empty \
 		abuild-fetch -d "$PWD" http://example.com/non-existing
+}
+
+abuild_fetch_locking_body() {
+	create_fake_curl
+	mkfifo waitstart1 waitstart2 done1 done2
+
+	cat > bin/test-locking <<-EOF
+		#!/bin/sh
+
+		# start first instance
+		FIFOS="waitstart1 done1" CURL_EXITCODE=1 \
+			abuild-fetch -d "$PWD" https://example.com/foo &
+		pid1=\$!
+
+		# block til curl is called so we dont start the second instance too early
+		echo "block1" > waitstart1
+
+		# try a second fetch, while the first one is still running
+		FIFOS="waitstart2 done2" STAMP=stamp2 \
+			abuild-fetch -d "$PWD" https://example.com/foo &
+		pid2=\$!
+
+		# second instance should not start curl until first exits, so stamp2 should
+		# not exist yet
+		if [ -e stamp2 ]; then
+			echo "stamp2 should not exist here" >&2
+			exit 1
+		fi
+
+		# tell fake curl to similuate download fail of first instance
+		echo "download 1 failed" > done1
+		! wait \$pid1
+
+		# wait til second instance gets lock to simulate download start
+		echo "block2" > waitstart2
+
+		# retry first download. second instance should block us
+		FIFOS="done1" STAMP=stamp3 \
+			abuild-fetch -d "$PWD" https://example.com/foo &
+		pid1=\$!
+
+		# give enough time for abuild-fetch to call curl
+		sleep 0.2
+
+		# the first stamp should not exist, second instance should block the retry
+		if [ -e stamp3 ]; then
+			echo "stamp3 should not exist here" >&2
+			exit 1
+		fi
+
+		# simulate second download finished
+		echo "download 2 complete" > done2
+		wait \$pid2
+
+		# first should get unblocked
+		echo "download 3 complete" > done1
+		wait \$pid1
+
+		if ! [ -e stamp3 ]; then
+			echo "stamp3 should exist here" >&2
+			exit 1
+		fi
+	EOF
+
+	atf_check -s exit:0 \
+		-o match:"block1" \
+		-o match:"download 1 failed" \
+		-o match:"block2" \
+		-o match:"download 2 complete" \
+		-o match:"download 3 complete" \
+		sh -e bin/test-locking
+
 }
 
