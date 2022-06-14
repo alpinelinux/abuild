@@ -50,7 +50,7 @@ abuild_fetch_curl_invocation_body() {
 	atf_check -s exit:0 \
 		-o match:"Fake curl invoked" \
 		-e empty \
-		abuild-fetch https://example.com/non-existing
+		abuild-fetch -d "$PWD" https://example.com/non-existing
 }
 
 abuild_fetch_curl_failure_body() {
@@ -62,7 +62,7 @@ abuild_fetch_curl_failure_body() {
 	CURL_EXITCODE=1 atf_check -s exit:$CURL_EXITCODE \
 		-o match:"Fake curl invoked" \
 		-e empty \
-		abuild-fetch https://example.com/non-existing
+		abuild-fetch -d "$PWD" https://example.com/non-existing
 }
 
 abuild_fetch_curl_http_body() {
@@ -70,7 +70,7 @@ abuild_fetch_curl_http_body() {
 	atf_check -s exit:0 \
 		-o match:"--insecure" \
 		-e empty \
-		abuild-fetch http://example.com/non-existing
+		abuild-fetch -d "$PWD" http://example.com/non-existing
 }
 
 abuild_fetch_wget_fallback_body() {
@@ -78,7 +78,7 @@ abuild_fetch_wget_fallback_body() {
 	PATH="$PWD/bin:$(atf_get_srcdir)/.." atf_check -s exit:0 \
 		-o match:"Fake wget invoked" \
 		-e empty \
-		abuild-fetch https://example.com/non-existing
+		abuild-fetch -d "$PWD" https://example.com/non-existing
 }
 
 abuild_fetch_wget_failure_body() {
@@ -86,7 +86,7 @@ abuild_fetch_wget_failure_body() {
 	WGET_EXITCODE=1 PATH="$PWD/bin:$(atf_get_srcdir)/.." atf_check -s exit:1 \
 		-o match:"Fake wget invoked" \
 		-e empty \
-		abuild-fetch https://example.com/non-existing
+		abuild-fetch -d "$PWD" https://example.com/non-existing
 }
 
 abuild_fetch_wget_http_body() {
@@ -94,6 +94,6 @@ abuild_fetch_wget_http_body() {
 	PATH="$PWD/bin:$(atf_get_srcdir)/.." atf_check -s exit:0 \
 		-o match:"--no-check-certificate" \
 		-e empty \
-		abuild-fetch http://example.com/non-existing
+		abuild-fetch -d "$PWD" http://example.com/non-existing
 }
 
