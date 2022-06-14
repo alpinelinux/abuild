@@ -78,7 +78,7 @@ P=$(PACKAGE)-$(VERSION)
 all:	$(USR_BIN_FILES) $(MAN_PAGES) functions.sh
 
 clean:
-	@rm -f $(USR_BIN_FILES) $(MAN_PAGES) *.o functions.sh
+	@rm -f $(USR_BIN_FILES) $(MAN_PAGES) *.o functions.sh Kyuafile tests/Kyuafile
 
 %.o: %.c
 	$(CC) $(CPPFLAGS) $(CFLAGS) $(CFLAGS-$@) -o $@ -c $<
@@ -102,8 +102,20 @@ help:
 	@echo "$(P) makefile"
 	@echo "usage: make install [ DESTDIR=<path> ]"
 
-check: $(USR_BIN_FILE) functions.sh
-	cd tests && bats $${FILTER:+ --filter $$FILTER} *.bats
+tests/Kyuafile: $(wildcard tests/*_test)
+	echo "syntax(2)" > $@
+	echo "test_suite('abuild')" >> $@
+	for i in $(notdir $(wildcard tests/*_test)); do \
+		echo "atf_test_program{name='$$i',timeout=5}" >> $@ ; \
+	done
+
+Kyuafile: tests/Kyuafile
+	echo "syntax(2)" > $@
+	echo "test_suite('abuild')" >> $@
+	echo "include('tests/Kyuafile')" >> $@
+
+check: $(SCRIPTS) $(USR_BIN_FILES) functions.sh tests/Kyuafile Kyuafile
+	kyua test || (kyua report --verbose && exit 1)
 
 install: $(USR_BIN_FILES) $(SAMPLES) $(MAN_PAGES) abuild.conf functions.sh
 	install -d $(DESTDIR)/$(bindir) $(DESTDIR)/$(sysconfdir) \

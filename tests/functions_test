@@ -1,0 +1,27 @@
+#!/usr/bin/env atf-sh
+
+. $(atf_get_srcdir)/test_env.sh
+init_tests \
+	funcs_check_CBUILD \
+	funcs_check_missing_gcc \
+	funcs_check_missing_apk
+
+FUNCS=$(atf_get_srcdir)/../functions.sh
+
+funcs_check_CBUILD_body() {
+	atf_check -s exit:0 \
+		-o not-empty \
+		-e empty \
+		sh -e -c " . $FUNCS; echo \"\$CBUILD\""
+}
+
+funcs_check_missing_gcc_body() {
+	atf_check -s exit:0 \
+		sh -e -c "CC=false; . $FUNCS && test -z \"$CBUILD\""
+}
+
+funcs_check_missing_apk_body() {
+	atf_check -s exit:1 \
+		-e match:"Unable to deduce build architecture" \
+		sh -e -c "APK=false; . $FUNCS && test -z \"$CBUILD\""
+}

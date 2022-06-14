@@ -2,6 +2,7 @@
 *.o
 *.1
 *.5
+Kyuafile
 abuild
 abuild-fetch
 abuild-gzsplit
