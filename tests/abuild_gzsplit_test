@@ -1,0 +1,34 @@
+#!/usr/bin/env atf-sh
+
+. $(atf_get_srcdir)/test_env.sh
+init_tests \
+	abuild_gzsplit_3_11_package \
+	abuild_gzsplit_3_12_package
+
+DATADIR=$(atf_get_srcdir)/testdata
+
+check_content() {
+	atf_check -s exit:0 \
+		-o match:".PKGINFO" \
+		tar -ztf control.tar.gz
+
+	atf_check -s exit:0 \
+		-o match:"etc/alpine-release" \
+		tar -ztf data.tar.gz
+
+	atf_check -s exit:0 \
+		-o match:".SIGN.RSA" \
+		tar -ztf signatures.tar.gz
+}
+
+abuild_gzsplit_3_11_package_body() {
+	atf_check -s exit:0 \
+		abuild-gzsplit < "$DATADIR"/alpine-base-3.11.6-r0.apk
+	check_content
+}
+
+abuild_gzsplit_3_12_package_body() {
+	atf_check -s exit:0 \
+		abuild-gzsplit < "$DATADIR"/alpine-base-3.12.0-r0.apk
+	check_content
+}
