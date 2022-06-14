@@ -2,12 +2,38 @@
 
 . $(atf_get_srcdir)/test_env.sh
 init_tests \
-	abuild_fetch_help
+	abuild_fetch_help \
+	abuild_fetch_curl_invocation
+
+create_fake_curl() {
+	mkdir bin
+	# fake curl
+	cat > bin/curl <<-EOF
+		#!/bin/sh
+
+		echo "[\$\$] Fake curl invoked with: \$@"
+		if [ -n "\$FIFO" ]; then
+			echo "[\$\$] waiting for fifo \$FIFO"
+			cat "\$FIFO"
+		fi
+		exit \${CURL_EXITCODE:-0}
+	EOF
+	chmod +x bin/curl
+	PATH="$PWD/bin:$PATH"
+}
 
 abuild_fetch_help_body() {
 	atf_check -s exit:0 \
 		-o not-empty \
 		-e empty \
 		abuild-fetch -h
+}
+
+abuild_fetch_curl_invocation_body() {
+	create_fake_curl
+	atf_check -s exit:0 \
+		-o match:"Fake curl invoked" \
+		-e empty \
+		abuild-fetch https://example.com/non-existing
 }
 
