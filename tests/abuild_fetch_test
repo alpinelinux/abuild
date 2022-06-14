@@ -3,7 +3,8 @@
 . $(atf_get_srcdir)/test_env.sh
 init_tests \
 	abuild_fetch_help \
-	abuild_fetch_curl_invocation
+	abuild_fetch_curl_invocation \
+	abuild_fetch_curl_failure
 
 create_fake_curl() {
 	mkdir bin
@@ -32,6 +33,18 @@ abuild_fetch_help_body() {
 abuild_fetch_curl_invocation_body() {
 	create_fake_curl
 	atf_check -s exit:0 \
+		-o match:"Fake curl invoked" \
+		-e empty \
+		abuild-fetch https://example.com/non-existing
+}
+
+abuild_fetch_curl_failure_body() {
+	create_fake_curl
+	# verify that fake curl works
+	CURL_EXITCODE=1 atf_check -s exit:$CURL_EXITCODE \
+		-o match:"Fake curl invoked" \
+		curl
+	CURL_EXITCODE=1 atf_check -s exit:$CURL_EXITCODE \
 		-o match:"Fake curl invoked" \
 		-e empty \
 		abuild-fetch https://example.com/non-existing
