@@ -5,9 +5,10 @@ init_tests \
 	abuild_fetch_help \
 	abuild_fetch_curl_invocation \
 	abuild_fetch_curl_failure \
-	abuild_fetch_curl_insecure \
+	abuild_fetch_curl_http \
 	abuild_fetch_wget_fallback \
-	abuild_fetch_wget_failure
+	abuild_fetch_wget_failure \
+	abuild_fetch_wget_http
 
 create_fake_curl() {
 	mkdir bin
@@ -64,7 +65,7 @@ abuild_fetch_curl_failure_body() {
 		abuild-fetch https://example.com/non-existing
 }
 
-abuild_fetch_curl_insecure_body() {
+abuild_fetch_curl_http_body() {
 	create_fake_curl
 	atf_check -s exit:0 \
 		-o match:"--insecure" \
@@ -86,5 +87,13 @@ abuild_fetch_wget_failure_body() {
 		-o match:"Fake wget invoked" \
 		-e empty \
 		abuild-fetch https://example.com/non-existing
+}
+
+abuild_fetch_wget_http_body() {
+	create_fake_wget
+	PATH="$PWD/bin:$(atf_get_srcdir)/.." atf_check -s exit:0 \
+		-o match:"--no-check-certificate" \
+		-e empty \
+		abuild-fetch http://example.com/non-existing
 }
 
