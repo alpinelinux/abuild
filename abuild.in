@@ -11,7 +11,9 @@ program_version=@VERSION@
 sharedir=${ABUILD_SHAREDIR:-@sharedir@}
 
 abuild_path=$(readlink -f $0)
-git=$(command -v git) || git=true
+
+: ${git:=$(command -v git || echo true)}
+export git
 
 if ! [ -f "$sharedir/functions.sh" ]; then
 	echo "$sharedir/functions.sh: not found" >&2
