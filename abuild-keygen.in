@@ -91,7 +91,7 @@ do_keygen() {
 }
 
 usage() {
-	cat >&2 <<-__EOF__
+	cat <<-__EOF__
 		$program $program_version - generate signing keys
 		Usage: $program [-a|--append] [-i|--install] [-n]
 		Options:
@@ -131,12 +131,12 @@ while true; do
 		-q|--quiet) quiet=1;; # suppresses msg
 		-h|--help) usage; exit;;
 		--) shift; break;;
-		*) exit 1;; # getopt error
+		*) usage >&2; exit 1;; # getopt error
 	esac
 	shift
 done
 if [ $# -ne 0 ]; then
-	usage
+	usage >&2
 	exit 2
 fi
 
