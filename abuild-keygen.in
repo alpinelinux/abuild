@@ -27,7 +27,7 @@ get_privkey_file() {
 
 	# if PACKAGER does not contain a valid email address, then ask git
 	if [ -z "$emailaddr" ] || [ "${emailaddr##*@}" = "$emailaddr" ]; then
-		emailaddr=$(git config --get user.email 2>/dev/null || true)
+		emailaddr=$(${GIT:-git} config --get user.email 2>/dev/null || true)
 	fi
 
 	default_name="${emailaddr:-$USER}-$(printf "%x" $(date +%s))"
