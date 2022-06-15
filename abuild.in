@@ -817,7 +817,7 @@ postcheck() {
 	i=$(find "$dir" -name $'*\n*')
 	if [ -n "$i" ]; then
 		error "Found filenames with newline:"
-		echo "$i"
+		echo "$i" >&2
 		e=1
 	fi
 	# check directory permissions
