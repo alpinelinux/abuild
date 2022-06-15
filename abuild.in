@@ -2731,7 +2731,6 @@ usage() {
 		  CTARGET     Arch or hostspec of machine to generate compiler for
 
 	EOF
-	exit 0
 }
 
 APKBUILD="${APKBUILD:-./APKBUILD}"
@@ -2745,7 +2744,7 @@ while getopts ":AcdD:fFhkKmnP:qrRs:uvV" opt; do
 		'D') DESCRIPTION=$OPTARG;;
 		'f') force="-f";;
 		'F') forceroot="-F";;
-		'h') usage;;
+		'h') usage; exit 0;;
 		'k') keep="-k";;
 		'K') keep_build="-K";;
 		'm') disable_colors
@@ -2757,7 +2756,7 @@ while getopts ":AcdD:fFhkKmnP:qrRs:uvV" opt; do
 		's') SRCDEST=$OPTARG;;
 		'v') set -x;;
 		'V') echo "$program $program_version"; exit 0;;
-		'?') die "Unrecognized option: $OPTARG";;
+		'?') error "Unrecognized option: $OPTARG"; usage >&2; exit 1;;
 	esac
 done
 shift $(( $OPTIND - 1 ))
