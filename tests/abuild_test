@@ -5,7 +5,8 @@ init_tests \
 	abuild_help \
 	abuild_invalid_opt \
 	abuild_version \
-	abuild_simple_pkg_without_deps
+	abuild_simple_pkg_without_deps \
+	abuild_build_fail
 
 export ABUILD_SHAREDIR=$(atf_get_srcdir)/..
 export ABUILD_CONF=/dev/null
@@ -44,3 +45,32 @@ abuild_simple_pkg_without_deps_body() {
 		abuild
 }
 
+abuild_build_fail_body() {
+	mkdir buildfail
+	cat >buildfail/APKBUILD <<-EOF
+		# Maintainer: Natanael Copa <ncopa@alpinelinux.org>
+		pkgname="buildfail"
+		pkgver="1.0"
+		pkgrel=0
+		pkgdesc="Dummy test package that fails to build"
+		url="https://gitlab.alpinelinux.org/alpine/aports"
+		arch="noarch"
+		license="MIT"
+		subpackages="\$pkgname-dev \$pkgname-doc"
+		source=""
+		prepare() {
+			mkdir -p "\$builddir"
+		}
+		build() {
+			false
+		}
+		package() {
+			true
+		}
+	EOF
+	cd buildfail
+	atf_check -s exit:1 \
+		-e match:"ERROR: buildfail: build failed" \
+		abuild
+
+}
