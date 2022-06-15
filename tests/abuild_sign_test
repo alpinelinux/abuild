@@ -8,7 +8,8 @@ init_tests \
 	abuild_sign_installed_missing \
 	abuild_sign_installed_missing_pub \
 	abuild_sign_installed_missing_priv \
-	abuild_sign_installed
+	abuild_sign_installed \
+	abuild_sign_owner
 
 export ABUILD_SHAREDIR="$(atf_get_srcdir)/.."
 
@@ -62,3 +63,16 @@ abuild_sign_installed_body() {
 		abuild-sign --installed
 }
 
+abuild_sign_owner_body() {
+	init_keys
+	echo foo > .PKGINFO
+	tar -zcf foo.tar.gz .PKGINFO || atf_fail "Failed to create unsigned test archive"
+
+	atf_check -s exit:0 \
+		-e match:"Signed" \
+		abuild-sign foo.tar.gz
+
+	atf_check -s exit:0 \
+		-o match:"0/0.*\.SIGN\.RSA" \
+		tar -ztvf foo.tar.gz
+}
