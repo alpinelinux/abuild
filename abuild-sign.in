@@ -52,7 +52,7 @@ do_sign() {
 }
 
 usage() {
-	cat >&2 <<-__EOF__
+	cat <<-__EOF__
 		$program $program_version - sign indexes
 		Usage: $program [-k PRIVKEY] [-p PUBKEY] INDEXFILE...
 		       $program -e
@@ -74,7 +74,7 @@ quiet=
 
 args=$(getopt -o ek:p:qh --long installed,private:,public:,quiet,help -n "$program" -- "$@")
 if [ $? -ne 0 ]; then
-	usage
+	usage >&2
 	exit 2
 fi
 eval set -- "$args"
@@ -91,7 +91,7 @@ while true; do
 	shift
 done
 if [ $# -eq 0 ] && ! $check_installed; then
-	usage
+	usage >&2
 	exit 2
 fi
 
