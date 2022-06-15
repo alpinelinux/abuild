@@ -1,0 +1,46 @@
+#!/usr/bin/env atf-sh
+
+. $(atf_get_srcdir)/test_env.sh
+init_tests \
+	abuild_sign_help \
+	abuild_sign_invalid_opt \
+	abuild_sign_missing_arg \
+	abuild_sign_installed_missing \
+	abuild_sign_installed
+
+export ABUILD_SHAREDIR="$(atf_get_srcdir)/.."
+
+init_keys() {
+	cp -ra "$(atf_get_srcdir)"/testdata/.abuild "$PWD"
+}
+
+abuild_sign_help_body() {
+	atf_check -s exit:0 \
+		-o match:"Usage:" \
+		abuild-sign --help
+}
+
+abuild_sign_invalid_opt_body() {
+	atf_check -s exit:2 \
+		-e match:"Usage:" \
+		abuild-sign -INVALID
+}
+
+abuild_sign_missing_arg_body() {
+	atf_check -s exit:2 \
+		-e match:"Usage:" \
+		abuild-sign
+}
+
+abuild_sign_installed_missing_body() {
+	atf_check -s exit:1 \
+		-e match:"No private key found" \
+		abuild-sign --installed
+}
+
+abuild_sign_installed_body() {
+	init_keys
+	atf_check -s exit:0 \
+		abuild-sign --installed
+}
+
