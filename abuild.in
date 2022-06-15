@@ -872,7 +872,7 @@ prepare_subpackages() {
 		# call abuild recursively, setting subpkg{dir,name}
 		( subpkg_set "$i"; msg "Running split function $subpkgsplit..."; \
 		  subpkgdir="$pkgbasedir/$subpkgname" subpkgname="$subpkgname" subpkgarch="$subpkgarch" \
-		  "$abuild_path" $forceroot pre_split $subpkgsplit prepare_package \
+		  "$abuild_path" $forceroot $verbose pre_split $subpkgsplit prepare_package \
 			&& postcheck "$pkgbasedir/$subpkgname" "$subpkgname" ) || return 1
 	done
 	postcheck "$pkgdir" "$pkgname" || return 1
@@ -2102,17 +2102,17 @@ do_fakeroot() {
 check_fakeroot() {
 	cd "$startdir"
 	[ -n "$FAKEROOT" ] && msg "Entering fakeroot..."
-	do_fakeroot "$abuild_path" $forceroot $color_opt $keep_build check
+	do_fakeroot "$abuild_path" $forceroot $color_opt $keep_build $verbose check
 }
 
 # build and package in fakeroot
 rootpkg() {
 	cd "$startdir"
 	rm -rf "$pkgdir"
-	set_source_date
 	[ -n "$FAKEROOT" ] && msg "Entering fakeroot..."
 
-	do_fakeroot "$abuild_path" $forceroot $color_opt $keep_build \
+	do_fakeroot "$abuild_path" $forceroot $color_opt $keep_build $verbose \
+		set_source_date \
 		package \
 		prepare_subpackages \
 		prepare_language_packs \
@@ -2754,7 +2754,7 @@ while getopts ":AcdD:fFhkKmnP:qrRs:uvV" opt; do
 		'q') quiet="-q";;
 		'r') install_deps="-r";;
 		's') SRCDEST=$OPTARG;;
-		'v') set -x;;
+		'v') verbose="-v"; set -x;;
 		'V') echo "$program $program_version"; exit 0;;
 		'?') error "Unrecognized option: $OPTARG"; usage >&2; exit 1;;
 	esac
