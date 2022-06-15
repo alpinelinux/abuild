@@ -3,7 +3,8 @@
 . $(atf_get_srcdir)/test_env.sh
 init_tests \
 	abuild_help \
-	abuild_invalid_opt
+	abuild_invalid_opt \
+	abuild_version
 
 DATADIR=$(atf_get_srcdir)/testdata
 export ABUILD_SHAREDIR=$(atf_get_srcdir)/..
@@ -19,3 +20,10 @@ abuild_invalid_opt_body() {
 		-e match:"usage:" \
 		abuild -@
 }
+
+abuild_version_body() {
+	atf_check -s exit:0 \
+		-o match:"abuild [0-9]+\.[0-9]+" \
+		abuild -V
+}
+
