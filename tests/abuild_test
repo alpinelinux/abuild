@@ -8,7 +8,9 @@ init_tests \
 	abuild_simple_pkg_without_deps \
 	abuild_build_fail \
 	abuild_invalid_filename \
-	abuild_usr_lib64
+	abuild_usr_lib64 \
+	abuild_dbg_subpackage \
+	abuild_SETFATTR_in_dbg
 
 export ABUILD_SHAREDIR=$(atf_get_srcdir)/..
 export ABUILD_CONF=/dev/null
@@ -140,6 +142,60 @@ abuild_usr_lib64_body() {
 		abuild
 
 	options=lib64 atf_check -s exit:0 \
+		-e match:"Build complete" \
+		abuild
+}
+
+abuild_dbg_subpackage_body() {
+	cp -ra "$testrepo" .
+	cd testrepo/dbgpkg
+	atf_check -s exit:0 \
+		-o match:"hello world" \
+		-e match:"Build complete" \
+		abuild
+	cd ../..
+
+	arch=$(abuild -A)
+	tar -zxf "$REPODEST"/testrepo/$arch/dbgpkg-1.0-r0.apk \
+		|| atf_fail "failed to extract dbgpkg-1.0-r0.apk"
+	if [ -e usr/lib/debug ]; then
+		atf_fail "usr/lib/debug should not exist"
+	fi
+	debuginfo=$(readelf -wk usr/bin/hello | grep '^  Separate debug info file: [^/]*\.debug$')
+	debuginfo_file=${debuginfo#"  Separate debug info file: "}
+	atf_check -s exit:0 \
+		-e match:"nm: usr/bin/hello: no symbols" \
+		nm usr/bin/hello
+
+	if ! [ usr/bin/hello -ef usr/bin/hello-hard ]; then
+		atf_fail 'hello is not a hardlink of hello-hard'
+	fi
+
+	rm -r usr
+	tar -xf "$REPODEST"/testrepo/$arch/dbgpkg-dbg-1.0-r0.apk
+	if [ -e usr/bin ]; then
+		atf_fail "usr/bin should not exist"
+	fi
+
+	find usr
+	atf_check -s exit:0 \
+		-o match:"T main" \
+		nm usr/lib/debug/usr/bin/$debuginfo_file
+
+	if [ -e usr/lib/debug/usr/bin/hello-sym.debug ]; then
+		atf_fail "usr/lib/debug/usr/bin/hello-sym.debug should not exist"
+	fi
+
+	if [ -e usr/lib/debug/usr/bin/hello.debug ] && [ -e usr/lib/debug/usr/bin/hello-hard.debug ]; then
+		atf_fail "only one of hello.debug and hello-hard.debug should exist"
+	fi
+}
+
+abuild_SETFATTR_in_dbg_body() {
+	cp -ra "$testrepo"/dbgpkg .
+	cd dbgpkg
+	SETFATTR=true atf_check -s exit:0 \
+		-o match:"hello world" \
 		-e match:"Build complete" \
 		abuild
 }
