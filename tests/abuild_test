@@ -4,10 +4,18 @@
 init_tests \
 	abuild_help \
 	abuild_invalid_opt \
-	abuild_version
+	abuild_version \
+	abuild_simple_pkg_without_deps
 
-DATADIR=$(atf_get_srcdir)/testdata
 export ABUILD_SHAREDIR=$(atf_get_srcdir)/..
+export ABUILD_CONF=/dev/null
+export GIT_CONFIG_GLOBAL="$(atf_get_srcdir)/testdata/gitconfig"
+export REPODEST="$PWD"/packages
+
+testrepo=$(atf_get_srcdir)/testrepo
+
+# copy keys
+cp -ra "$(atf_get_srcdir)"/testdata/.abuild "$PWD"
 
 abuild_help_body() {
 	atf_check -s exit:0 \
@@ -25,5 +33,14 @@ abuild_version_body() {
 	atf_check -s exit:0 \
 		-o match:"abuild [0-9]+\.[0-9]+" \
 		abuild -V
+}
+
+abuild_simple_pkg_without_deps_body() {
+	cp -r "$testrepo"/pkg1 .
+	cd pkg1
+	atf_check -s exit:0 \
+		-e not-match:"WARNING" \
+		-e not-match:"fatal" \
+		abuild
 }
 
