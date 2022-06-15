@@ -1,0 +1,81 @@
+#!/usr/bin/env atf-sh
+
+. $(atf_get_srcdir)/test_env.sh
+init_tests \
+	abuild_keygen_help \
+	abuild_keygen_invalid_opts \
+	abuild_keygen_invalid_arg \
+	abuild_keygen_non_interactive \
+	abuild_keygen_append \
+	abuild_keygen_install_without_sudo \
+	abuild_keygen_install_interactive \
+	abuild_keygen_install_non_interactive
+
+export ABUILD_SHAREDIR=$(atf_get_srcdir)/..
+export GIT=false
+
+abuild_keygen_help_body() {
+	atf_check -s exit:0 \
+		-o not-empty \
+		-e empty \
+		abuild-keygen --help
+}
+
+abuild_keygen_invalid_opts_body() {
+	atf_check -s exit:1 \
+		-o empty \
+		-e not-empty \
+		abuild-keygen -INVALID
+}
+
+abuild_keygen_invalid_arg_body() {
+	atf_check -s exit:2 \
+		-o empty \
+		-e not-empty \
+		abuild-keygen INVALID
+}
+
+abuild_keygen_non_interactive_body() {
+	atf_check -s exit:0 \
+		-o empty \
+		-e match:"Generating RSA.*4096" \
+		abuild-keygen -n
+}
+
+abuild_keygen_append_body() {
+	PACKAGER="Test User <user@example.com>" \
+		atf_check -s exit:0 \
+		\
+		-o empty \
+		-e match:"Generating RSA" \
+		abuild-keygen --append -n
+		grep '^PACKAGER_PRIVKEY=.*user@example.com' "$HOME"/.abuild/abuild.conf \
+			|| atf_fail 'PACKAGER_PRIVKEY not set in abuild.conf'
+}
+
+abuild_keygen_install_without_sudo_body() {
+	SUDO=false \
+		atf_check -s exit:1 \
+		\
+		-o empty \
+		-e match:"Generating RSA" \
+		abuild-keygen --install -n
+}
+
+abuild_keygen_install_interactive_body() {
+	echo | abuild_keygen_install_root="$PWD" SUDO= \
+		atf_check -s exit:0 \
+		\
+		-o match:"Enter file" \
+		-e match:"Generating RSA" \
+		abuild-keygen --install
+}
+
+abuild_keygen_install_non_interactive_body() {
+	abuild_keygen_install_root="$PWD" SUDO= \
+		atf_check -s exit:0 \
+		\
+		-o empty \
+		-e match:"Generating RSA" \
+		abuild-keygen --install -n
+}
