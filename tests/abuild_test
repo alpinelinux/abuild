@@ -7,7 +7,8 @@ init_tests \
 	abuild_version \
 	abuild_simple_pkg_without_deps \
 	abuild_build_fail \
-	abuild_invalid_filename
+	abuild_invalid_filename \
+	abuild_usr_lib64
 
 export ABUILD_SHAREDIR=$(atf_get_srcdir)/..
 export ABUILD_CONF=/dev/null
@@ -103,6 +104,43 @@ abuild_invalid_filename_body() {
 	EOF
 	atf_check -s exit:1 \
 		-e match:"ERROR:.*: Found filenames with newline" \
+		abuild
+}
+
+abuild_usr_lib64_body() {
+	mkdir lib64test
+	cd lib64test
+	cat >APKBUILD <<-EOF
+		# Maintainer: Joe User <juser@example.com>
+		pkgname="lib64test"
+		pkgver="1.0"
+		pkgrel=0
+		pkgdesc="Dummy test package"
+		url="https://gitlab.alpinelinux.org/alpine/aports"
+		arch="noarch"
+		license="MIT"
+		source=""
+		prepare() {
+			mkdir -p "\$builddir"
+		}
+		build() {
+			mkdir -p usr/lib64
+		}
+		check() {
+			true
+		}
+
+		package() {
+			mkdir -p "\$pkgdir"
+			cp -r * "\$pkgdir"/
+		}
+	EOF
+	atf_check -s exit:1 \
+		-e match:"ERROR:.*: Packages must not put anything under /usr/lib64" \
+		abuild
+
+	options=lib64 atf_check -s exit:0 \
+		-e match:"Build complete" \
 		abuild
 }
 
