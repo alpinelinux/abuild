@@ -113,7 +113,7 @@ usage() {
 append_config=
 install_pubkey=
 interactive=1
-numbits=2048
+numbits=4096
 quiet=
 
 args=$(getopt -o ab:inqh --long append,numbits:,install,quiet,help -n "$program" -- "$@")
