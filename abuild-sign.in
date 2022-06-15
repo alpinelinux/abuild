@@ -112,6 +112,15 @@ if [ -z "$pubkey" ]; then
 	pubkey=${PACKAGER_PUBKEY:-"${privkey}.pub"}
 fi
 
-if ! $check_installed; then
+if $check_installed; then
+	if ! [ -e "$privkey" ]; then
+		echo "$program: $privkey: File not found" >&2
+		exit 1
+	fi
+	if ! [ -e "$pubkey" ]; then
+		echo "$program: $pubkey: File not found" >&2
+		exit 1
+	fi
+else
 	do_sign "$@"
 fi

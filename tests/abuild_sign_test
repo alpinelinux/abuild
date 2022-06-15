@@ -6,6 +6,8 @@ init_tests \
 	abuild_sign_invalid_opt \
 	abuild_sign_missing_arg \
 	abuild_sign_installed_missing \
+	abuild_sign_installed_missing_pub \
+	abuild_sign_installed_missing_priv \
 	abuild_sign_installed
 
 export ABUILD_SHAREDIR="$(atf_get_srcdir)/.."
@@ -35,6 +37,22 @@ abuild_sign_missing_arg_body() {
 abuild_sign_installed_missing_body() {
 	atf_check -s exit:1 \
 		-e match:"No private key found" \
+		abuild-sign --installed
+}
+
+abuild_sign_installed_missing_pub_body() {
+	init_keys
+	rm .abuild/*.rsa.pub
+	atf_check -s exit:1 \
+		-e match:"rsa.pub: File not found" \
+		abuild-sign --installed
+}
+
+abuild_sign_installed_missing_priv_body() {
+	init_keys
+	rm .abuild/*.rsa
+	atf_check -s exit:1 \
+		-e match:"rsa: File not found" \
 		abuild-sign --installed
 }
 
