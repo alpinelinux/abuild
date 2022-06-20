@@ -16,7 +16,11 @@ init_tests \
 	abuild_checksum_duplicates \
 	abuild_subpkg_dep_leak \
 	abuild_py_providers_creation \
-	abuild_reject_init_with_improper_shebang
+	abuild_reject_init_with_improper_shebang \
+	abuild_valid_pkgnames \
+	abuild_invalid_pkgnames \
+	abuild_invalid_subpkgnames \
+	abuild_invalid_subpkg_version
 
 export ABUILD_SHAREDIR=$(atf_get_srcdir)/..
 export ABUILD_CONF=/dev/null
@@ -340,3 +344,49 @@ abuild_reject_init_with_improper_shebang_body() {
 		abuild unpack
 }
 
+abuild_valid_pkgnames_body() {
+	cp -ra "$testrepo"/test-pkgname .
+	cd test-pkgname
+	atf_check -s exit:0 \
+		-e match:"Checking sanity" \
+		abuild sanitycheck
+	TESTNAME=foo atf_check -s exit:0 \
+		-e match:"Checking sanity" \
+		abuild sanitycheck
+	TESTSUBNAME=foo atf_check -s exit:0 \
+		-e match:"Checking sanity" \
+		abuild sanitycheck
+}
+
+abuild_invalid_pkgnames_body() {
+	cp -ra "$testrepo"/test-pkgname .
+	cd test-pkgname
+	TESTNAME="" atf_check -s exit:1 \
+		-e match:"Checking sanity" \
+		abuild sanitycheck
+	TESTNAME="-foo" atf_check -s exit:1 \
+		-e match:"Checking sanity" \
+		abuild sanitycheck
+	TESTNAME="foo with spaces" atf_check -s exit:1 \
+		-e match:"Checking sanity" \
+		abuild sanitycheck
+}
+
+abuild_invalid_subpkgnames_body() {
+	cp -ra "$testrepo"/test-pkgname .
+	cd test-pkgname
+	TESTSUBNAME="" atf_check -s exit:1 \
+		-e match:"Checking sanity" \
+		abuild sanitycheck
+	TESTSUBNAME="-foo" atf_check -s exit:1 \
+		-e match:"Checking sanity" \
+		abuild sanitycheck
+}
+
+abuild_invalid_subpkg_version_body() {
+	cp -ra "$testrepo"/test-pkgname .
+	cd test-pkgname
+	TESTDEPVER="1.0-0" atf_check -s exit:1 \
+		-e match:"Invalid version" \
+		abuild all
+}
