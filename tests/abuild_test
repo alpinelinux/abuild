@@ -15,7 +15,8 @@ init_tests \
 	abuild_checksum_generation \
 	abuild_checksum_duplicates \
 	abuild_subpkg_dep_leak \
-	abuild_py_providers_creation
+	abuild_py_providers_creation \
+	abuild_reject_init_with_improper_shebang
 
 export ABUILD_SHAREDIR=$(atf_get_srcdir)/..
 export ABUILD_CONF=/dev/null
@@ -307,5 +308,35 @@ abuild_py_providers_creation_body() {
 	atf_check -s exit:0 \
 		-o match:"provides = py3.9:foo=1.0.0-r0" \
 		cat pkg/.control.py3-foo-and-bar/.PKGINFO
+}
+
+abuild_reject_init_with_improper_shebang_body() {
+	mkdir invalid-initd
+	cd invalid-initd
+	cat >APKBUILD<<-EOF
+		# Maintainer: Natanael Copa <ncopa@alpinelinux.org>
+		pkgname="invalid-initd"
+		pkgver="1.0"
+		pkgrel=0
+		pkgdesc="Dummy test package"
+		url="https://gitlab.alpinelinux.org/alpine/aports"
+		arch="noarch"
+		license="MIT"
+		subpackages=""
+		source="test.initd"
+		prepare() {
+			mkdir -p "\$builddir"
+		}
+	EOF
+	cat >test.initd<<-EOF
+	 	#!/bin/sh
+		command="test"
+	EOF
+	abuild checksum
+
+	atf_check -s exit:1 \
+		-o match:"OK" \
+		-e match:"ERROR.*is not an openrc" \
+		abuild unpack
 }
 
