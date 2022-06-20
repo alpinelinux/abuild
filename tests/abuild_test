@@ -11,7 +11,8 @@ init_tests \
 	abuild_usr_lib64 \
 	abuild_dbg_subpackage \
 	abuild_SETFATTR_in_dbg \
-	abuild_reproducible
+	abuild_reproducible \
+	abuild_checksum_generation
 
 export ABUILD_SHAREDIR=$(atf_get_srcdir)/..
 export ABUILD_CONF=/dev/null
@@ -223,5 +224,20 @@ abuild_reproducible_body() {
 	if [ "$checksums" != "$checksums2" ]; then
 		atf_fail "checksums does not match"
 	fi
+}
+
+abuild_checksum_generation_body() {
+	mkdir foo
+	cat > foo/APKBUILD <<-EOF
+		pkgname="foo"
+		pkgver="1.0"
+		source="test.txt"
+	EOF
+	echo "foo" > foo/test.txt
+	cd foo
+	abuild checksum || atf_fail "checksum generation failed"
+	( . ./APKBUILD && echo "$sha512sums" | sed '/^$/d' > sums )
+	cat sums
+	sha512sum -c sums || atf_fail "checksum mismatch"
 }
 
