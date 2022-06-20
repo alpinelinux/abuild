@@ -14,7 +14,8 @@ init_tests \
 	abuild_reproducible \
 	abuild_checksum_generation \
 	abuild_checksum_duplicates \
-	abuild_subpkg_dep_leak
+	abuild_subpkg_dep_leak \
+	abuild_py_providers_creation
 
 export ABUILD_SHAREDIR=$(atf_get_srcdir)/..
 export ABUILD_CONF=/dev/null
@@ -297,5 +298,14 @@ abuild_subpkg_dep_leak_body() {
 
 	! grep 'depend = tar' pkg/.control.subpkg-dep-leak-subpkg/.PKGINFO \
 		|| atf_fail "subpkg-dep-leak-subpkg should not depend on tar"
+}
+
+abuild_py_providers_creation_body() {
+	cp -ra "$testrepo" .
+	cd testrepo/py3-foo-and-bar
+	abuild rootpkg || atf_fail "abuild failed"
+	atf_check -s exit:0 \
+		-o match:"provides = py3.9:foo=1.0.0-r0" \
+		cat pkg/.control.py3-foo-and-bar/.PKGINFO
 }
 
