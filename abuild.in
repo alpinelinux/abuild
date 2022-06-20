@@ -120,7 +120,7 @@ set_source_date() {
 		SOURCE_DATE_EPOCH=$(git_last_commit_epoch $ABUILD_LAST_COMMIT)
 	fi
 	if [ -z "$SOURCE_DATE_EPOCH" ]; then
-		SOURCE_DATE_EPOCH=$(date -u "+%s")
+		SOURCE_DATE_EPOCH=$(stat -c "%Y" "$APKBUILD")
 	fi
 	export SOURCE_DATE_EPOCH
 }
