@@ -13,7 +13,8 @@ init_tests \
 	abuild_SETFATTR_in_dbg \
 	abuild_reproducible \
 	abuild_checksum_generation \
-	abuild_checksum_duplicates
+	abuild_checksum_duplicates \
+	abuild_subpkg_dep_leak
 
 export ABUILD_SHAREDIR=$(atf_get_srcdir)/..
 export ABUILD_CONF=/dev/null
@@ -255,5 +256,46 @@ abuild_checksum_duplicates_body() {
 	atf_check -s exit:1 \
 		-e match:"ERROR:.*duplicate found" \
 		abuild checksum
+}
+
+abuild_subpkg_dep_leak_body() {
+	mkdir -p testrepo/subpkg-dep-leak
+	cd testrepo/subpkg-dep-leak
+	cat > APKBUILD <<-EOF
+		# Maintainer: Natanael Copa <ncopa@alpinelinux.org>
+		pkgname="subpkg-dep-leak"
+		pkgver=1.0
+		pkgrel=0
+		pkgdesc="Dummy test package with subpackages and dependencies"
+		url="https://gitlab.alpinelinux.org/alpine/aports"
+		arch="noarch"
+		depends="tar scanelf"
+		license="MIT"
+		subpackages="\$pkgname-subpkg"
+		options="!check"
+
+		package() {
+			mkdir -p "\$pkgdir"
+		}
+
+		subpkg() {
+			depends="sed"
+			mkdir -p "\$subpkgdir"
+		}
+	EOF
+	abuild clean unpack prepare build rootpkg
+
+	grep 'depend = tar' pkg/.control.subpkg-dep-leak/.PKGINFO \
+		|| atf_fail "subpkg-dep-leak should depend on tar"
+	grep 'depend = scanelf' pkg/.control.subpkg-dep-leak/.PKGINFO \
+		|| atf_fail "subpkg-dep-leak should depend on scanelf"
+	! grep 'depend = sed' pkg/.control.subpkg-dep-leak/.PKGINFO \
+		|| atf_fail "subpkg-dep-leak should not depends on sed"
+
+	grep 'depend = sed' pkg/.control.subpkg-dep-leak-subpkg/.PKGINFO \
+		|| atf_fail "subpkg-dep-leak-subpkg should depend on sed"
+
+	! grep 'depend = tar' pkg/.control.subpkg-dep-leak-subpkg/.PKGINFO \
+		|| atf_fail "subpkg-dep-leak-subpkg should not depend on tar"
 }
 
