@@ -12,7 +12,8 @@ init_tests \
 	abuild_dbg_subpackage \
 	abuild_SETFATTR_in_dbg \
 	abuild_reproducible \
-	abuild_checksum_generation
+	abuild_checksum_generation \
+	abuild_checksum_duplicates
 
 export ABUILD_SHAREDIR=$(atf_get_srcdir)/..
 export ABUILD_CONF=/dev/null
@@ -239,5 +240,20 @@ abuild_checksum_generation_body() {
 	( . ./APKBUILD && echo "$sha512sums" | sed '/^$/d' > sums )
 	cat sums
 	sha512sum -c sums || atf_fail "checksum mismatch"
+}
+
+abuild_checksum_duplicates_body() {
+	mkdir -p foo/dir1 foo/dir2
+	cat > foo/APKBUILD <<-EOF
+		pkgname="foo"
+		pkgver="1.0"
+		source="dir1/testfile dir2/testfile"
+	EOF
+	echo "first" > foo/dir1/testfile
+	echo "second" > foo/dir2/testfile
+	cd foo
+	atf_check -s exit:1 \
+		-e match:"ERROR:.*duplicate found" \
+		abuild checksum
 }
 
