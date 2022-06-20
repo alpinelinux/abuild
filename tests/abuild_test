@@ -20,7 +20,8 @@ init_tests \
 	abuild_valid_pkgnames \
 	abuild_invalid_pkgnames \
 	abuild_invalid_subpkgnames \
-	abuild_invalid_subpkg_version
+	abuild_invalid_subpkg_version \
+	abuild_multiline_license
 
 export ABUILD_SHAREDIR=$(atf_get_srcdir)/..
 export ABUILD_CONF=/dev/null
@@ -389,4 +390,12 @@ abuild_invalid_subpkg_version_body() {
 	TESTDEPVER="1.0-0" atf_check -s exit:1 \
 		-e match:"Invalid version" \
 		abuild all
+}
+
+abuild_multiline_license_body() {
+	cp -ra "$testrepo"/test-licenses .
+	cd test-licenses
+	abuild rootpkg
+	atf_check -o match:'^license = MIT AND GPL-3.0-only OR GPL-3.0-or-later AND BSD-Clause-4$' \
+		cat pkg/.control.test-licenses/.PKGINFO
 }
