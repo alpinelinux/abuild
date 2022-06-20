@@ -10,7 +10,8 @@ init_tests \
 	abuild_invalid_filename \
 	abuild_usr_lib64 \
 	abuild_dbg_subpackage \
-	abuild_SETFATTR_in_dbg
+	abuild_SETFATTR_in_dbg \
+	abuild_reproducible
 
 export ABUILD_SHAREDIR=$(atf_get_srcdir)/..
 export ABUILD_CONF=/dev/null
@@ -198,5 +199,29 @@ abuild_SETFATTR_in_dbg_body() {
 		-o match:"hello world" \
 		-e match:"Build complete" \
 		abuild
+}
+
+abuild_reproducible_body() {
+	cp -ra "$testrepo" .
+	cd testrepo/pkg1
+
+	# set timestamp of APKBUILD to 1 min older than current time
+	touch -d @$(( $(date -u +%s) - 60)) APKBUILD
+
+	arch=$(abuild -A)
+	pkgs=$(abuild listpkg)
+
+	abuild || atf_fail "first build failed"
+	checksums=$(cd "$REPODEST"/testrepo/$arch && md5sum $pkgs)
+	echo "$checksums"
+
+	rm -r "$REPODEST"/testrepo
+	abuild || atf_fail "rebuild failed"
+	checksums2=$(cd "$REPODEST"/testrepo/$arch && md5sum $pkgs)
+	echo "$checksums2"
+
+	if [ "$checksums" != "$checksums2" ]; then
+		atf_fail "checksums does not match"
+	fi
 }
 
