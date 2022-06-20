@@ -89,7 +89,7 @@ fixes #${fixes#\#}
 }
 
 usage() {
-	cat >&2 <<-__EOF__
+	cat <<-__EOF__
 		$program $program_version - bump pkgver in APKBUILDs
 		Usage: $program [-s CVE-1,CVE-2,...] [-f ISSUE] [-R|--recursive] [-k|--keep] PKGNAME-1.2.3 ...
 		Options:
@@ -106,13 +106,10 @@ keep=
 cvelist=
 fixes=
 
-[ -n "$APORTSDIR" ] || error "can't locate \$APORTSDIR"
-git rev-parse 2>/dev/null || die "not in a git tree"
-
 args=$(getopt -o f:s:kqh --long fixes:,security:,keep,quiet,help \
 	-n "$program" -- "$@")
 if [ $? -ne 0 ]; then
-	usage
+	usage >&2
 	exit 2
 fi
 eval set -- "$args"
@@ -122,16 +119,19 @@ while true; do
 		-f|--fixes) fixes="$2"; shift;;
 		-k|--keep) keep="-k";;
 		-q|--quiet) quiet=1;; # suppresses msg
-		-h|--help) usage; exit;;
+		-h|--help) usage; exit 0;;
 		--) shift; break;;
 		*) exit 1;; # getopt error
 	esac
 	shift
 done
 if [ $# -eq 0 ]; then
-	usage
+	usage >&2
 	exit 2
 fi
+
+[ -n "$APORTSDIR" ] || error "can't locate \$APORTSDIR"
+git rev-parse 2>/dev/null || die "not in a git tree"
 
 abuild_opts="${ABUILD_OPTS- -r} $keep"
 
