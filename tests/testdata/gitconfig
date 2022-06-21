@@ -1,0 +1,5 @@
+[color]
+	ui = always
+[user]
+	name = Joe User
+	email = juser@example.com

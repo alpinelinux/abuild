@@ -1,0 +1,78 @@
+#!/usr/bin/env atf-sh
+
+. $(atf_get_srcdir)/test_env.sh
+init_tests \
+	abump_help \
+	abump_invalid_opt \
+	abump_missing_args \
+	abump_simple_bump
+
+export ABUILD_SHAREDIR=$(atf_get_srcdir)/..
+export GIT_CONFIG_GLOBAL="$(atf_get_srcdir)/testdata/gitconfig"
+export APORTSDIR="$PWD"
+export ABUILD_OPTS=""
+export ABUILD_APK_INDEX_OPTS="--allow-untrusted"
+export REPODEST="$PWD"/packages
+
+abump_help_body() {
+	atf_check -s exit:0 \
+		-o match:"Usage" \
+		abump -h
+}
+
+abump_invalid_opt_body() {
+	atf_check -s exit:2 \
+		-e match:"Usage" \
+		abump -@
+}
+
+abump_missing_args_body() {
+	atf_check -s exit:2 \
+		-e match:"Usage" \
+		abump
+}
+
+abump_simple_bump_body() {
+	cp -r "$(atf_get_srcdir)"/testdata/.abuild .
+	git init
+	mkdir -p main/foo
+	cd main/foo
+	echo "first" > foo-1.0.txt
+	cat > APKBUILD <<-EOF
+		# Maintainer: Test user <user@example.com>
+		pkgname="foo"
+		pkgver=1.0
+		pkgrel=0
+		pkgdesc="dummy package for test"
+		url="https://alpinelinux.org"
+		license="MIT"
+		arch="noarch"
+		source="foo-\$pkgver.txt"
+		options="!check"
+		package() {
+			install -D "\$srcdir"/foo-\$pkgver.txt "\$pkgdir"/foo
+		}
+	EOF
+	abuild checksum
+	abuild
+	git add APKBUILD foo-1.0.txt
+	git commit -m "test commit"
+
+	echo "second" > foo-1.1.txt
+	atf_check \
+		-o match:"foo-1.1.txt: OK" \
+		-e match:"upgrade to 1.1" \
+		abump foo-1.1
+
+	atf_check -s exit:1 \
+		-e match:">>> ERROR: version is already 1.1" \
+		abump foo-1.1
+
+	sed -i -e 's/pkgver=.*/pkgver=1.2/' APKBUILD
+	echo "third" > foo-1.2.txt
+	atf_check \
+		-o match:"foo-1.2.txt: OK" \
+		-e match:"upgrade to 1.2" \
+		abump foo-1.2
+}
+
