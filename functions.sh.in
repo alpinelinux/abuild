@@ -100,7 +100,7 @@ readconfig() {
 		APORTSDIR=$(cd "$HOME/aports"; pwd -P)
 	else
 		if [ -n "$gitbase" ]; then
-			case $($GIT remote get-url origin) in
+			case $($GIT remote get-url origin 2>/dev/null || true) in
 			# '.git' for SSH URLs, and no suffix for HTTPS URLs
 			*/aports|*/aports.git) APORTSDIR=$gitbase ;;
 			*) APORTSDIR= ;;
