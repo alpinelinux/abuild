@@ -31,7 +31,9 @@ export REPODEST="$PWD"/packages
 testrepo=$(atf_get_srcdir)/testrepo
 
 # copy keys
-cp -ra "$(atf_get_srcdir)"/testdata/.abuild "$PWD"
+init_keys() {
+	cp -ra "$(atf_get_srcdir)"/testdata/.abuild "$PWD"
+}
 
 abuild_help_body() {
 	atf_check -s exit:0 \
@@ -52,6 +54,7 @@ abuild_version_body() {
 }
 
 abuild_simple_pkg_without_deps_body() {
+	init_keys
 	cp -r "$testrepo"/pkg1 .
 	cd pkg1
 	atf_check -s exit:0 \
@@ -61,6 +64,7 @@ abuild_simple_pkg_without_deps_body() {
 }
 
 abuild_build_fail_body() {
+	init_keys
 	mkdir buildfail
 	cat >buildfail/APKBUILD <<-EOF
 		# Maintainer: Joe User <juser@example.com>
@@ -90,6 +94,7 @@ abuild_build_fail_body() {
 }
 
 abuild_invalid_filename_body() {
+	init_keys
 	mkdir invalid-filename
 	cd invalid-filename
 	cat >APKBUILD <<-EOF
@@ -121,6 +126,7 @@ abuild_invalid_filename_body() {
 }
 
 abuild_usr_lib64_body() {
+	init_keys
 	mkdir lib64test
 	cd lib64test
 	cat >APKBUILD <<-EOF
@@ -158,6 +164,7 @@ abuild_usr_lib64_body() {
 }
 
 abuild_dbg_subpackage_body() {
+	init_keys
 	cp -ra "$testrepo" .
 	cd testrepo/dbgpkg
 	atf_check -s exit:0 \
@@ -203,6 +210,7 @@ abuild_dbg_subpackage_body() {
 }
 
 abuild_SETFATTR_in_dbg_body() {
+	init_keys
 	cp -ra "$testrepo"/dbgpkg .
 	cd dbgpkg
 	SETFATTR=true atf_check -s exit:0 \
@@ -212,6 +220,7 @@ abuild_SETFATTR_in_dbg_body() {
 }
 
 abuild_reproducible_body() {
+	init_keys
 	cp -ra "$testrepo" .
 	cd testrepo/pkg1
 
@@ -307,6 +316,7 @@ abuild_subpkg_dep_leak_body() {
 }
 
 abuild_py_providers_creation_body() {
+	init_keys
 	cp -ra "$testrepo" .
 	cd testrepo/py3-foo-and-bar
 	abuild rootpkg || atf_fail "abuild failed"
@@ -360,6 +370,7 @@ abuild_valid_pkgnames_body() {
 }
 
 abuild_invalid_pkgnames_body() {
+	init_keys
 	cp -ra "$testrepo"/test-pkgname .
 	cd test-pkgname
 	TESTNAME="" atf_check -s exit:1 \
@@ -374,6 +385,7 @@ abuild_invalid_pkgnames_body() {
 }
 
 abuild_invalid_subpkgnames_body() {
+	init_keys
 	cp -ra "$testrepo"/test-pkgname .
 	cd test-pkgname
 	TESTSUBNAME="" atf_check -s exit:1 \
@@ -385,6 +397,7 @@ abuild_invalid_subpkgnames_body() {
 }
 
 abuild_invalid_subpkg_version_body() {
+	init_keys
 	cp -ra "$testrepo"/test-pkgname .
 	cd test-pkgname
 	TESTDEPVER="1.0-0" atf_check -s exit:1 \
