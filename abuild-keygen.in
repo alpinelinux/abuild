@@ -8,7 +8,7 @@
 
 program_version=@VERSION@
 sharedir=${ABUILD_SHAREDIR:-@sharedir@}
-SUDO="${SUDO-sudo}"
+SUDO="${SUDO-$(command -v doas || command -v sudo || echo doas)}"
 
 if ! [ -f "$sharedir/functions.sh" ]; then
 	echo "$sharedir/functions.sh: not found" >&2
@@ -98,14 +98,15 @@ usage() {
 		  -a, --append         Set PACKAGER_PRIVKEY=<generated key> in
 		                       $ABUILD_USERCONF
 
-		  -i, --install        Install public key into /etc/apk/keys using sudo
+		  -i, --install        Install public key into /etc/apk/keys using doas
 		  -n                   Non-interactive. Use defaults
 		  -b, --numbits [BITS] The size of the private key to generate in bits.
 		  -q, --quiet
 		  -h, --help           Show this help
 
 		The SUDO variable can be set to pick which tool can be used to
-		elevate privileges, if it is not set it defaults to sudo.
+		elevate privileges, if it is not set it defaults to doas or sudo if doas
+		is not found.
 
 	__EOF__
 }

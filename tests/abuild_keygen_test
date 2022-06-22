@@ -9,7 +9,8 @@ init_tests \
 	abuild_keygen_append \
 	abuild_keygen_install_without_sudo \
 	abuild_keygen_install_interactive \
-	abuild_keygen_install_non_interactive
+	abuild_keygen_install_non_interactive \
+	abuild_keygen_install_doas
 
 export ABUILD_SHAREDIR=$(atf_get_srcdir)/..
 export GIT=false
@@ -79,3 +80,21 @@ abuild_keygen_install_non_interactive_body() {
 		-e match:"Generating RSA" \
 		abuild-keygen --install -n
 }
+
+abuild_keygen_install_doas_body() {
+	mkdir bin
+	cat >bin/doas<<-EOF
+		#!/bin/sh
+		echo "fake doas"
+		"\$@"
+	EOF
+	chmod +x bin/doas
+
+	PATH="$PWD/bin:$PATH" abuild_keygen_install_root="$PWD" \
+		atf_check -s exit:0 \
+		\
+		-o match:"fake doas" \
+		-e match:"Generating RSA" \
+		abuild-keygen --install -n
+}
+
