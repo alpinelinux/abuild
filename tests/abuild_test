@@ -39,7 +39,9 @@ init_tests \
 	abuild_cleanoldpkg \
 	abuild_path_with_spaces \
 	abuild_pyc_warn \
-	abuild_pyc
+	abuild_pyc \
+	abuild_setcap_binary \
+	abuild_setcap_binary_with_option
 
 export ABUILD_SHAREDIR=$(atf_get_srcdir)/..
 export ABUILD_CONF=/dev/null
@@ -921,4 +923,24 @@ abuild_pyc_body() {
 	# verify install_if is correct
 	atf_check -o match:"foo=1.0-r0" -o match:"pyc" \
 		grep install_if pkg/.control.foo-pyc/.PKGINFO
+}
+
+abuild_setcap_binary_body() {
+	init_keys
+	cp -ra "$testrepo"/setcap .
+	cd setcap
+	atf_check -s exit:1 \
+		-e match:"Found binary with extra capabilities" \
+		-e match:"Found setcap binary executable by others" \
+		abuild all
+}
+
+abuild_setcap_binary_with_option_body() {
+	init_keys
+	cp -ra "$testrepo"/setcap .
+	cd setcap
+	options=setcap atf_check -s exit:0 \
+		-e not-match:"Found binary with extra capabilities" \
+		-e match:"Found setcap binary executable by others" \
+		abuild all
 }

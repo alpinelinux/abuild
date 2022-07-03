@@ -1,0 +1,33 @@
+# Maintainer: Natanael Copa <ncopa@alpinelinux.org>
+
+# test package
+pkgname=setcap
+pkgver="1.0"
+pkgrel=0
+pkgdesc="Dummy test package that has an setcap binary but no setcap option"
+url="https://gitlab.alpinelinux.org/alpine/aports"
+arch="noarch"
+license="MIT"
+source=""
+
+prepare() {
+	mkdir -p "$builddir"
+}
+
+build() {
+	true
+}
+
+check() {
+	true
+}
+
+package() {
+	mkdir -p "$pkgdir/usr/bin"
+	cat >"$pkgdir/usr/bin/foo" <<EOF
+	#!/bin/sh
+EOF
+	chmod +x "$pkgdir/usr/bin/foo"
+	setcap cap_net_bind_service=+ep "$pkgdir/usr/bin/foo"
+}
+

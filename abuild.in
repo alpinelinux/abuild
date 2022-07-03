@@ -865,6 +865,20 @@ postcheck() {
 			e=1
 		fi
 	fi
+	# test capabilities on executables
+	# see: https://gitlab.alpinelinux.org/alpine/tsc/-/issues/45
+	getcap -r "$dir" | (local r=true; while read -r line; do
+		local filename="${line% *}"
+		if ! options_has "setcap"; then
+			error "Found binary with extra capabilities: $filename"
+			r=false
+		fi
+
+		local execothers="$(find "$filename" -perm -o+x)"
+		if [ -n "$execothers" ]; then
+			warning "Found setcap binary executable by others: $filename"
+		fi
+	done; $r) || e=1
 
 	# test for textrels
 	if ! options_has "textrels"; then

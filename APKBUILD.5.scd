@@ -278,6 +278,12 @@ file.
 		to use capabilities or process separation instead of set-uid
 		where available.
 
+	*setcap*
+		Specifies that binaries in the package may be installed
+		with extra setcap(8) capabilities. If this option is enabled,
+		it is highly recommended to only make these binaries executable
+		by root and users of a specific group, not by others.
+
 	*textrels*
 		Specifies that the package's binaries are known to contain
 		relocations against text segments. By default, abuild(1)
