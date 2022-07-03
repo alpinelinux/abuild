@@ -2339,14 +2339,14 @@ builddeps() {
 checksum() {
 	local s files
 	[ -z "$source" ] && [ -n "${md5sums}${sha256sums}${sha512sums}" ] \
-		&& msg "Removing checksums from APKBUILD"
+		&& msg "Removing checksums from $APKBUILD"
 	sed -E -i \
 		-e '/^(md5|sha[0-9]+)sums=".*"$/d' \
 		-e '/^(md5|sha[0-9]+)sums="/,/"$/d' \
 		\
 		-e "/^(md5|sha[0-9]+)sums='.*'\$/d" \
 		-e "/^(md5|sha[0-9]+)sums='/,/'\$/d" \
-		APKBUILD
+		"$APKBUILD"
 
 	[ -z "$source" ] && return 0
 	fetch
@@ -2358,7 +2358,7 @@ checksum() {
 		files="$files $name"
 	done
 
-	msg "Updating the sha512sums in APKBUILD..."
+	msg "Updating the sha512sums in $APKBUILD..."
 	md5sums=
 	sha256sums=
 	sha512sums="$(cd "$srcdir" && sha512sum $files)" \
