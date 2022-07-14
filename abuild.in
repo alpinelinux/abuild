@@ -730,7 +730,7 @@ default_prepare() {
 	fi
 	error "The following patches failed to apply:"
 	for i in $failed; do
-		printf "  %s\n" "$i"
+		printf "  %s\n" "$i" >&2
 	done
 	return 1
 }
