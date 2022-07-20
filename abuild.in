@@ -294,6 +294,7 @@ default_sanitycheck() {
 	[ -n "$pkggroup" ] && spell_error pkggroup pkggroups
 	[ -n "$subpackage" ] && spell_error subpackage subpackages
 	[ -n "$checkdepend" ] && spell_error checkdepend checkdepends
+	[ -n "$conflicts" ] && die "APKBUILD contains \$conflicts. Explicit conflicts should be added as '!pkgname' to depends"
 
 	check_maintainer || die "Provide a valid RFC822 maintainer address"
 	[ $(grep '^# *Maintainer:' "$APKBUILD" | wc -l) -gt 1 ] \
