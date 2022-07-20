@@ -2938,7 +2938,7 @@ repo=${startdir%/*}
 repo=${repo##*/}
 
 aportsgit=${APORTSDIR:-${startdir}}
-repo_template=$aportsgit/$repo/.rootbld-repositories
+repo_template=$startdir/../.rootbld-repositories
 
 SRCDEST=${SRCDEST:-$startdir}
 
