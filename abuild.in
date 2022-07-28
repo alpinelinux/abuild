@@ -535,6 +535,9 @@ default_unpack() {
 					threads_opt="--threads=0"
 				fi
 				unxz $threads_opt -c "$s" | tar -C "$srcdir" -x || return 1;;
+			*.tar.zst)
+				msg "Unpacking $s..."
+				tar -C "$srcdir" --zstd -xf "$s" || return 1;;
 			*.zip)
 				msg "Unpacking $s..."
 				unzip -n -q "$s" -d "$srcdir" || return 1;;
