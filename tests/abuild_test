@@ -22,7 +22,9 @@ init_tests \
 	abuild_invalid_subpkgnames \
 	abuild_invalid_subpkg_version \
 	abuild_multiline_license \
-	abuild_git_ceiling
+	abuild_git_ceiling \
+	abuild_package_size_zero \
+	abuild_package_size_nonzero
 
 export ABUILD_SHAREDIR=$(atf_get_srcdir)/..
 export ABUILD_CONF=/dev/null
@@ -442,4 +444,76 @@ abuild_git_ceiling_body() {
 		-e match:"not a git repository" \
 		-e match:"ERROR: git-pkg: build failed" \
 		abuild
+}
+
+
+create_fake_du() {
+	mkdir -p bin
+	cat > bin/du <<-EOF
+		#!/bin/sh
+		echo 0
+	EOF
+	chmod +x bin/du
+	PATH="$PWD/bin:$PATH"
+}
+
+abuild_package_size_zero_body() {
+	init_keys
+	mkdir -p test-size
+	create_fake_du
+
+	cd test-size
+	cat > APKBUILD <<-EOF
+		# Maintainer: Test User 123 <123@example.com>
+
+		# test package
+	 	pkgname="test-size"
+		pkgver="1.0"
+		pkgrel=0
+		pkgdesc='Dummy test package that has no files'
+		url='https://gitlab.alpinelinux.org/alpine/aports'
+		arch='noarch'
+		license='MIT'
+		install="\$pkgname.post-install"
+
+		package() {
+			mkdir -p "\$pkgdir"
+		}
+	EOF
+	cat > test-size.post-install <<-EOF
+		#!/bin/sh
+		echo 1
+	EOF
+	abuild rootpkg
+	# should be set to 1
+	atf_check -o match:'^size = 1$' \
+		cat pkg/.control.test-size/.PKGINFO
+}
+
+abuild_package_size_nonzero_body() {
+	init_keys
+	mkdir -p test-size
+
+	cd test-size
+	cat > APKBUILD <<-EOF
+		# Maintainer: Test User 123 <123@example.com>
+
+		# test package
+	 	pkgname="test-size"
+		pkgver="1.0"
+		pkgrel=0
+		pkgdesc='Dummy test package that has files'
+		url='https://gitlab.alpinelinux.org/alpine/aports'
+		arch='noarch'
+		license='MIT'
+
+		package() {
+			mkdir -p "\$pkgdir"
+			printf "%s" "very important data" > "\$pkgdir"/testfile
+		}
+	EOF
+	abuild rootpkg
+	# should not be set to 1
+	atf_check -o not-match:'^size = 1$' \
+		cat pkg/.control.test-size/.PKGINFO
 }
