@@ -2479,8 +2479,10 @@ rootbld() {
 		export mirror version
 		[ "$mirror" ] || mirror=http://dl-cdn.alpinelinux.org/alpine
 
-		envsubst
-		echo "$REPODEST/$repo"
+		envsubst | while read -r repository; do
+			echo "$repository"
+			echo "$REPODEST/${repository##*/}"
+		done
 	) < "$repo_template" > "$BUILD_ROOT/etc/apk/repositories"
 
 	calcdeps
