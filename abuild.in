@@ -833,9 +833,9 @@ postcheck() {
 		| xargs scanelf --nobanner --etype ET_EXEC \
 		| sed "s|ET_EXEC $dir|\t|")
 	if [ -n "$i" ]; then
-		error "Found non-PIE files that has SUID:"
+		warning "Found non-PIE files that have SUID:"
 		echo "$i"
-		e=1
+		warning "suid executables SHOULD be compiled with PIE if possible"
 	fi
 	# test suid bit on executable
 	if ! options_has "suid"; then
