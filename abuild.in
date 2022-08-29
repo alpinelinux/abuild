@@ -806,6 +806,11 @@ postcheck() {
 			&& ! is_doc_pkg "$name"; then
 		warning "Found /usr/share/doc but package name doesn't end with -doc"
 	fi
+	# look for /usr/share/devhelp
+	if [ -e "$dir"/usr/share/devhelp ] \
+			&& ! is_devhelp_pkg "$name"; then
+		warning "Found /usr/share/devhelp but package name doesn't end with -devhelp"
+	fi
 	# look for /usr/share/man
 	if [ -e "$dir"/usr/share/man ]; then
 		if ! is_doc_pkg "$name"; then
@@ -1313,6 +1318,11 @@ is_static_pkg() {
 # returns true if this is the -doc package
 is_doc_pkg() {
 	test "${1%-doc}" != "$1"
+}
+
+# returns true if this is the -doc package
+is_devhelp_pkg() {
+	test "${1%-devhelp}" != "$1"
 }
 
 # returns true if this is the -openrc package
@@ -2055,6 +2065,16 @@ default_openrc() {
 
 openrc() {
 	default_openrc
+}
+
+default_devhelp() {
+	pkgdesc="$pkgname - devhelp files"
+	install_if="$pkgname=$pkgver-$pkgrel devhelp"
+	amove usr/share/devhelp
+}
+
+devhelp() {
+	default_devhelp
 }
 
 default_bashcomp() {

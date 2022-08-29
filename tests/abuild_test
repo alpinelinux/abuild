@@ -29,6 +29,8 @@ init_tests \
 	abuild_amove \
 	abuild_doc \
 	abuild_dev \
+	abuild_devhelp_warn \
+	abuild_devhelp \
 	abuild_check_maintainer \
 	abuild_cleanoldpkg \
 	abuild_path_with_spaces
@@ -688,6 +690,54 @@ abuild_dev_body() {
 		test -f pkg/$i || atf_fail "$i failed"
 	done
 	test -L pkg/foo-dev/usr/lib/libfoo.so || atf_fail "libfoo.so failed"
+}
+
+abuild_devhelp_warn_body() {
+	init_keys
+	mkdir -p foo
+
+	cd foo
+	cat > APKBUILD <<-EOF
+		# Maintainer: Test User 123 <123@example.com>
+		pkgname="foo"
+		pkgver="1.0"
+		pkgrel=0
+		pkgdesc='Dummy test package that has devhelp'
+		url='https://gitlab.alpinelinux.org/alpine/aports'
+		arch='noarch'
+		license='MIT'
+
+		package() {
+			mkdir -p "\$pkgdir"/usr/share/devhelp/book
+		}
+	EOF
+	atf_check -e match:"WARNING:" \
+		abuild rootpkg
+}
+
+abuild_devhelp_body() {
+	init_keys
+	mkdir -p foo
+
+	cd foo
+	cat > APKBUILD <<-EOF
+		# Maintainer: Test User 123 <123@example.com>
+		pkgname="foo"
+		pkgver="1.0"
+		pkgrel=0
+		pkgdesc='Dummy test package that has devhelp'
+		url='https://gitlab.alpinelinux.org/alpine/aports'
+		arch='noarch'
+		license='MIT'
+		subpackages="\$pkgname-devhelp"
+
+		package() {
+			mkdir -p "\$pkgdir"/usr/share/devhelp/book
+		}
+	EOF
+	atf_check -e not-match:"WARNING:" \
+		-o match:'->' \
+		abuild rootpkg
 }
 
 abuild_check_maintainer_body() {
