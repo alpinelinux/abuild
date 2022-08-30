@@ -5,7 +5,8 @@ init_tests \
 	funcs_check_CBUILD \
 	funcs_check_missing_gcc \
 	funcs_check_missing_apk \
-	funcs_check_missing_git
+	funcs_check_missing_git \
+	funcs_check_env_set_but_empty
 
 FUNCS=$(atf_get_srcdir)/../functions.sh
 
@@ -32,4 +33,23 @@ funcs_check_missing_git_body() {
 		-o empty \
 		-e empty \
 		sh -e -c "GIT=false . $FUNCS"
+}
+
+funcs_check_env_set_but_empty_body() {
+	for arch in aarch64 armv7 armhf ppc64le s390x x86 x86_64; do
+		for var in CC CXX HOSTCC HOSTCXX HOSTLD BUILDCC BUILDCXX BUILDLD; do
+			cat >script<<-EOF
+				unset $var
+				CHOST=$arch
+				. $FUNCS
+				if [ -n "\${$var+set}" ] && [ -z "\$$var" ]; then
+					echo '$var set but empty ($arch)'
+				fi
+			EOF
+			atf_check -s exit:0 \
+				-o empty \
+				-e empty \
+				sh script
+		done
+	done
 }
