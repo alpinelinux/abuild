@@ -55,7 +55,7 @@ runpart() {
 }
 
 is_vserver() {
-	egrep -q '^VxID:[[:space:]]*[0-9]+' /proc/self/status
+	grep -E -q '^VxID:[[:space:]]*[0-9]+' /proc/self/status
 }
 
 do_chroot_open() {
