@@ -202,12 +202,12 @@ default_sanitycheck() {
 	is_function package || die "Missing package() function in APKBUILD"
 
 	if [ -n "$replaces_priority" ] \
-		&& ! echo $replaces_priority | egrep -q '^[0-9]+$'; then
+		&& ! echo $replaces_priority | grep -E -q '^[0-9]+$'; then
 		die "replaces_priority must be a number"
 	fi
 
 	if [ -n "$provider_priority" ] \
-		&& ! echo $provider_priority | egrep -q '^[0-9]+$'; then
+		&& ! echo $provider_priority | grep -E -q '^[0-9]+$'; then
 		die "provider_priority must be a number"
 	fi
 
@@ -2095,7 +2095,7 @@ fishcomp() {
 }
 
 is_function() {
-	type "$1" 2>&1 | head -n 1 | egrep -q "is a (shell )?function"
+	type "$1" 2>&1 | head -n 1 | grep -E -q "is a (shell )?function"
 }
 
 do_fakeroot() {
