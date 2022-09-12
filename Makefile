@@ -106,7 +106,7 @@ tests/Kyuafile: $(wildcard tests/*_test)
 	echo "syntax(2)" > $@
 	echo "test_suite('abuild')" >> $@
 	for i in $(notdir $(wildcard tests/*_test)); do \
-		echo "atf_test_program{name='$$i',timeout=5}" >> $@ ; \
+		echo "atf_test_program{name='$$i',timeout=10}" >> $@ ; \
 	done
 
 Kyuafile: tests/Kyuafile
