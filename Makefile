@@ -58,6 +58,8 @@ LDFLAGS-abuild-gzsplit = $(ZLIB_LIBS)
 OBJS-abuild-sudo = abuild-sudo.o
 OBJS-abuild-fetch = abuild-fetch.o
 
+TEST_TIMEOUT = 15
+
 .SUFFIXES:	.sh.in .in
 %.sh: %.sh.in
 	${SED} ${SED_REPLACE} ${SED_EXTRA} $< > $@
@@ -106,7 +108,7 @@ tests/Kyuafile: $(wildcard tests/*_test)
 	echo "syntax(2)" > $@
 	echo "test_suite('abuild')" >> $@
 	for i in $(notdir $(wildcard tests/*_test)); do \
-		echo "atf_test_program{name='$$i',timeout=10}" >> $@ ; \
+		echo "atf_test_program{name='$$i',timeout=$(TEST_TIMEOUT)}" >> $@ ; \
 	done
 
 Kyuafile: tests/Kyuafile
