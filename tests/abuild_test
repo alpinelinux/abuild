@@ -24,7 +24,8 @@ init_tests \
 	abuild_multiline_license \
 	abuild_git_ceiling \
 	abuild_package_size_zero \
-	abuild_package_size_nonzero
+	abuild_package_size_nonzero \
+	abuild_amove
 
 export ABUILD_SHAREDIR=$(atf_get_srcdir)/..
 export ABUILD_CONF=/dev/null
@@ -516,4 +517,80 @@ abuild_package_size_nonzero_body() {
 	# should not be set to 1
 	atf_check -o not-match:'^size = 1$' \
 		cat pkg/.control.test-size/.PKGINFO
+}
+
+abuild_amove_body() {
+	init_keys
+	mkdir -p test-amove
+
+	cd test-amove
+	cat > APKBUILD <<-EOF
+		# Maintainer: Test User 123 <123@example.com>
+
+		# test package
+		pkgname="test-amove"
+		pkgver="1.0"
+		pkgrel=0
+		pkgdesc='Dummy test package - amove'
+		url='https://gitlab.alpinelinux.org/alpine/aports'
+		arch='noarch'
+		license='MIT'
+		subpackages="\$pkgname-file:_file
+			\$pkgname-etc:_etc
+			\$pkgname-bin:_bin
+			\$pkgname-sbin:_sbin
+			\$pkgname-var:_var
+			\$pkgname-usr:_usr"
+
+		package() {
+			mkdir -p "\$pkgdir"/etc \
+				"\$pkgdir"/bin \
+				"\$pkgdir"/sbin \
+				"\$pkgdir"/var/lib/\$pkgname \
+				"\$pkgdir"/usr/share
+			touch "\$pkgdir"/etc/file \
+				"\$pkgdir"/etc/\$pkgname.conf \
+				"\$pkgdir"/bin/hello \
+				"\$pkgdir"/sbin/shello \
+				"\$pkgdir"/var/lib/\$pkgname/testfile \
+				"\$pkgdir"/usr/share/a \
+				"\$pkgdir"/usr/share/b
+		}
+		_file() {
+			amove etc/file
+		}
+		_etc() {
+			# leading and trailing /
+			amove /etc/
+		}
+		_bin() {
+			# trailing /
+			amove bin/
+		}
+		_sbin() {
+			# no /
+			amove sbin/shello
+		}
+		_var() {
+			# leading /
+			amove /var/lib
+		}
+		_usr() {
+			# glob *
+			amove usr/share/*
+		}
+
+	EOF
+	abuild rootpkg || atf_fail "abuild rootpkg failed"
+	for i in \
+			test-amove-file/etc/file \
+			test-amove-etc/etc/test-amove.conf \
+			test-amove-bin/bin/hello \
+			test-amove-sbin/sbin/shello \
+			test-amove-var/var/lib/test-amove/testfile \
+			test-amove-usr/usr/share/a \
+			test-amove-usr/usr/share/b \
+			; do \
+		test -f pkg/$i || atf_fail "$i failed"
+	done
 }

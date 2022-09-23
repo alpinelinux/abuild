@@ -79,11 +79,15 @@ amove() {
 	local pattern f
 	for pattern; do
 		for f in ${pattern#/}; do # let shell expand the pattern
-			# only create dir if needed
+			# strip trailing /
+			f=${f%/}
 			if [ "${f%/*}" != "$f" ]; then
 				mkdir -p "$subpkgdir/${f%/*}"
+				mv -v "$pkgdir"/$f "$subpkgdir/${f%/*}"
+			else
+				mkdir -p "$subpkgdir"
+				mv -v "$pkgdir"/$f "$subpkgdir/"
 			fi
-			mv -v "$pkgdir"/$f "$subpkgdir/${f%/*}"
 			# cleanup
 			rmdir -p "$f" 2>/dev/null || rmdir -p "${f%/*}" 2>/dev/null || true
 		done
