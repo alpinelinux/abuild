@@ -5,7 +5,8 @@ init_tests \
 	abump_help \
 	abump_invalid_opt \
 	abump_missing_args \
-	abump_simple_bump
+	abump_simple_bump \
+	abump_isolates_apkbuild
 
 export ABUILD_SHAREDIR=$(atf_get_srcdir)/..
 export GIT_CONFIG_GLOBAL="$(atf_get_srcdir)/testdata/gitconfig"
@@ -76,3 +77,39 @@ abump_simple_bump_body() {
 		abump foo-1.2
 }
 
+abump_isolates_apkbuild_body() {
+	cp -r "$(atf_get_srcdir)"/testdata/.abuild .
+	git init
+	mkdir -p main/bar
+	cd main/bar
+	echo "first" > bar-1.0.txt
+	cat > APKBUILD <<-"EOF"
+		# Maintainer: Test user <user@example.com>
+		pkgname="bar"
+		pkgver=1.0
+		pkgrel=0
+		pkgdesc="dummy package for test"
+		url="https://alpinelinux.org"
+		license="MIT"
+		arch="noarch"
+		source="bar-$pkgver.txt"
+		options="!check"
+
+		export BUILDFLAGS="${BUILDFLAGS:-"repo=$repo"}"
+
+		package() {
+			echo "BUILDFLAGS: $BUILDFLAGS"
+			install -D "$srcdir"/bar-$pkgver.txt "$pkgdir"/bar
+		}
+	EOF
+	abuild checksum
+	abuild
+	git add APKBUILD bar-1.0.txt
+	git commit -m "test commit"
+
+	echo "second" > bar-1.1.txt
+	atf_check \
+		-o match:"BUILDFLAGS: repo=main" \
+		-e ignore \
+		abump bar-1.1
+}
