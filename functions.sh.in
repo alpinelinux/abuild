@@ -177,12 +177,9 @@ readconfig() {
 	[ -z "$CTARGET_ARCH" ] && CTARGET_ARCH="$(hostspec_to_arch $CTARGET)"
 	[ -z "$CTARGET_LIBC" ] && CTARGET_LIBC="$(hostspec_to_libc $CTARGET)"
 
-	if [ "$CHOST" != "$CTARGET" ]; then
-		# setup environment for creating cross compiler
-		[ -z "$CBUILDROOT" ] && export CBUILDROOT="$HOME/sysroot-$CTARGET_ARCH/"
-	elif [ "$CBUILD" != "$CHOST" ]; then
+	if [ "$CBUILD" != "$CHOST" ]; then
 		# setup build root
-		[ -z "$CBUILDROOT" ] && export CBUILDROOT="$HOME/sysroot-$CTARGET_ARCH/"
+		[ -z "$CBUILDROOT" ] && export CBUILDROOT="$HOME/sysroot-$CHOST_ARCH/"
 		# prepare pkg-config for cross building
 		[ -z "$PKG_CONFIG_PATH" ] && export PKG_CONFIG_PATH="${CBUILDROOT}/usr/lib/pkgconfig/"
 		[ -z "$PKG_CONFIG_SYSROOT_DIR" ] && export PKG_CONFIG_SYSROOT_DIR="${CBUILDROOT}"
@@ -207,6 +204,9 @@ readconfig() {
 			export CFLAGS="--sysroot=${CBUILDROOT} $CFLAGS"
 			export LDFLAGS="--sysroot=${CBUILDROOT} $LDFLAGS"
 		fi
+	elif [ "$CHOST" != "$CTARGET" ]; then
+		# setup environment for creating cross compiler
+		[ -z "$CBUILDROOT" ] && export CBUILDROOT="$HOME/sysroot-$CTARGET_ARCH/"
 	fi
 	return 0
 }

@@ -2304,7 +2304,9 @@ builddeps() {
 	msg "Analyzing dependencies..."
 	case "$BOOTSTRAP" in
 	no*)	BUILD_BASE="";;
-	*)	if cross_creating || cross_compiling; then
+	*)	if cross_compiling; then
+			BUILD_BASE="build-base-$CHOST_ARCH"
+		elif cross_creating; then
 			BUILD_BASE="build-base-$CTARGET_ARCH"
 		else
 			BUILD_BASE="build-base"
