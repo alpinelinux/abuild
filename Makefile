@@ -80,7 +80,8 @@ P=$(PACKAGE)-$(VERSION)
 all:	$(USR_BIN_FILES) $(MAN_PAGES) functions.sh
 
 clean:
-	@rm -f $(USR_BIN_FILES) $(MAN_PAGES) *.o functions.sh Kyuafile tests/Kyuafile
+	@rm -f $(USR_BIN_FILES) $(MAN_PAGES) *.o functions.sh Kyuafile \
+		tests/Kyuafile tests/testdata/abuild.key*
 
 %.o: %.c
 	$(CC) $(CPPFLAGS) $(CFLAGS) $(CFLAGS-$@) -o $@ -c $<
@@ -104,6 +105,12 @@ help:
 	@echo "$(P) makefile"
 	@echo "usage: make install [ DESTDIR=<path> ]"
 
+tests/testdata/abuild.key:
+	openssl genrsa -out "$@" 4096
+
+tests/testdata/abuild.key.pub: tests/testdata/abuild.key
+	openssl rsa -in "$<" -pubout -out "$@"
+
 tests/Kyuafile: $(wildcard tests/*_test)
 	echo "syntax(2)" > $@
 	echo "test_suite('abuild')" >> $@
@@ -116,7 +123,7 @@ Kyuafile: tests/Kyuafile
 	echo "test_suite('abuild')" >> $@
 	echo "include('tests/Kyuafile')" >> $@
 
-check: $(SCRIPTS) $(USR_BIN_FILES) functions.sh tests/Kyuafile Kyuafile
+check: $(SCRIPTS) $(USR_BIN_FILES) functions.sh tests/Kyuafile Kyuafile tests/testdata/abuild.key.pub
 	kyua test || (kyua report --verbose && exit 1)
 
 install: $(USR_BIN_FILES) $(SAMPLES) $(MAN_PAGES) abuild.conf functions.sh

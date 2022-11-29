@@ -1,0 +1,29 @@
+#!/bin/sh
+
+# fake openssl
+while [ $# -gt 0 ]; do
+	case "$1" in
+		genrsa|rsa)
+			cmd="$1"
+			;;
+		-out)
+			shift
+			outfile="$1"
+			;;
+		-in)
+			shift
+			infile="$1"
+	esac
+	shift
+done
+
+case "$cmd" in
+	genrsa)
+		cat "$FAKEKEY" > "$outfile"
+		;;
+	rsa)
+		echo "writing RSA key" >&2
+		cat "$FAKEKEYPUB" > "$outfile"
+		;;
+esac
+

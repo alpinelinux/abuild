@@ -1,7 +1,7 @@
-*.tar.bz2
-*.o
 *.1
 *.5
+*.o
+*.tar.bz2
 Kyuafile
 abuild
 abuild-fetch
@@ -22,5 +22,6 @@ checkapk
 devbuild
 functions.sh
 newapkbuild
-src
 pkg
+src
+tests/testdata/abuild.key*
