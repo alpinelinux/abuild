@@ -4,7 +4,8 @@
 init_tests \
 	abuild_tar_help \
 	abuild_tar_invalid_opt \
-	abuild_tar_cut
+	abuild_tar_cut \
+	abuild_tar_hash
 
 DATADIR=$(atf_get_srcdir)/testdata
 
@@ -38,3 +39,11 @@ abuild_tar_cut_body() {
 		tar -tf foobar.tar
 }
 
+abuild_tar_hash_body() {
+	atf_require_prog tar strings
+
+	echo foo > foo
+	tar --format=posix -cf - foo | abuild-tar --hash > foo.tar
+	atf_check -o match:foo tar -tvf foo.tar
+	atf_check -o match:"APK-TOOLS.checksum" strings foo.tar
+}
