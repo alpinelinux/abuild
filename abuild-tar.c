@@ -104,9 +104,9 @@ static void tarhdr_checksum(struct tar_header *hdr)
 	put_octal(hdr->chksum, sizeof(hdr->chksum)-1, chksum);
 }
 
-static int usage(void)
+static int usage(FILE *out)
 {
-	fprintf(stderr,
+	fprintf(out,
 "abuild-tar " VERSION "\n"
 "\n"
 "usage: abuild-tar [--hash[=<algorithm>]] [--cut]\n"
@@ -367,9 +367,10 @@ err:
 
 int main(int argc, char **argv)
 {
-	static int cut = 0;
+	static int cut = 0, help = 0;
 	static const struct option options[] = {
 		{ "hash", optional_argument },
+		{ "help", no_argument, &help, 1 },
 		{ "cut", no_argument, &cut, 1 },
 		{ NULL }
 	};
@@ -388,15 +389,18 @@ int main(int argc, char **argv)
 			digest = optarg ? optarg : "sha1";
 	}
 
+	if (help)
+		return usage(stdout) && 0;
+
 	if (digest == NULL && cut == 0)
-		return usage();
+		return usage(stderr);
 	if (isatty(STDIN_FILENO))
-		return usage();
+		return usage(stderr);
 
 	if (digest != NULL) {
 		md = EVP_get_digestbyname(digest);
 		if (md == NULL)
-			return usage();
+			return usage(stderr);
 	}
 
 	return do_it(md, cut);
