@@ -3,7 +3,8 @@
 . $(atf_get_srcdir)/test_env.sh
 init_tests \
 	abuild_tar_help \
-	abuild_tar_invalid_opt
+	abuild_tar_invalid_opt \
+	abuild_tar_cut
 
 DATADIR=$(atf_get_srcdir)/testdata
 
@@ -18,3 +19,22 @@ abuild_tar_invalid_opt_body() {
 		-e match:"usage:" \
 		abuild-tar --invalid
 }
+
+abuild_tar_cut_body() {
+	atf_require_prog tar
+
+	echo foo > foo
+	echo bar > bar
+	tar -cf foo.tar foo
+	tar -cf bar.tar bar
+
+	cat foo.tar bar.tar > foobar.tar
+	atf_check -o not-match:bar \
+		tar -tf foobar.tar
+
+	tar -cf - foo | abuild-tar --cut > cutted.tar
+	cat cutted.tar bar.tar > foobar.tar
+	atf_check -o match:bar \
+		tar -tf foobar.tar
+}
+
