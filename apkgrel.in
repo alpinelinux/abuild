@@ -73,9 +73,9 @@ do_nothing() {
 }
 
 usage() {
-	cat >&2 <<-__EOF__
+	cat <<-__EOF__
 		$program $program_version - display or bump pkgrel in APKBUILDs
-		Usage: $program [-z|--zero] [-a|--add] [-g|--clean-git] [-s|--set NUM]
+		usage: $program [-z|--zero] [-a|--add] [-g|--clean-git] [-s|--set NUM]
 				[-t|--test] [-f|--force] DIR or APKBUILD...
 		Options:
 		  -z, --zero       Set pkgrel to 0
@@ -98,7 +98,7 @@ only_clean_git=
 args=$(getopt -o zags:tfqh --long zero,add,clean-git,set:,test,force,quiet,help \
 	-n "$program" -- "$@")
 if [ $? -ne 0 ]; then
-	usage
+	usage >&2
 	exit 2
 fi
 eval set -- "$args"
@@ -121,7 +121,7 @@ while true; do
 	shift
 done
 if [ $# -eq 0 ]; then
-	usage
+	usage >&2
 	exit 2
 fi
 
