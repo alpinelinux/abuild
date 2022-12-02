@@ -969,8 +969,6 @@ git_last_commit_epoch() {
 get_maintainer() {
 	if [ -z "$maintainer" ]; then
 		maintainer=$(awk -F': ' '/# *Maintainer/ {print $2}' "$APKBUILD")
-		# remove surrounding whitespace
-		maintainer=$(echo "$maintainer" | xargs)
 	fi
 }
 
@@ -981,8 +979,10 @@ check_maintainer() {
 	else
 		# try to check for a valid rfc822 address
 		case "$maintainer" in
-			*[A-Za-z0-9]*\ \<*@*.*\>) ;;
-			*) return 1 ;;
+			" "*|*" ") error "'$maintainer' has leading or trailing space"; return 1 ;;
+			\"*|*\") error "'$maintainer' has leading or trailing quote"; return 1 ;;
+			*\ \<*@*.*\>) ;;
+			*) error "'$maintainer' is not a valid rfc822 address"; return 1 ;;
 		esac
 	fi
 }
