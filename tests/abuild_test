@@ -28,10 +28,12 @@ init_tests \
 	abuild_amove \
 	abuild_doc \
 	abuild_dev \
-	abuild_check_maintainer
+	abuild_check_maintainer \
+	abuild_cleanoldpkg
 
 export ABUILD_SHAREDIR=$(atf_get_srcdir)/..
 export ABUILD_CONF=/dev/null
+export ABUILD_APK_INDEX_OPTS="--allow-untrusted"
 export GIT_CONFIG_GLOBAL="$(atf_get_srcdir)/testdata/gitconfig"
 export REPODEST="$PWD"/packages
 
@@ -693,5 +695,59 @@ abuild_check_maintainer_body() {
 	for m in "Test User <123@example.com>" "Foo O'Brian <n@example.com>" "Łukasz Something <s@example.com>"; do
 		printf "# Maintainer: %s\n%s\n" "$m" "pkgname=foo" > APKBUILD
 		atf_check abuild check_maintainer
+	done
+}
+
+abuild_cleanoldpkg_body() {
+	init_keys
+	mkdir -p main/foo
+	cd main/foo
+	for arch in aarch64 x86_64; do
+		for v in 0.9 1.0 1.1; do
+			cat > APKBUILD <<-EOF
+				# Maintainer: Test User 123 <123@example.com>
+				# test package
+				pkgname="foo"
+				pkgver="$v"
+				pkgrel=0
+				pkgdesc='Dummy test package - dev'
+				url='https://gitlab.alpinelinux.org/alpine/aports'
+				arch='noarch'
+				license='MIT'
+				options='!check'
+				package() {
+					mkdir -p "\$pkgdir"
+				}
+			EOF
+			CARCH=$arch atf_check -e not-empty abuild
+		done
+	done
+
+	CARCH=aarch64 atf_check -e match:"Cleaning" abuild cleanoldpkg
+
+	find "$REPODEST"
+
+	# should keep the current APKBUILD version
+	for arch in aarch64 x86_64; do
+		f="$REPODEST"/main/$arch/foo-1.1-r0.apk
+		if ! test -e "$f"; then
+			atf_fail "$f was deleted"
+		fi
+	done
+
+	# should remove old packages of aarch64
+	for i in 0.9 1.0; do
+		f="$REPODEST"/main/aarch64/foo-$i-r0.apk
+		if test -e "$f"; then
+			atf_fail "$f was not deleted"
+		fi
+	done
+
+	# should not delete other arches than aarch64
+	for i in 0.9 1.0; do
+		f="$REPODEST"/main/x86_64/foo-$i-r0.apk
+		if ! test -e "$f"; then
+			atf_fail "$f was deleted"
+		fi
 	done
 }
