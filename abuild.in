@@ -2410,7 +2410,7 @@ rootbld() {
 	BUILD_ROOT=$(mktemp -d /var/tmp/abuild.XXXXXXXXXX)
 
 	mkdir -p "$BUILD_ROOT/proc" "$BUILD_ROOT/etc/apk/keys" \
-		"$BUILD_ROOT/$HOME/.abuild" "$BUILD_ROOT/$aportsgit" \
+		"$BUILD_ROOT/$ABUILD_USERDIR" "$BUILD_ROOT/$aportsgit" \
 		"$BUILD_ROOT/$SRCDEST" "$BUILD_ROOT/$REPODEST" \
 		"$BUILD_ROOT/tmp/pkg" "$BUILD_ROOT/tmp/src" \
 		"$BUILD_ROOT/usr/bin" "$pkgbasedir" "$REPODEST" \
@@ -2464,7 +2464,7 @@ rootbld() {
 		--proc /proc \
 		--dev-bind /dev /dev \
 		--bind "$BUILD_ROOT/$HOME" "$HOME" \
-		--ro-bind "$HOME/.abuild" "$HOME/.abuild" \
+		--ro-bind "$ABUILD_USERDIR" "$ABUILD_USERDIR" \
 		--ro-bind "$aportsgit" "$aportsgit" \
 		${USE_CCACHE:+ --bind "$HOME/.ccache" "$HOME/.ccache"} \
 		--bind "$SRCDEST" "$SRCDEST" \
