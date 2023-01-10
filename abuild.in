@@ -189,7 +189,7 @@ default_sanitycheck() {
 	local i= j= suggestion=
 	msg "Checking sanity of $APKBUILD..."
 	[ -z "$pkgver" ] && die "Missing pkgver in APKBUILD"
-	if [ "$pkgver" != "volatile" ] && [ -z "$nodeps" ]; then
+	if [ -z "$nodeps" ]; then
 		$APK version --check --quiet "$pkgver" ||\
 			die "$pkgver is not a valid version"
 	fi
@@ -595,7 +595,6 @@ subpkg_set() {
 
 cleanpkg() {
 	local i
-	getpkgver || return 1
 	msg "Cleaning built packages..."
 	rm -f "$REPODEST/$repo/src/$pkgname-$pkgver-r$pkgrel.src.tar.gz"
 	for i in $allpackages; do
@@ -611,7 +610,6 @@ cleanpkg() {
 # clean all packages except current
 cleanoldpkg() {
 	local i j
-	getpkgver || return 1
 	msg "Cleaning all packages except $pkgver-r$pkgrel..."
 	for i in $allpackages; do
 		subpkg_set "$i"
@@ -686,15 +684,6 @@ runpart() {
 	fi
 	$part
 	trap - EXIT
-}
-
-# override those in your build script
-getpkgver() {
-	# this func is supposed to be overridden by volatile packages
-	if [ "$pkgver" = "volatile" ]; then
-		error "Please provide a getpkgver() function in your APKBUILD"
-		return 1
-	fi
 }
 
 have_patches() {
@@ -1060,7 +1049,6 @@ check_depver() {
 }
 
 prepare_metafiles() {
-	getpkgver || return 1
 	local name=${subpkgname:-$pkgname}
 	[ -z "${name##* *}" ] && die "package name contains spaces"
 	local dir=${subpkgdir:-$pkgdir}
@@ -1699,7 +1687,6 @@ human_size() {
 create_apks() {
 	local file= dir= name= ver= apk= datadir= size=
 	local gzip=$(command -v pigz || echo gzip)
-	getpkgver || return 1
 	rmdir "$pkgdir"/usr/lib \
 		"$pkgdir"/usr/bin \
 		"$pkgdir"/usr/share \
@@ -2135,7 +2122,6 @@ rootpkg() {
 srcpkg() {
 	echo "Ensuring source is fetched"
 	fetch
-	getpkgver || return 1
 	local p="$pkgname-$pkgver-$pkgrel"
 	local prefix="${startdir##*/}"
 	local i files="$prefix/APKBUILD"
@@ -2184,8 +2170,6 @@ check_libc() {
 
 # check if package is up to date
 apk_up2date() {
-	getpkgver || return 1
-
 	local i s
 	for i in $allpackages; do
 		subpkg_set "$i"
@@ -2213,7 +2197,6 @@ apk_up2date() {
 
 abuildindex_up2date() {
 	local i
-	getpkgver || return 1
 
 	for i in $allpackages; do
 		subpkg_set "$i"
@@ -2515,7 +2498,6 @@ stripbin() {
 # simply list target apks
 listpkg() {
 	local name
-	getpkgver || return 1
 	for name in $allpackages ; do
 		subpkg_set $name
 		echo "$subpkgname-$pkgver-r$pkgrel.apk"
