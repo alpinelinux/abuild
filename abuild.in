@@ -207,6 +207,9 @@ default_sanitycheck() {
 	if [ $(echo "$pkgdesc" | wc -c) -gt 128 ]; then
 		die "pkgdesc is too long"
 	fi
+	if [ $(echo "$pkgdesc" | wc -l) -gt 1 ]; then
+		die "pkgdesc is not a single line"
+	fi
 	is_function package || die "Missing package() function in APKBUILD"
 
 	if [ -n "$replaces_priority" ] \
