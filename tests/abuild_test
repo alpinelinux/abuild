@@ -21,6 +21,7 @@ init_tests \
 	abuild_invalid_pkgnames \
 	abuild_invalid_subpkgnames \
 	abuild_invalid_subpkg_version \
+	abuild_warn_pkgver_patch_version \
 	abuild_multiline_license \
 	abuild_git_ceiling \
 	abuild_package_size_zero \
@@ -412,6 +413,17 @@ abuild_invalid_subpkg_version_body() {
 	TESTDEPVER="1.0-0" atf_check -s exit:1 \
 		-e match:"Invalid version" \
 		abuild all
+}
+
+abuild_warn_pkgver_patch_version_body() {
+	cp -ra "$testrepo"/test-pkgname .
+	cd test-pkgname
+	TESTPKGVER=1.0_p1 atf_check -s exit:0 \
+		-e not-match:'WARNING' \
+		abuild sanitycheck
+	TESTPKGVER=1.0p1 atf_check -s exit:0 \
+		-e match:'WARNING.*1.0_p1' \
+		abuild sanitycheck
 }
 
 abuild_multiline_license_body() {

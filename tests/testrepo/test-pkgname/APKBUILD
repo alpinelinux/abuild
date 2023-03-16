@@ -2,7 +2,7 @@
 
 # test package
 pkgname=${TESTNAME-test-pkgname}
-pkgver="1.0"
+pkgver="${TESTPKGVER-1.0}"
 pkgrel=0
 pkgdesc="Dummy test package that fails to build"
 url="https://gitlab.alpinelinux.org/alpine/aports"
