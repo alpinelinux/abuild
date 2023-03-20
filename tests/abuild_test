@@ -16,6 +16,8 @@ init_tests \
 	abuild_checksum_duplicates \
 	abuild_subpkg_dep_leak \
 	abuild_py_providers_creation \
+	abuild_py_dependency_scan \
+	abuild_py_dependency_scan_conflict \
 	abuild_reject_init_with_improper_shebang \
 	abuild_valid_pkgnames \
 	abuild_invalid_pkgnames \
@@ -331,11 +333,30 @@ abuild_subpkg_dep_leak_body() {
 abuild_py_providers_creation_body() {
 	init_keys
 	cp -ra "$testrepo" .
-	cd testrepo/py3-foo-and-bar
+	cd testrepo/py3\ foo\ and\ bar
 	abuild rootpkg || atf_fail "abuild failed"
 	atf_check -s exit:0 \
 		-o match:"provides = py3.9:foo=1.0.0-r0" \
 		cat pkg/.control.py3-foo-and-bar/.PKGINFO
+}
+
+abuild_py_dependency_scan_body() {
+	init_keys
+	cp -ra "$testrepo" .
+	cd testrepo/py3\ foo\ and\ bar
+	abuild rootpkg || atf_fail "abuild failed"
+	atf_check -s exit:0 \
+		-o match:"depend = python3~3.9" \
+		cat pkg/.control.py3-foo-and-bar/.PKGINFO
+}
+
+abuild_py_dependency_scan_conflict_body() {
+	init_keys
+	cp -ra "$testrepo" .
+	cd testrepo/py3-conflicting-python-versions
+	atf_check -s exit:1 \
+		-e match:"ERROR.*package contains python3 modules for conflicting python3 versions" \
+		abuild rootpkg
 }
 
 abuild_reject_init_with_improper_shebang_body() {

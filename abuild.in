@@ -1481,6 +1481,11 @@ trace_apk_deps() {
 		autodeps="$autodeps $i"
 	done
 
+	# python3 dependencies
+	for i in $(sort -u "$dir"/.python3-needs 2>/dev/null); do
+		autodeps="$autodeps $i"
+	done
+
 	# pkg-config depends
 	for i in $(sort -u "$dir"/.needs-pc 2>/dev/null); do
 		# first check if its provided by same apkbuild
@@ -1674,6 +1679,25 @@ scan_symlink_targets() {
 	done
 }
 
+# check if python3 site packages are installed and depend on a compatible version
+scan_python3_dependency() {
+	local controldir="$2" datadir="$3"
+	local site_pkg_dirs
+	if site_pkg_dirs="$(find "$datadir"/usr/lib/ -type d -regex '.*python3\.[0-9]\+/site-packages' -mindepth 2 -maxdepth 2 2>/dev/null)"; then
+		local pyver_count="$(echo "$site_pkg_dirs" | wc -l)"
+		if [ "$pyver_count" -gt 1 ]; then
+			error "package contains python3 modules for conflicting python3 versions"
+			exit 1
+		fi
+		local pyver="${site_pkg_dirs##*usr/lib/python}"
+		pyver="${pyver%%/*}"
+		if [ -n "$pyver" ]; then
+			echo "python3~$pyver" \
+				>> "$controldir"/.python3-needs
+		fi
+	fi
+}
+
 #find pkg-config dependencies
 scan_pkgconfig_depends() {
 	local provides_pc="$1" controldir= name= datadir=
@@ -1721,6 +1745,7 @@ create_apks() {
 			subpkgname=$name
 			scan_shared_objects "$name" "$dir" "$datadir"
 			scan_symlink_targets "$name" "$dir" "$datadir"
+			scan_python3_dependency "$name" "$dir" "$datadir"
 		done
 		for file in "$pkgbasedir"/.control.*/.provides-pc; do
 			scan_pkgconfig_depends "$file"

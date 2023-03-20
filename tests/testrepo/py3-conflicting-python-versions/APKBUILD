@@ -1,0 +1,17 @@
+# Maintainer: Test user <user@example.com>
+pkgname=py3-conflicting-python-versions
+pkgver=1.0.0
+pkgrel=0
+pkgdesc="dummy package for test"
+url="https://alpinelinux.org"
+license="MIT"
+builddir="$srcdir"
+
+package() {
+	for pyver in 3.9 3.42; do
+		local sitedir="usr/lib/python$pyver/site-packages"
+		mkdir -p "$pkgdir"/$sitedir/foo
+		touch "$pkgdir"/$sitedir/foo/__init__.py
+		touch "$pkgdir"/$sitedir/bar.py
+	done
+}
