@@ -200,8 +200,8 @@ __EOF__
 
 package_rust() {
 	cat >>APKBUILD<<__EOF__
-	cargo install --frozen --offline --path . --root="\$pkgdir/usr"
-	rm "\$pkgdir"/usr/.crates*
+	# Replace with proper package command(s)
+	:
 __EOF__
 }
 
