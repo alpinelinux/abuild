@@ -1833,7 +1833,7 @@ update_abuildrepo_index() {
 		if [ -f APKINDEX.tar.gz ]; then
 			oldindex="--index APKINDEX.tar.gz"
 		fi
-		( $APK index $ABUILD_APK_INDEX_OPTS --quiet $oldindex --output APKINDEX.tar.gz.$$ \
+		( $APK index $ABUILD_APK_INDEX_OPTS --no-warnings --quiet $oldindex --output APKINDEX.tar.gz.$$ \
 			--description "$DESCRIPTION" --rewrite-arch $i *.apk && \
 		  msg "Signing the index..." && \
 		  abuild-sign -q APKINDEX.tar.gz.$$ && \
