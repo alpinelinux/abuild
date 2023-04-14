@@ -30,7 +30,8 @@ init_tests \
 	abuild_doc \
 	abuild_dev \
 	abuild_check_maintainer \
-	abuild_cleanoldpkg
+	abuild_cleanoldpkg \
+	abuild_path_with_spaces
 
 export ABUILD_SHAREDIR=$(atf_get_srcdir)/..
 export ABUILD_CONF=/dev/null
@@ -762,4 +763,14 @@ abuild_cleanoldpkg_body() {
 			atf_fail "$f was deleted"
 		fi
 	done
+}
+
+abuild_path_with_spaces_body() {
+	init_keys
+	cp -ra "$testrepo" .
+	cd testrepo/pkg\ path\ with\ spaces
+	atf_check -s exit:0 \
+		-o match:"hello world" \
+		-e match:"Build complete" \
+		abuild
 }

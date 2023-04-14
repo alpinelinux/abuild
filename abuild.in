@@ -1004,7 +1004,7 @@ check_license() {
 }
 
 check_secfixes_comment() {
-	local c=$(sed -E -n -e '/^# secfixes:/,/(^[^#]|^$)/p' $APKBUILD | grep '^#')
+	local c=$(sed -E -n -e '/^# secfixes:/,/(^[^#]|^$)/p' "$APKBUILD" | grep '^#')
 	local invalid=$(echo "$c" \
 		| grep -v -E '(^# secfixes:|^#  +- [A-Z0-9-]+|^#   [0-9]+.*:$|^#$)')
 	if [ -z "$invalid" ]; then
@@ -1706,7 +1706,7 @@ create_apks() {
 	if ! options_has "!tracedeps"; then
 		for file in "$pkgbasedir"/.control.*/.PKGINFO; do
 			dir="${file%/.PKGINFO}"
-			name="$(pkginfo_val pkgname $file)"
+			name="$(pkginfo_val pkgname "$file")"
 			datadir="$pkgbasedir"/$name
 			subpkgname=$name
 			scan_shared_objects "$name" "$dir" "$datadir"
@@ -1719,13 +1719,13 @@ create_apks() {
 
 	for file in "$pkgbasedir"/.control.*/.PKGINFO; do
 		local dir="${file%/.PKGINFO}"
-		local name=$(pkginfo_val pkgname $file)
-		local ver=$(pkginfo_val pkgver $file)
-		local size=$(pkginfo_val size $file | human_size)
+		local name=$(pkginfo_val pkgname "$file")
+		local ver=$(pkginfo_val pkgver "$file")
+		local size=$(pkginfo_val size "$file" | human_size)
 		local apk=$name-$ver.apk
 		local datadir="$pkgbasedir"/$name
 		local subpkgname=$name
-		local subpkgarch=$(pkginfo_val arch $file)
+		local subpkgarch=$(pkginfo_val arch "$file")
 
 		trace_apk_deps "$name" "$dir" "$subpkgarch" || return 1
 		msg "Package size: ${size}"
