@@ -1329,7 +1329,7 @@ is_doc_pkg() {
 	test "${1%-doc}" != "$1"
 }
 
-# returns true if this is the -doc package
+# returns true if this is the -devhelp package
 is_devhelp_pkg() {
 	test "${1%-devhelp}" != "$1"
 }
