@@ -790,6 +790,15 @@ postcheck() {
 		find "$dir" -name '*.la' -type f -delete
 	fi
 
+	# remove all python .pyc cache unless intentionally kept
+	if ! options_has "keeppycache"; then
+		# wildcard should always get the system python dir, and this is faster than
+		# trying to calculate the python version.
+		find "$dir"/usr/lib/python* \
+			\( -type d -a -name "__pycache__" \) \
+			-exec rm -r {} +
+	fi
+
 	# look for /usr/lib/charset.alias
 	if [ -e "$dir"/usr/lib/charset.alias ] \
 			&& ! options_has "charset.alias"; then
