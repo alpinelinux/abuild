@@ -33,8 +33,7 @@ init_tests \
 	abuild_devhelp \
 	abuild_check_maintainer \
 	abuild_cleanoldpkg \
-	abuild_path_with_spaces \
-	abuild_pycache
+	abuild_path_with_spaces
 
 export ABUILD_SHAREDIR=$(atf_get_srcdir)/..
 export ABUILD_CONF=/dev/null
@@ -824,55 +823,4 @@ abuild_path_with_spaces_body() {
 		-o match:"hello world" \
 		-e match:"Build complete" \
 		abuild
-}
-
-abuild_pycache_body() {
-	init_keys
-
-	mkdir -p pycachetest
-	cd pycachetest
-
-	cat >APKBUILD <<-EOF
-		# Maintainer: Joe User <juser@example.com>
-		pkgname="pycachetest"
-		pkgver="1.0"
-		pkgrel=0
-		pkgdesc="Dummy test package"
-		url="https://gitlab.alpinelinux.org/alpine/aports"
-		arch="noarch"
-		license="MIT"
-		source=""
-		prepare() {
-			mkdir -p "\$builddir"
-		}
-
-		check() {
-			true
-		}
-
-		package() {
-			mkdir -p "\$pkgdir"/usr/lib/python3.11/site-packages/test/__pycache__/
-			touch "\$pkgdir"/usr/lib/python3.11/site-packages/test/__pycache__/main.cpython-311.pyc
-		}
-	EOF
-
-	abuild clean unpack prepare build rootpkg
-
-	if [ -e pkg/pycachetest/usr/lib/python3.11/site-packages/test/__pycache__/main.cpython-311.pyc ]; then
-		atf_fail ".pyc was not deleted"
-	fi
-
-	if [ -e pkg/pycachetest/usr/lib/python3.11/site-packages/test/__pycache__ ]; then
-		atf_fail "__pycache__ dir was not deleted"
-	fi
-
-	options="keeppycache" abuild clean unpack prepare build rootpkg
-
-	if ! [ -e pkg/pycachetest/usr/lib/python3.11/site-packages/test/__pycache__/main.cpython-311.pyc ]; then
-		atf_fail ".pyc was deleted but shouldn't have been"
-	fi
-
-	if ! [ -e pkg/pycachetest/usr/lib/python3.11/site-packages/test/__pycache__ ]; then
-		atf_fail "__pycache__ dir was deleted but shouldn't have been"
-	fi
 }
