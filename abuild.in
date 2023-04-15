@@ -2399,7 +2399,7 @@ rootbld_qemu_arch() {
 	case "$CBUILD_ARCH" in
 	arm*) qarch="arm" ;;
 	x86)  qarch="i386" ;;
-	*)    qarch="$carch" ;;
+	*)    qarch="$CBUILD_ARCH" ;;
 	esac
 
 	echo "${qarch}"
