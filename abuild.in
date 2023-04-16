@@ -2504,6 +2504,7 @@ rootbld() {
 		--chdir "$startdir" \
 		--clearenv \
 		--setenv HOME "$HOME" \
+		--setenv REPODEST "$REPODEST" \
 		${ABUILD_BOOTSTRAP:+--setenv ABUILD_BOOTSTRAP "$ABUILD_BOOTSTRAP"} \
 		--setenv SOURCE_DATE_EPOCH "$SOURCE_DATE_EPOCH" \
 		--setenv ABUILD_LAST_COMMIT "$ABUILD_LAST_COMMIT" \
