@@ -385,7 +385,10 @@ int main(int argc, char **argv)
 	ENGINE_register_all_complete();
 #endif
 
-	while (getopt_long(argc, argv, "", options, &ndx) != -1) {
+	int c;
+	while ((c = getopt_long(argc, argv, "", options, &ndx)) != -1) {
+		if (c == '?')
+			return usage(stderr);
 		if (ndx == 0)
 			digest = optarg ? optarg : "sha1";
 	}
