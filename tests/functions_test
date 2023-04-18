@@ -6,7 +6,8 @@ init_tests \
 	funcs_check_missing_gcc \
 	funcs_check_missing_apk \
 	funcs_check_missing_git \
-	funcs_check_env_set_but_empty
+	funcs_check_env_set_but_empty \
+	funcs_check_defconfig
 
 FUNCS=$(atf_get_srcdir)/../functions.sh
 
@@ -52,4 +53,26 @@ funcs_check_env_set_but_empty_body() {
 				sh script
 		done
 	done
+}
+
+funcs_check_defconfig_body() {
+	echo "CFLAGS=syscflags" > etc.conf
+	echo "CFLAGS=usercflags" > user.conf
+
+	# test /etc/abuild.conf
+	ABUILD_CONF="$PWD"/etc.conf atf_check \
+		-o match:"syscflags" \
+		sh -e -c " . $FUNCS; echo \"\$CFLAGS\""
+
+	# user config ($HOME/.abuild/abuild.conf) wins over /etc/abuild.conf
+	ABUILD_CONF="$PWD/etc.conf" ABUILD_USERCONF="$PWD/user.conf" \
+	atf_check \
+		-o match:"usercflags" \
+		sh -e -c " . $FUNCS; echo \"\$CFLAGS\""
+
+	# environment wins
+	ABUILD_CONF="$PWD/etc.conf" ABUILD_USERCONF="$PWD/user.conf" \
+		CFLAGS="envcflags" atf_check \
+		-o match:"envcflags" \
+		sh -e -c " . $FUNCS; echo \"\$CFLAGS\""
 }
