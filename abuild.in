@@ -2141,6 +2141,19 @@ fishcomp() {
 	default_fishcomp
 }
 
+default_pyc() {
+	pkgdesc="Precompiled Python bytecode for ${subpkgname%-pyc}"
+	install_if="${subpkgname%-pyc}=$pkgver-r$pkgrel pyc"
+
+	cd "$pkgdir" || return 0
+	local IFS=$'\n'
+	amove $(find usr/lib/python* -type d -name __pycache__)
+}
+
+pyc() {
+	default_pyc
+}
+
 is_function() {
 	type "$1" 2>&1 | head -n 1 | grep -E -q "is a (shell )?function"
 }
