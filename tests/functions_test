@@ -60,6 +60,8 @@ funcs_check_defconfig_body() {
 	echo "CFLAGS=syscflags" > etc.conf
 	echo "CFLAGS=usercflags" > user.conf
 
+	unset CFLAGS
+
 	# test /usr/share/abuild/default.conf
 	ABUILD_DEFCONF="$PWD"/def.conf ABUILD_CONF=/dev/null ABUILD_USERCONF=/dev/null \
 		atf_check -o match:"defcflags" \
