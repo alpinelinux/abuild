@@ -35,7 +35,9 @@ init_tests \
 	abuild_devhelp \
 	abuild_check_maintainer \
 	abuild_cleanoldpkg \
-	abuild_path_with_spaces
+	abuild_path_with_spaces \
+	abuild_pyc_warn \
+	abuild_pyc
 
 export ABUILD_SHAREDIR=$(atf_get_srcdir)/..
 export ABUILD_CONF=/dev/null
@@ -844,4 +846,59 @@ abuild_path_with_spaces_body() {
 		-o match:"hello world" \
 		-e match:"Build complete" \
 		abuild
+}
+
+abuild_pyc_warn_body() {
+	init_keys
+
+	mkdir -p pycachetest
+	cd pycachetest
+	cat >APKBUILD <<-EOF
+		# Maintainer: Joe User <juser@example.com>
+		pkgname="pycachetest"
+		pkgver="1.0"
+		pkgrel=0
+		pkgdesc="Dummy test package"
+		url="https://gitlab.alpinelinux.org/alpine/aports"
+		arch="noarch"
+		license="MIT"
+		source=""
+
+		package() {
+			mkdir -p "\$pkgdir"/usr/lib/python3.11/site-packages/test/__pycache__/
+			touch "\$pkgdir"/usr/lib/python3.11/site-packages/test/__pycache__/main.cpython-311.pyc
+		}
+	EOF
+
+	atf_check -e match:"WARNING.*pyc*" abuild rootpkg
+}
+
+abuild_pyc_body() {
+	init_keys
+
+	mkdir -p foo
+	cd foo
+	cat >APKBUILD <<-EOF
+		# Maintainer: Joe User <juser@example.com>
+		pkgname="foo"
+		pkgver="1.0"
+		pkgrel=0
+		pkgdesc="Dummy test package"
+		url="https://gitlab.alpinelinux.org/alpine/aports"
+		arch="noarch"
+		license="MIT"
+		source=""
+		subpackages="\$pkgname-pyc"
+
+		package() {
+			mkdir -p "\$pkgdir"/usr/lib/python3.11/site-packages/test/__pycache__/
+			touch "\$pkgdir"/usr/lib/python3.11/site-packages/test/__pycache__/main.cpython-311.pyc
+		}
+	EOF
+
+	atf_check -o match:"->" -e not-match:"WARNING.*pyc*" abuild rootpkg
+	atf_check -o match:"__pycache__" find pkg/foo-pyc -name '__pycache__'
+	# verify install_if is correct
+	atf_check -o match:"foo=1.0-r0" -o match:"pyc" \
+		grep install_if pkg/.control.foo-pyc/.PKGINFO
 }
