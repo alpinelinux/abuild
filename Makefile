@@ -60,7 +60,10 @@ OBJS-abuild-fetch = abuild-fetch.o
 
 TEST_TIMEOUT = 15
 
-.SUFFIXES:	.sh.in .in
+.SUFFIXES:	.conf.in .sh.in .in
+%.conf: %.conf.in
+	${SED} ${SED_REPLACE} ${SED_EXTRA} $< > $@
+
 %.sh: %.sh.in
 	${SED} ${SED_REPLACE} ${SED_EXTRA} $< > $@
 	${CHMOD} +x $@
@@ -77,7 +80,7 @@ TEST_TIMEOUT = 15
 
 P=$(PACKAGE)-$(VERSION)
 
-all:	$(USR_BIN_FILES) $(MAN_PAGES) functions.sh
+all:	$(USR_BIN_FILES) $(MAN_PAGES) functions.sh abuild.conf
 
 clean:
 	@rm -f $(USR_BIN_FILES) $(MAN_PAGES) *.o functions.sh Kyuafile \
@@ -126,7 +129,7 @@ Kyuafile: tests/Kyuafile
 check: $(SCRIPTS) $(USR_BIN_FILES) functions.sh tests/Kyuafile Kyuafile tests/testdata/abuild.key.pub
 	kyua test || (kyua report --verbose && exit 1)
 
-install: $(USR_BIN_FILES) $(SAMPLES) $(MAN_PAGES) abuild.conf functions.sh
+install: $(USR_BIN_FILES) $(SAMPLES) $(MAN_PAGES) default.conf abuild.conf functions.sh
 	install -d $(DESTDIR)/$(bindir) $(DESTDIR)/$(sysconfdir) \
 		$(DESTDIR)/$(sharedir) $(DESTDIR)/$(mandir)/man1 \
 		$(DESTDIR)/$(mandir)/man5
@@ -146,9 +149,10 @@ install: $(USR_BIN_FILES) $(SAMPLES) $(MAN_PAGES) abuild.conf functions.sh
 	if [ -n "$(DESTDIR)" ] || [ ! -f "/$(sysconfdir)"/abuild.conf ]; then\
 		cp abuild.conf $(DESTDIR)/$(sysconfdir)/; \
 	fi
+
 	cp $(SAMPLES) $(DESTDIR)/$(prefix)/share/abuild/
 	cp $(AUTOTOOLS_TOOLCHAIN_FILES) $(DESTDIR)/$(prefix)/share/abuild/
-	cp functions.sh $(DESTDIR)/$(sharedir)/
+	install -t $(DESTDIR)/$(sharedir)/ functions.sh default.conf
 
 depends depend:
 	sudo apk --no-cache -U --virtual .abuild-depends add openssl-dev zlib-dev
