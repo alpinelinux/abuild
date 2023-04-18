@@ -2501,7 +2501,7 @@ rootbld() {
 	fi
 
 	local version="edge" buildhost="edge" gitref
-	if gitref="$(expr "$(git symbolic-ref --short HEAD)" : '\([0-9]\+\(\.[0-9]\+\)*\)-')"; then
+	if gitref="$(expr "$($git symbolic-ref --short HEAD)" : '\([0-9]\+\(\.[0-9]\+\)*\)-')"; then
 		version=v${gitref}
 		buildhost=${gitref/./-}
 	fi
