@@ -34,6 +34,7 @@ THE SOFTWARE.
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 #include <unistd.h>
 
 static char *program;
@@ -181,7 +182,9 @@ fetch_done:
 	release_lock(lockfd);
 
 	// give other processes the chance to acquire the lock if they have the file open
-	sleep(0);
+	// sleep for a millisecond
+	const struct timespec ts = { .tv_sec = 0, .tv_nsec = 1000000};
+	nanosleep(&ts, NULL);
 
 	if (status == 0 || try_lock(lockfd))
 		unlink(lockfile);
