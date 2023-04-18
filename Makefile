@@ -83,7 +83,7 @@ P=$(PACKAGE)-$(VERSION)
 all:	$(USR_BIN_FILES) $(MAN_PAGES) functions.sh abuild.conf
 
 clean:
-	@rm -f $(USR_BIN_FILES) $(MAN_PAGES) *.o functions.sh Kyuafile \
+	@rm -f $(USR_BIN_FILES) $(MAN_PAGES) *.o functions.sh abuild.conf Kyuafile \
 		tests/Kyuafile tests/testdata/abuild.key*
 
 %.o: %.c

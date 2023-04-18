@@ -11,6 +11,7 @@ abuild-rmtemp
 abuild-sign
 abuild-sudo
 abuild-tar
+abuild.conf
 abump
 ap
 apkbuild-cpan
