@@ -147,11 +147,11 @@ install: $(USR_BIN_FILES) $(SAMPLES) $(MAN_PAGES) default.conf abuild.conf funct
 		install -m 644 $$i $(DESTDIR)/$(mandir)/man5/$$i;\
 	done
 	if [ -n "$(DESTDIR)" ] || [ ! -f "/$(sysconfdir)"/abuild.conf ]; then\
-		cp abuild.conf $(DESTDIR)/$(sysconfdir)/; \
+		install -t $(DESTDIR)/$(sysconfdir)/ abuild.conf; \
 	fi
 
-	cp $(SAMPLES) $(DESTDIR)/$(prefix)/share/abuild/
-	cp $(AUTOTOOLS_TOOLCHAIN_FILES) $(DESTDIR)/$(prefix)/share/abuild/
+	install -t $(DESTDIR)/$(prefix)/share/abuild/ $(SAMPLES)
+	install -t $(DESTDIR)/$(prefix)/share/abuild/ $(AUTOTOOLS_TOOLCHAIN_FILES)
 	install -t $(DESTDIR)/$(sharedir)/ functions.sh default.conf
 
 depends depend:
