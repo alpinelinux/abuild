@@ -77,7 +77,7 @@ readconfig() {
 	[ -n "${SRCDEST+x}" ] && _SRCDEST=$SRCDEST
 	[ -n "${CC+x}" ] && _CC=$CC
 	[ -n "${CXX+x}" ] && _CXX=$CXX
-	[ -n "${LD+x}" ] && _LD=$LD	
+	[ -n "${LD+x}" ] && _LD=$LD
 	[ -n "${CARCH+x}" ] && _CARCH=$CARCH
 	[ -n "${CHOST+x}" ] && _CHOST=$CHOST
 	[ -n "${CTARGET+x}" ] && _CTARGET=$CTARGET
@@ -96,9 +96,11 @@ readconfig() {
 	[ -n "${PACKAGER+x}" ] && _PACKAGER=$PACKAGER
 	[ -n "${USE_COLORS+x}" ] && _USE_COLORS="$USE_COLORS"
 	[ -n "${USE_CCACHE+x}" ] && _USE_CCACHE="$USE_CCACHE"
+	: ${ABUILD_DEFCONF:=$ABUILD_SHAREDIR/default.conf}
 	: ${ABUILD_CONF:=$sysconfdir/abuild.conf}
 	: ${ABUILD_USERDIR:=$HOME/.abuild}
 	: ${ABUILD_USERCONF:=$ABUILD_USERDIR/abuild.conf}
+	[ -f "$ABUILD_DEFCONF" ] && . "$ABUILD_DEFCONF"
 	[ -f "$ABUILD_CONF" ] && . "$ABUILD_CONF"
 	[ -f "$ABUILD_USERCONF" ] && . "$ABUILD_USERCONF"
 	APORTSDIR=${_APORTSDIR-$APORTSDIR}
