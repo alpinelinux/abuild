@@ -827,7 +827,7 @@ postcheck() {
 	# look for pycache
 	# wildcard should always get the system python dir, and this is faster than
 	# trying to calculate the python version.
-	local pycache="$(find "$dir"/usr/lib/python* \( -type d -a -name "__pycache__" \))"
+	local pycache="$(find "$dir"/usr/lib/python* \( -type d -a -name "__pycache__" \) >/dev/null 2>&1 )"
 	if [ -n "$pycache" ] && [ "${name%-pyc}" = "$name" ]; then
 		warning "Found __pycache__ but package name doesn't end with -pyc"
 	fi
