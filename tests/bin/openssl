@@ -3,8 +3,12 @@
 # fake openssl
 while [ $# -gt 0 ]; do
 	case "$1" in
-		genrsa|rsa)
+		genrsa|rsa|req)
 			cmd="$1"
+			;;
+		-config)
+			shift
+			config="$1"
 			;;
 		-out)
 			shift
@@ -25,5 +29,16 @@ case "$cmd" in
 		echo "writing RSA key" >&2
 		cat "$FAKEKEYPUB" > "$outfile"
 		;;
+	req)
+		echo "Using configuration from $config" >&2
+		echo "Generating RSA key with 4096 bits" >&2
+		echo "Writing private key to '$outfile'" >&2
+		cat "$FAKEKEY" "$FAKEKEYPUB" > "$outfile"
+		;;
+	*)
+		echo "unimplemented fake openssl command: $cmd" >&2
+		exit 1
+		;;
+
 esac
 

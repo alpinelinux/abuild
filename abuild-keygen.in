@@ -90,6 +90,41 @@ do_keygen() {
 	msg ""
 }
 
+do_kernel_key() {
+	mkdir -p "$ABUILD_USERDIR"
+	pem="$ABUILD_USERDIR"/kernel_signing_key.pem
+	(
+	umask 0007
+	# https://www.kernel.org/doc/html/v6.1/admin-guide/module-signing.html#generating-signing-keys
+	openssl req -verbose -new -nodes -utf8 -sha256 -days 36500 -batch -x509 \
+		-outform PEM -out "$pem" \
+		-keyout "$pem" -config - <<-EOF
+			[ req ]
+			default_bits = 4096
+			distinguished_name = req_distinguished_name
+			prompt = no
+			string_mask = utf8only
+			x509_extensions = myexts
+
+			[ req_distinguished_name ]
+			O = alpinelinux.org
+			CN = Alpine Linux kernel key
+			#emailAddress = unspecified.user@unspecified.company
+
+			[ myexts ]
+			basicConstraints=critical,CA:FALSE
+			keyUsage=digitalSignature
+			subjectKeyIdentifier=hash
+			authorityKeyIdentifier=keyid
+		EOF
+	)
+	msg "Kernel signing key was created: $pem"
+	if ! grep -q "^KERNEL_SIGNING_KEY=" "$ABUILD_USERCONF" 2>/dev/null; then
+		echo "KERNEL_SIGNING_KEY='$pem'" >> "$ABUILD_USERCONF"
+	fi
+	msg "KERNEL_SIGNING_KEY='$pem' was added to $ABUILD_USERCONF"
+}
+
 usage() {
 	cat <<-__EOF__
 		$program $program_version - generate signing keys
@@ -100,6 +135,7 @@ usage() {
 
 		  -i, --install        Install public key into /etc/apk/keys using doas
 		  -n                   Non-interactive. Use defaults
+		      --kernel         Generate a key for kernel modules
 		  -b, --numbits [BITS] The size of the private key to generate in bits.
 		  -q, --quiet
 		  -h, --help           Show this help
@@ -116,8 +152,9 @@ install_pubkey=
 interactive=1
 numbits=4096
 quiet=
+kernel_key=
 
-args=$(getopt -o ab:inqh --long append,numbits:,install,quiet,help -n "$program" -- "$@")
+args=$(getopt -o ab:inqh --long append,numbits:,install,quiet,help,kernel -n "$program" -- "$@")
 if [ $? -ne 0 ]; then
 	usage
 	exit 2
@@ -127,6 +164,7 @@ while true; do
 	case $1 in
 		-a|--append) append_config=1;;
 		-i|--install) install_pubkey=1;;
+		--kernel) kernel_key=1;;
 		-n) unset interactive ;;
 		-b|--numbits) numbits="$2"; shift 1;;
 		-q|--quiet) quiet=1;; # suppresses msg
@@ -141,4 +179,8 @@ if [ $# -ne 0 ]; then
 	exit 2
 fi
 
+if [ -n "$kernel_key" ]; then
+	do_kernel_key
+	exit
+fi
 do_keygen

@@ -11,7 +11,8 @@ init_tests \
 	abuild_keygen_install_without_sudo \
 	abuild_keygen_install_interactive \
 	abuild_keygen_install_non_interactive \
-	abuild_keygen_install_doas
+	abuild_keygen_install_doas \
+	abuild_keygen_kernel \
 
 export ABUILD_SHAREDIR="$SRCDIR"/..
 export GIT=false
@@ -103,3 +104,14 @@ abuild_keygen_install_doas_body() {
 		abuild-keygen --install -n
 }
 
+abuild_keygen_kernel_body() {
+	atf_check -s exit:0 \
+		-e match:"(Generating|writing) RSA" \
+		-e match:"signing key was created:.*kernel_signing_key.pem" \
+		-e match:"KERNEL_SIGNING_KEY=.*was added to.*abuild.conf" \
+		abuild-keygen --kernel
+	grep '^KERNEL_SIGNING_KEY=.*' "$HOME"/.abuild/abuild.conf \
+			|| atf_fail 'KERNEL_SIGNING_KEY not set in abuild.conf'
+	test -f "$HOME"/.abuild/kernel_signing_key.pem \
+			|| atf_fail '$HOME/.abuild/kernel_signing_key.pem was not created'
+}
