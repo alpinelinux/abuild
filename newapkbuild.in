@@ -67,12 +67,12 @@ build_cmake() {
 	if [ "\$CBUILD" != "\$CHOST" ]; then
 		CMAKE_CROSSOPTS="-DCMAKE_SYSTEM_NAME=Linux -DCMAKE_HOST_SYSTEM_NAME=Linux"
 	fi
-	cmake -B build \\
+	cmake -B build -G Ninja \\
 		-DCMAKE_INSTALL_PREFIX=/usr \\
 		-DCMAKE_INSTALL_LIBDIR=lib \\
-		-DBUILD_SHARED_LIBS=True \\
+		-DBUILD_SHARED_LIBS=ON \\
 		-DCMAKE_BUILD_TYPE=None \\
-		\$CMAKE_CROSSOPTS .
+		\$CMAKE_CROSSOPTS
 	cmake --build build
 __EOF__
 }
@@ -124,8 +124,7 @@ __EOF__
 
 check_cmake() {
 	cat >>APKBUILD<<__EOF__
-	cd build
-	CTEST_OUTPUT_ON_FAILURE=TRUE ctest
+	ctest --test-dir build --output-on-failure
 __EOF__
 }
 
@@ -252,7 +251,7 @@ newaport() {
 
 	case "$buildtype" in
 	python) makedepends="py3-setuptools";;
-	cmake)  makedepends="cmake";;
+	cmake)  makedepends="cmake samurai";;
 	meson)  makedepends="meson";;
 	rust)   makedepends="cargo";;
 	*)      makedepends="\$depends_dev";;
