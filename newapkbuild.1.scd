@@ -2,12 +2,12 @@ newapkbuild(1)
 
 # NAME
 
-	*newapkbuild* - generate a new APKBUILD
+*newapkbuild* - generate a new APKBUILD
 
 
 # SYNOPSIS
 
-	*newapkbuild* _options_... [_pkgname_[-_pkgver_] | _source_url_]
+*newapkbuild* _options_... [_pkgname_[-_pkgver_] | _source_url_]
 
 
 # DESCRIPTION
