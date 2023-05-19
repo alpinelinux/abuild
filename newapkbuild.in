@@ -104,7 +104,7 @@ __EOF__
 
 build_rust() {
 	cat >>APKBUILD<<__EOF__
-	cargo build --frozen --release
+	cargo auditable build --frozen --release
 __EOF__
 }
 
@@ -253,7 +253,7 @@ newaport() {
 	python) makedepends="py3-setuptools";;
 	cmake)  makedepends="cmake samurai";;
 	meson)  makedepends="meson";;
-	rust)   makedepends="cargo";;
+	rust)   makedepends="cargo cargo-auditable";;
 	*)      makedepends="\$depends_dev";;
 	esac
 
