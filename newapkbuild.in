@@ -260,10 +260,6 @@ newaport() {
 		source="https://downloads.sourceforge.net/$pn/$pn-$pv.tar.gz"
 	fi
 
-	if [ -z "$depends" ] && [ "$buildtype" = "python"* ]; then
-		depends="python3"
-	fi
-
 	if [ -z "$depends" ] && [ "$buildtype" = "perl" ]; then
 		depends="perl"
 	fi
