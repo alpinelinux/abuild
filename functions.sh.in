@@ -1,6 +1,7 @@
 # /usr/share/abuild/functions.sh
 
 sysconfdir=@sysconfdir@
+sharedir=@sharedir@
 program=${0##*/}
 
 arch_to_hostspec() {
@@ -96,7 +97,7 @@ readconfig() {
 	[ -n "${PACKAGER+x}" ] && _PACKAGER=$PACKAGER
 	[ -n "${USE_COLORS+x}" ] && _USE_COLORS="$USE_COLORS"
 	[ -n "${USE_CCACHE+x}" ] && _USE_CCACHE="$USE_CCACHE"
-	: ${ABUILD_DEFCONF:=$ABUILD_SHAREDIR/default.conf}
+	: ${ABUILD_DEFCONF:=${ABUILD_SHAREDIR:-$sharedir}/default.conf}
 	: ${ABUILD_CONF:=$sysconfdir/abuild.conf}
 	: ${ABUILD_USERDIR:=$HOME/.abuild}
 	: ${ABUILD_USERCONF:=$ABUILD_USERDIR/abuild.conf}
