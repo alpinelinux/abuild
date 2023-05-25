@@ -65,14 +65,14 @@ build_cmake() {
 
 	cat >>APKBUILD<<__EOF__
 	if [ "\$CBUILD" != "\$CHOST" ]; then
-		CMAKE_CROSSOPTS="-DCMAKE_SYSTEM_NAME=Linux -DCMAKE_HOST_SYSTEM_NAME=Linux"
+		local crossopts="-DCMAKE_SYSTEM_NAME=Linux -DCMAKE_HOST_SYSTEM_NAME=Linux"
 	fi
 	cmake -B build -G Ninja \\
 		-DCMAKE_INSTALL_PREFIX=/usr \\
 		-DCMAKE_INSTALL_LIBDIR=lib \\
 		-DBUILD_SHARED_LIBS=ON \\
 		-DCMAKE_BUILD_TYPE=None \\
-		\$CMAKE_CROSSOPTS
+		\$crossopts
 	cmake --build build
 __EOF__
 }
