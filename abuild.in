@@ -2460,8 +2460,20 @@ rootbld() {
 	apk info -eq abuild-rootbld || die "rootbld: abuild-rootbld package not installed"
 
 	[ $CBUILD = $CHOST ] || die "rootbld: set CBUILD=$CHOST to build for $CHOST"
-	[ $CBUILD_ARCH = "$(apk --print-arch)" -o -f "/proc/sys/fs/binfmt_misc/qemu-$(rootbld_qemu_arch)" ] || \
-		die "rootbld: binfmt registration missing for $(rootbld_qemu_arch) binaries"
+
+	if ! [ $CBUILD_ARCH = "$(apk --print-arch)" ]; then
+		# cross-building, so check for binfmt registration
+		if ! [ -f "/proc/sys/fs/binfmt_misc/qemu-$(rootbld_qemu_arch)" ]; then
+			die "rootbld: binfmt registration missing for $(rootbld_qemu_arch) binaries"
+		fi
+		# TODO: it's not safe to mix a cache dir between architectures,
+		# so we have to use something other than /etc/apk/cache
+		# to get a cache when cross-qemu-building.
+		#local cachedir=""
+	else
+		# not cross-building in qemu, so use host cache
+		local cachedir="/etc/apk/cache"
+	fi
 
 	logcmd "chroot building building $repo/$pkgname-$pkgver-r$pkgrel"
 
@@ -2527,7 +2539,7 @@ rootbld() {
 	$SUDO_APK add --initdb --update \
 		--arch $CBUILD_ARCH \
 		--root "$BUILD_ROOT" \
-		--cache-dir /etc/apk/cache \
+		${cachedir:+--cache-dir $cachedir} \
 		abuild alpine-base build-base git $hostdeps $builddeps \
 		${USE_CCACHE:+ccache}
 
