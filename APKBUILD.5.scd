@@ -215,6 +215,11 @@ file.
 		packages containing firmware, and should typically never
 		be needed.
 
+	*bigdocs*
+		Specifies that this packages intentionally has a large -doc subpackage.
+		Thereby suppressing a warning to be emitted if the -doc subpackage
+		exceeds a certain package size threshold (currently 2 MiB).
+
 	*charset.alias*
 		Specifies that the package ships a _/usr/lib/charset.alias_
 		file and that it should be installed on the user's

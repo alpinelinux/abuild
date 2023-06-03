@@ -32,6 +32,7 @@ fi
 : ${SETFATTR:="setfattr"}
 
 apk_opt_wait="--wait 30"
+doc_threshold=$((2 * 1024 * 1024)) # 2 MiB
 
 umask 022
 
@@ -1764,14 +1765,19 @@ create_apks() {
 		local dir="${file%/.PKGINFO}"
 		local name=$(pkginfo_val pkgname "$file")
 		local ver=$(pkginfo_val pkgver "$file")
-		local size=$(pkginfo_val size "$file" | human_size)
+		local size=$(pkginfo_val size "$file")
 		local apk=$name-$ver.apk
 		local datadir="$pkgbasedir"/$name
 		local subpkgname=$name
 		local subpkgarch=$(pkginfo_val arch "$file")
 
+		# See https://gitlab.alpinelinux.org/alpine/tsc/-/issues/16
+		if ! options_has "bigdocs" && is_doc_pkg "$name" && [ "$size" -gt "$doc_threshold" ]; then
+			warning "The -doc subpackage is unusually large, consider splitting it"
+		fi
+
 		trace_apk_deps "$name" "$dir" "$subpkgarch" || return 1
-		msg "Package size: ${size}"
+		msg "Package size: $(echo "$size" | human_size)"
 		msg "Compressing data..."
 		(
 		cd "$datadir"

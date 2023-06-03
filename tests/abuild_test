@@ -23,6 +23,8 @@ init_tests \
 	abuild_invalid_pkgnames \
 	abuild_invalid_subpkgnames \
 	abuild_invalid_subpkg_version \
+	abuild_large_doc_subpackage \
+	abuild_bigdocs \
 	abuild_warn_pkgver_patch_version \
 	abuild_multiline_license \
 	abuild_git_ceiling \
@@ -438,6 +440,24 @@ abuild_invalid_subpkg_version_body() {
 	cd test-pkgname
 	TESTDEPVER="1.0-0" atf_check -s exit:1 \
 		-e match:"Invalid version" \
+		abuild all
+}
+
+abuild_large_doc_subpackage_body() {
+	init_keys
+	cp -ra "$testrepo"/large-doc-subpkg .
+	cd large-doc-subpkg
+	atf_check -s exit:0 \
+		-e match:"-doc subpackage is unusually large" \
+		abuild all
+}
+
+abuild_bigdocs_body() {
+	init_keys
+	cp -ra "$testrepo"/large-doc-subpkg .
+	cd large-doc-subpkg
+	options=bigdocs atf_check -s exit:0 \
+		-e not-match:"-doc subpackage is unusually large" \
 		abuild all
 }
 
