@@ -1835,7 +1835,7 @@ build_abuildrepo() {
 		# check early if we have abuild key
 		abuild-sign --installed
 		logcmd "building $repo/$pkgname-$pkgver-r$pkgrel"
-		local _starttime=$(date --utc +%s)
+		local _starttime=$(date -u +%s)
 		msg "Building $repo/$pkgname $pkgver-r$pkgrel (using $program $program_version) started $(date -R)"
 
 		# make sure SOURCE_DATE_EPOCH is set
@@ -1845,7 +1845,7 @@ build_abuildrepo() {
 				$_check rootpkg; do
 			runpart $part
 		done
-		local _endtime=$(date --utc +%s)
+		local _endtime=$(date -u +%s)
 		local _difftime=$((_endtime - _starttime))
 		msg "Build complete at $(date -R) elapsed time $((_difftime/3600))h $((_difftime/60%60))m $((_difftime%60))s"
 		cleanup $CLEANUP
