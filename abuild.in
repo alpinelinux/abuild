@@ -1662,8 +1662,8 @@ scan_shared_objects() {
 	fi
 
 	# now find the so dependencies
-	scanelf --nobanner --recursive --needed "$datadir"  | tr ' ' ':' \
-		| awk -F ":" '$2 != "" && ($1 == "ET_DYN" || $1 == "ET_EXEC") {print $2}'  \
+	scanelf --nobanner --recursive --needed  --etype ET_DYN,ET_EXEC "$datadir"  | tr ' ' ':' \
+		| awk -F ":" '$2 != "" {print $2}'  \
 		| sed 's:,:\n:g' | sort -u \
 	| while read soname; do
 		# only add files that are not self provided
