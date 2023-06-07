@@ -62,7 +62,7 @@ void check_option(const char *opt)
 
 int is_in_group(gid_t group)
 {
-	int ngroups_max = sysconf(_SC_NGROUPS_MAX) + 1;
+	int ngroups_max = getgroups(0, 0);
 	gid_t *buf = malloc(ngroups_max * sizeof(gid_t));
 	int ngroups;
 	int i;
