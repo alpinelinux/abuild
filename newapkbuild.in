@@ -105,7 +105,7 @@ __EOF__
 build_python_gpep517() {
 	cat >>APKBUILD<<__EOF__
 	gpep517 build-wheel \\
-		--wheel-dir dist \\
+		--wheel-dir .dist \\
 		--output-fd 3 3>&1 >&2
 __EOF__
 }
@@ -144,9 +144,9 @@ __EOF__
 
 check_python_gpep517() {
 	cat >>APKBUILD<<__EOF__
-	python3 -m venv --clear --without-pip --system-site-packages testenv
-	testenv/bin/python3 -m installer dist/*.whl
-	testenv/bin/python3 -m pytest
+	python3 -m venv --clear --without-pip --system-site-packages .testenv
+	.testenv/bin/python3 -m installer .dist/*.whl
+	.testenv/bin/python3 -m pytest
 __EOF__
 }
 
@@ -208,7 +208,7 @@ __EOF__
 package_python_gpep517() {
 	cat >>APKBUILD<<__EOF__
 	python3 -m installer -d "\$pkgdir" \\
-		dist/*.whl
+		.dist/*.whl
 __EOF__
 }
 
