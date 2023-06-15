@@ -41,7 +41,8 @@ init_tests \
 	abuild_pyc_warn \
 	abuild_pyc \
 	abuild_setcap_binary \
-	abuild_setcap_binary_with_option
+	abuild_setcap_binary_with_option \
+	abuild_command_provides
 
 export ABUILD_SHAREDIR=$(atf_get_srcdir)/..
 export ABUILD_CONF=/dev/null
@@ -943,4 +944,16 @@ abuild_setcap_binary_with_option_body() {
 		-e not-match:"Found binary with extra capabilities" \
 		-e match:"Found setcap binary executable by others" \
 		abuild all
+}
+
+abuild_command_provides_body() {
+	init_keys
+	cp -ra "$testrepo"/bin-in-path .
+	cd bin-in-path
+	abuild rootpkg
+
+	atf_check \
+		-o match:"provides = cmd:foo=1.0-r0" \
+		-o not-match:"provides = cmd:dir=1.0-r0" \
+		grep '^provides = ' pkg/.control.bin-in-path/.PKGINFO
 }

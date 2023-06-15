@@ -1267,7 +1267,7 @@ prepare_command_provides() {
 	options_has "!tracedeps" && return 0
 	cd "$dir" || return 1
 	for i in bin/* sbin/* usr/bin/* usr/sbin/*; do
-		if ! [ -x "$i" ]; then
+		if ! [ -x "$i" ] || ! [ -f "$i" ]; then
 			continue
 		fi
 		local f=${i##*/}
