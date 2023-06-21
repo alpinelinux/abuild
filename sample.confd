@@ -1,7 +1,10 @@
-# Sample conf.d file for alpine linux
+# Configuration for /etc/init.d/<SERVICE>
 
-#
-# Specify daemon options here.
-#
+# User (and group) to run <SERVICE> as.
+#command_user="<USER>"
 
-sample_opts=""
+# Additional arguments for <SERVICE> daemon.
+#command_args=
+
+# Comment out to disable process supervisor.
+supervisor=supervise-daemon

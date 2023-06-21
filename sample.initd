@@ -1,14 +1,14 @@
 #!/sbin/openrc-run
 
-# Sample init.d file for alpine linux.
+name="SampleService"
+description="Sample init.d file for Alpine Linux"
 
-name=
-command="/usr/sbin/$name"
-command_args="$sample_opts"
+: ${command_user:="<USER>"}
+
+command="/usr/sbin/<SERVICE>"
+command_args="$command_args"
 command_background="yes"
-
-start_stop_daemon_args="--user $sample_user:$sample_group"
-pidfile="/run/$name.pid"
+pidfile="/run/$RC_SVCNAME.pid"
 
 depend() {
 	need net
