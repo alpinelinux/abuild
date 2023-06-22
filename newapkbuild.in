@@ -32,7 +32,7 @@ is_github_url() {
 
 prepare_rust() {
 	cat >>APKBUILD<<__EOF__
-	cargo fetch --target="$CTARGET" --locked
+	cargo fetch --target="\$CTARGET" --locked
 __EOF__
 }
 
