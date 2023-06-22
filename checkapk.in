@@ -90,7 +90,7 @@ for i in $pkgname $subpackages; do
 	fi
 
 	apk fetch --quiet --repositories-file $tmpdir/repositories --stdout $_pkgname \
-		| $gunzip -c | tar -t | grep -v '^\.SIGN\.' | sort > filelist-$_pkgname-old \
+		| $gunzip -c 2>/dev/null | tar -t 2>/dev/null | grep -v '^\.SIGN\.' | sort > filelist-$_pkgname-old \
 		|| die "failed to download old pkg, maybe run 'apk update'?"
 
 	$gunzip -c "$filepath" | tar -t | grep -v '^\.SIGN\.' | sort > "filelist-$_pkgname"
