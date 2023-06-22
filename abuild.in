@@ -2483,7 +2483,7 @@ rootbld_actions() {
 	if ! want_check; then
 		_check=true
 	fi
-	for part in symlinksrc unpack prepare mkusers build $_check rootpkg; do
+	for part in symlinksrc unpack prepare build $_check rootpkg; do
 		runpart $part
 	done
 }
@@ -2540,6 +2540,13 @@ rootbld() {
 	verify
 
 	msg "Preparing build chroot..."
+
+	# Unfortunately, we can't create the users inside the chroot.
+	# Hence, we need to do it on the host which is not optimal as it
+	# pollutes the host's /etc/group and /etc/passwd file.
+	#
+	# See https://gitlab.alpinelinux.org/alpine/abuild/-/issues/10094
+	mkusers
 
 	BUILD_ROOT=$(mktemp -d /var/tmp/abuild.XXXXXXXXXX)
 
