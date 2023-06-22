@@ -951,6 +951,7 @@ prepare_subpackages() {
 default_lang() {
 	pkgdesc="Languages for package $pkgname"
 	install_if="$pkgname=$pkgver-r$pkgrel lang"
+	depends="$depends_lang"
 
 	local dir
 	for dir in ${langdir:-/usr/share/locale}; do
