@@ -230,7 +230,7 @@ __EOF__
 newaport() {
 	local newname="${1##*/}"
 	local pn=${newname%[-_][0-9]*}
-	local pv
+	local prearchive postarchive pv
 	local source=
 	is_url "$1" && source="$1"
 
@@ -241,6 +241,10 @@ newaport() {
 		fi
 		pv=${newname%.t*} #strip .tar.gz .tgz .tar.bz2 etc
 		pv=${pv#*[a-z]}
+		prearchive=${source%/archive/*}
+		postarchive=${source#*/archive/}
+		postarchive=${postarchive#refs/tags/}
+		source="${prearchive}/archive/${postarchive}"
 		source="${source%.t*}/$pkgname-$pv.tar.gz"
 	elif [ "$pn" != "$newname" ]; then
 		pv=${newname#$pn[-_]}
