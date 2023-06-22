@@ -78,10 +78,9 @@ for i in $pkgname $subpackages; do
 	# For our local repo (newsize) apk info might return multiple packages, e.g. if different
 	# version of the package where build previously. Filter out this specific pkgver using awk.
 	newsize=$(apk info --repositories-file /dev/null --repository "$REPODEST"/$repo --size $_pkgname | \
-		awk "/^${pkg//+/\\+}/ { found = 1 } /^[0-9]+/ { if (found) { print \$0; exit } }") &
+		awk "/^${pkg//+/\\+}/ { found = 1 } /^[0-9]+/ { if (found) { print \$0; exit } }")
 	oldsize=$(apk info --repositories-file $tmpdir/repositories --size $_pkgname | \
-		awk '/^[0-9]+/ { print $0 }' | head -1) &
-	wait
+		awk '/^[0-9]+/ { print $0 }' | head -1)
 
 	if [ "$oldsize" = "$newsize" ]; then
 		msg "No size differences for $_pkgname."
