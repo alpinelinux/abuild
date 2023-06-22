@@ -42,7 +42,9 @@ init_tests \
 	abuild_pyc \
 	abuild_setcap_binary \
 	abuild_setcap_binary_with_option \
-	abuild_command_provides
+	abuild_command_provides \
+	abuild_gocache_dir \
+	abuild_cargo_home_dir
 
 export ABUILD_SHAREDIR=$(atf_get_srcdir)/..
 export ABUILD_CONF=/dev/null
@@ -513,7 +515,6 @@ abuild_git_ceiling_body() {
 		abuild
 }
 
-
 create_fake_du() {
 	mkdir -p bin
 	cat > bin/du <<-EOF
@@ -956,4 +957,64 @@ abuild_command_provides_body() {
 		-o match:"provides = cmd:foo=1.0-r0" \
 		-o not-match:"provides = cmd:dir=1.0-r0" \
 		grep '^provides = ' pkg/.control.bin-in-path/.PKGINFO
+}
+
+abuild_gocache_dir_body() {
+	init_keys
+	mkdir gocache-dir
+	cd gocache-dir
+	cat >APKBUILD<<-EOF
+		# Maintainer: Joe User <juser@example.com>
+		pkgname="gocache-dir"
+		pkgver="1.0"
+		pkgrel=0
+		pkgdesc="Dummy test package"
+		url="https://gitlab.alpinelinux.org/alpine/aports"
+		arch="noarch"
+		license="MIT"
+		prepare() {
+			mkdir -p "\$builddir"
+		}
+		build() {
+			echo "dir:\$GOCACHE"
+		}
+		package() {
+			:
+		}
+	EOF
+
+	MOVE_CACHES=1 \
+	atf_check -s exit:0 \
+		-o match:"dir:.*/tmp/go" \
+		abuild prepare build
+}
+
+abuild_cargo_home_dir_body() {
+	init_keys
+	mkdir cargo-home-dir
+	cd cargo-home-dir
+	cat >APKBUILD<<-EOF
+		# Maintainer: Joe User <juser@example.com>
+		pkgname="cargo-home-dir"
+		pkgver="1.0"
+		pkgrel=0
+		pkgdesc="Dummy test package"
+		url="https://gitlab.alpinelinux.org/alpine/aports"
+		arch="noarch"
+		license="MIT"
+		prepare() {
+			mkdir -p "\$builddir"
+		}
+		build() {
+			echo "dir:\$CARGO_HOME"
+		}
+		package() {
+			:
+		}
+	EOF
+
+	MOVE_CACHES=1 \
+	atf_check -s exit:0 \
+		-o match:"dir:.*/tmp/cargo" \
+		abuild prepare build
 }

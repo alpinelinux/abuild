@@ -156,6 +156,7 @@ cleanup() {
 			fi;;
 		pkgdir) msg "Cleaning up pkgdir"; rm -rf "$pkgbasedir";;
 		srcdir) msg "Cleaning up srcdir"; cleanup_srcdir;;
+		tmpdir) msg "Cleaning up tmpdir"; rm -rf "$tmpdir";;
 		deps)
 			if [ -n "$uninstall_after" ]; then
 				msg "Uninstalling dependencies..."
@@ -553,10 +554,11 @@ unpack() {
 	default_unpack
 }
 
-# cleanup source and package dir
+# cleanup source, package and temporary dir
 clean() {
 	cleanup srcdir
 	cleanup pkgdir
+	cleanup tmpdir
 }
 
 # cleanup fetched sources
@@ -690,7 +692,17 @@ runpart() {
 			prepare|build|package|check)
 				# exclude aports from git repo discovery
 				export GIT_CEILING_DIRECTORIES="$startdir"
-				cd "$builddir";;
+
+				# prevent using global cache directories
+				if [ -n "$MOVE_CACHES" ]; then
+					export GOCACHE="${GOCACHE:-"$tmpdir/go"}"
+					export GOMODCACHE="${GOCACHE:-"$tmpdir/gomod"}"
+					export GOTMPDIR="${GOTMPDIR:-"$tmpdir"}"
+					export CARGO_HOME="${CARGO_HOME:-"$tmpdir/cargo"}"
+				fi
+
+				cd "$builddir"
+				;;
 		esac
 	fi
 	$part
@@ -2900,6 +2912,7 @@ APKBUILD=$(readlink -f "$APKBUILD")
 startdir="${APKBUILD%/*}"
 srcdir=${srcdir:-"$startdir/src"}
 pkgbasedir=${pkgbasedir:-"$startdir/pkg"}
+tmpdir=${tmpdir:-"$startdir/tmp"}
 
 repo=${startdir%/*}
 repo=${repo##*/}
