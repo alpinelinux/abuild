@@ -940,6 +940,10 @@ prepare_subpackages() {
 	fi
 	if [ -d "$pkgdir"/usr/share/fish/completions ]; then
 		warning "Found /usr/share/fish/completions"
+		warning2 "fish completions for programs should be located in /usr/share/fish/vendor_completions.d"
+	fi
+	if [ -d "$pkgdir"/usr/share/fish/vendor_completions.d ]; then
+		warning "Found /usr/share/fish/completions"
 		warning2 "Add \$pkgname-fish-completion to subpackages"
 	fi
 }
@@ -2179,7 +2183,15 @@ default_fishcomp() {
 	install_if="$pkgname=$pkgver-r$pkgrel fish"
 
 	cd "$pkgdir" || return 0
-	amove usr/share/fish/completions
+
+	if [ -d usr/share/fish/vendor_completions.d ]; then
+		amove usr/share/fish/vendor_completions.d
+	fi
+
+	if [ -d usr/share/fish/completions ]; then
+		warning "fish completions for programs should be in /usr/share/fish/vendor_completions.d"
+		amove usr/share/fish/completions
+	fi
 }
 
 fishcomp() {

@@ -44,7 +44,8 @@ init_tests \
 	abuild_setcap_binary_with_option \
 	abuild_command_provides \
 	abuild_gocache_dir \
-	abuild_cargo_home_dir
+	abuild_cargo_home_dir \
+	abuild_fish_comp_split
 
 export ABUILD_SHAREDIR=$(atf_get_srcdir)/..
 export ABUILD_CONF=/dev/null
@@ -1017,4 +1018,46 @@ abuild_cargo_home_dir_body() {
 	atf_check -s exit:0 \
 		-o match:"dir:.*/tmp/cargo" \
 		abuild prepare build
+}
+
+abuild_fish_comp_split_body() {
+	init_keys
+	mkdir fish-split-dir
+	cd fish-split-dir
+	cat >APKBUILD<<-EOF
+		# Maintainer: Joe User <juser@example.com>
+		pkgname="fish-split-dir"
+		pkgver="1.0"
+		pkgrel=0
+		pkgdesc="Dummy test package"
+		url="https://gitlab.alpinelinux.org/alpine/aports"
+		arch="noarch"
+		license="MIT"
+		prepare() {
+			mkdir -p "\$builddir"
+		}
+		package() {
+			mkdir -p "\$pkgdir"/usr/share/fish/completions/
+			mkdir -p "\$pkgdir"/usr/share/fish/vendor_completions.d/
+			echo "comp" > "\$pkgdir"/usr/share/fish/completions/comp.fish
+			echo "comp" > "\$pkgdir"/usr/share/fish/vendor_completions.d/comp.fish
+		}
+	EOF
+	# test that there is a warning for the legacy dir existing
+	atf_check -s exit:0 \
+		-e match:"fish completions for programs should be located in /usr/share/fish/vendor_completions.d" \
+		abuild prepare build rootpkg
+
+	# now add the correct subpackage
+	echo 'subpackages="$pkgname-fish-completion"' >> APKBUILD
+	abuild clean prepare build rootpkg
+
+	if ! [ -d pkg/fish-split-dir-fish-completion/usr/share/fish/completions ]; then
+		echo "missing old dir"
+		exit 1
+	fi
+	if ! [ -d pkg/fish-split-dir-fish-completion/usr/share/fish/vendor_completions.d ]; then
+		echo "missing new dir"
+		exit 1
+	fi
 }
