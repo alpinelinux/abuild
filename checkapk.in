@@ -112,7 +112,7 @@ for i in $pkgname $subpackages; do
 		tar -C "$_pkgname-pkg-new" -x -f apks/new.tar > /dev/null
 
 		# filter to things that start with -+ but strip the header (---/+++)
-		diff -U0 "filelist-$_pkgname-old" "filelist-$_pkgname-new" | grep -E '^(\+|\-)[A-Za-z0-9]+' | while read -r diff_sofile; do
+		diff -U0 "filelist-$_pkgname-old" "filelist-$_pkgname-new" | grep -E '^(\+|\-)[A-Za-z0-9]+' | grep '\.so' | while read -r diff_sofile; do
 			case "$diff_sofile" in
 			-*) path="$_pkgname-pkg-old"; sofile="${diff_sofile#\-}" ;;
 			+*) path="$_pkgname-pkg-new"; sofile="${diff_sofile#\+}" ;;
