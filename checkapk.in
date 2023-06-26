@@ -119,7 +119,7 @@ for i in $pkgname $subpackages; do
 			esac
 
 			# skip symlinks
-			if [ -L "$path"/"$sofile" ]; then
+			if ! [ -L "$path"/"$sofile" ]; then
 				echo "$diff_sofile: " "$(objdump -p "$path"/"$sofile" | grep SONAME)"
 			fi
 		done
