@@ -50,6 +50,9 @@ tmpdir=$(mktemp -d -t checkpkg-script.XXXXXX)
 trap "rm -rf '$tmpdir'" INT EXIT
 cd "$tmpdir" || die "failed to create temp dir"
 
+# storage for downloaded/copied apks
+mkdir -p apks
+
 # default to pigz for unpacking
 gunzip="$(command -v pigz || echo gzip) -d"
 
@@ -68,9 +71,9 @@ for i in $pkgname $subpackages; do
 	[ -f "$filepath" ] || die "can't find $pkgfile"
 
 	# generate a temp repositories file with only the http(s) repos
-	grep -E "^https?:" /etc/apk/repositories > $tmpdir/repositories
+	grep -E "^https?:" /etc/apk/repositories > "$tmpdir"/repositories
 
-	oldpkg=$(apk fetch --repositories-file $tmpdir/repositories --simulate $_pkgname 2>&1 | sed 's/^Downloading //')
+	oldpkg=$(apk fetch --repositories-file "$tmpdir"/repositories --simulate $_pkgname 2>&1 | sed 's/^Downloading //')
 	if [ "${oldpkg}" = "${pkg}" ]; then
 		die "the built package ($_pkgname) is already in the repo"
 	fi
@@ -79,7 +82,7 @@ for i in $pkgname $subpackages; do
 	# version of the package where build previously. Filter out this specific pkgver using awk.
 	newsize=$(apk info --repositories-file /dev/null --repository "$REPODEST"/$repo --size $_pkgname | \
 		awk "/^${pkg//+/\\+}/ { found = 1 } /^[0-9]+/ { if (found) { print \$0; exit } }")
-	oldsize=$(apk info --repositories-file $tmpdir/repositories --size $_pkgname | \
+	oldsize=$(apk info --repositories-file "$tmpdir"/repositories --size "$_pkgname" | \
 		awk '/^[0-9]+/ { print $0 }' | head -1)
 
 	if [ "$oldsize" = "$newsize" ]; then
@@ -88,22 +91,34 @@ for i in $pkgname $subpackages; do
 		msg "Size difference for $_pkgname: $oldsize -> $newsize"
 	fi
 
-	apk fetch --quiet --repositories-file $tmpdir/repositories --stdout $_pkgname \
-		| $gunzip -c 2>/dev/null | tar -t 2>/dev/null | grep -v '^\.SIGN\.' | sort > filelist-$_pkgname-old \
+	apk fetch --quiet --repositories-file "$tmpdir"/repositories --stdout "$_pkgname" > apks/old.apk \
 		|| die "failed to download old pkg, maybe run 'apk update'?"
 
-	$gunzip -c "$filepath" | tar -t | grep -v '^\.SIGN\.' | sort > "filelist-$_pkgname"
+	# pre-uncompress to not decompress twice
+	# we do a decompression + tar -t for the file list, but then later we might do a full extraction for sodiff.
+	# to not decompress here and then later again, store the intermediate tar
+	$gunzip -c 2>/dev/null < apks/old.apk > apks/old.tar
+	tar -t -f apks/old.tar 2>/dev/null | grep -v '^\.SIGN\.' | sort > "filelist-$_pkgname-old"
+	$gunzip -c "$filepath" < "$filepath" > apks/new.tar
+	tar -t -f apks/new.tar | grep -v '^\.SIGN\.' | sort > "filelist-$_pkgname-new"
 
-	diff -u "filelist-$_pkgname-old" "filelist-$_pkgname"
+	diff -U3 "filelist-$_pkgname-old" "filelist-$_pkgname-new"
 
-	if diff "filelist-$_pkgname-old" "filelist-$_pkgname" | grep '\.so' > /dev/null 2>&1; then
-		mkdir -p pkg
-		cd pkg
-		$gunzip -c "$filepath" | tar -x > /dev/null
-		diff "../filelist-$_pkgname-old" "../filelist-$_pkgname" | awk '/>.*\.so/{$1 = ""; print $0}' | while read -r i; do
-			echo "${i}: " "$(objdump -p "$i" | grep SONAME)"
+	if diff -U0 "filelist-$_pkgname-old" "filelist-$_pkgname-new" | grep -q '\.so'; then
+		echo "SODIFF:"
+
+		mkdir -p "$_pkgname-pkg-old" "$_pkgname-pkg-new"
+		tar -C "$_pkgname-pkg-old" -x -f apks/old.tar > /dev/null
+		tar -C "$_pkgname-pkg-new" -x -f apks/new.tar > /dev/null
+
+		# filter to things that start with -+ but strip the header (---/+++)
+		diff -U0 "filelist-$_pkgname-old" "filelist-$_pkgname-new" | grep -E '^(\+|\-)[A-Za-z0-9]+' | while read -r diff_sofile; do
+			case "$diff_sofile" in
+			-*) path="$_pkgname-pkg-old"; sofile="${diff_sofile#\-}" ;;
+			+*) path="$_pkgname-pkg-new"; sofile="${diff_sofile#\+}" ;;
+			esac
+			echo "$diff_sofile: " "$(objdump -p "$path"/"$sofile" | grep SONAME)"
 		done
-		cd ..
 	else
 		msg "No soname differences for $_pkgname."
 	fi
