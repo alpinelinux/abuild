@@ -97,10 +97,12 @@ for i in $pkgname $subpackages; do
 	# pre-uncompress to not decompress twice
 	# we do a decompression + tar -t for the file list, but then later we might do a full extraction for sodiff.
 	# to not decompress here and then later again, store the intermediate tar
-	$gunzip -c 2>/dev/null < apks/old.apk > apks/old.tar
-	tar -t -f apks/old.tar 2>/dev/null | grep -v '^\.SIGN\.' | sort > "filelist-$_pkgname-old"
-	$gunzip -c "$filepath" < "$filepath" > apks/new.tar
-	tar -t -f apks/new.tar | grep -v '^\.SIGN\.' | sort > "filelist-$_pkgname-new"
+	$gunzip -c 2>/dev/null < apks/old.apk > apks/old.tar &
+	$gunzip -c "$filepath" < "$filepath" > apks/new.tar &
+	wait
+	tar -t -f apks/old.tar 2>/dev/null | grep -v '^\.SIGN\.' | sort > "filelist-$_pkgname-old" &
+	tar -t -f apks/new.tar | grep -v '^\.SIGN\.' | sort > "filelist-$_pkgname-new" &
+	wait
 
 	diff -U3 "filelist-$_pkgname-old" "filelist-$_pkgname-new"
 
@@ -108,8 +110,9 @@ for i in $pkgname $subpackages; do
 		echo "SODIFF:"
 
 		mkdir -p "$_pkgname-pkg-old" "$_pkgname-pkg-new"
-		tar -C "$_pkgname-pkg-old" 2>/dev/null -x -f apks/old.tar > /dev/null
-		tar -C "$_pkgname-pkg-new" -x -f apks/new.tar > /dev/null
+		tar -C "$_pkgname-pkg-old" 2>/dev/null -x -f apks/old.tar > /dev/null &
+		tar -C "$_pkgname-pkg-new" -x -f apks/new.tar > /dev/null &
+		wait
 
 		# filter to things that start with -+ but strip the header (---/+++)
 		diff -U0 "filelist-$_pkgname-old" "filelist-$_pkgname-new" | grep -E '^(\+|\-)[A-Za-z0-9]+' | grep '\.so' | while read -r diff_sofile; do
