@@ -121,8 +121,9 @@ for i in $pkgname $subpackages; do
 			+*) path="$_pkgname-pkg-new"; sofile="${diff_sofile#\+}" ;;
 			esac
 
-			# skip symlinks
-			if ! [ -L "$path"/"$sofile" ]; then
+			# skip symlinks (only adds duplicate output or is dangling), and things that aren't valid elfs
+			# matching .so above matches anything with .so in the name, e.g. xyz.sourceforge
+			if ! [ -L "$path"/"$sofile" ] && readelf -h "$path"/"$sofile" >/dev/null 2>&1; then
 				echo "$diff_sofile: " "$(objdump -p "$path"/"$sofile" | grep SONAME)"
 			fi
 		done
