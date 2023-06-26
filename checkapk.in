@@ -117,7 +117,11 @@ for i in $pkgname $subpackages; do
 			-*) path="$_pkgname-pkg-old"; sofile="${diff_sofile#\-}" ;;
 			+*) path="$_pkgname-pkg-new"; sofile="${diff_sofile#\+}" ;;
 			esac
-			echo "$diff_sofile: " "$(objdump -p "$path"/"$sofile" | grep SONAME)"
+
+			# skip symlinks
+			if [ -L "$path"/"$sofile" ]; then
+				echo "$diff_sofile: " "$(objdump -p "$path"/"$sofile" | grep SONAME)"
+			fi
 		done
 	else
 		msg "No soname differences for $_pkgname."
