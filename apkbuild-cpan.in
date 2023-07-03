@@ -16,20 +16,20 @@ use Text::Wrap qw(wrap $columns);
 use List::Util qw (uniq);
 
 my $license_mappings = {
-	"perl_5" => "GPL-1.0-or-later OR Artistic-1.0-Perl",
-	"artistic_2" => "Artistic-2.0",
-	"gpl_2" => "GPL-2.0-only",
-	"gpl_3" => "GPL-3.0-only",
-	"mit" => "MIT",
-	"apache_2_0" => "Apache-2.0",
+    "perl_5"     => "GPL-1.0-or-later OR Artistic-1.0-Perl",
+    "artistic_2" => "Artistic-2.0",
+    "gpl_2"      => "GPL-2.0-only",
+    "gpl_3"      => "GPL-3.0-only",
+    "mit"        => "MIT",
+    "apache_2_0" => "Apache-2.0",
 };
 
 my $package_mappings = {
-	"LWP" => "perl-libwww",
-	"libwww-perl" => "perl-libwww",
-	"TermReadKey" => "perl-term-readkey",
-	"perl-ldap" => "perl-ldap",
-	"PerlIO-gzip" => "perl-io-gzip",
+    "LWP"         => "perl-libwww",
+    "libwww-perl" => "perl-libwww",
+    "TermReadKey" => "perl-term-readkey",
+    "perl-ldap"   => "perl-ldap",
+    "PerlIO-gzip" => "perl-io-gzip",
 };
 our $packager = "";
 my $template = <<'EOF';
@@ -67,220 +67,236 @@ package() {
 
 EOF
 
-our $ua = LWP::UserAgent->new();
+our $ua   = LWP::UserAgent->new();
 our $json = JSON->new;
 $ua->env_proxy;
-$ua->conn_cache(LWP::ConnCache->new());
+$ua->conn_cache( LWP::ConnCache->new() );
 
 sub read_file {
-	my ($filename) = @_;
-	local $/;
-	open my $fh, "<", $filename or die "could not open $filename: $!";
-	return <$fh>;
+    my ($filename) = @_;
+    local $/;
+    open my $fh, "<", $filename or die "could not open $filename: $!";
+    return <$fh>;
 }
 
 sub read_assignments_from_file {
-	my ($filename) = @_;
-	return () if ( ! -e $filename );
-	my $text = read_file($filename);
-	my %sline = $text =~ /^(\w+)\s*=\s*([^\"\n]*)$/mg;
-	my %mline = $text =~ /^(\w+)\s*=\s*\"([^\"]*)\"$/mg;
-	my %hash = ( %sline, %mline );
+    my ($filename) = @_;
+    return () if ( !-e $filename );
+    my $text  = read_file($filename);
+    my %sline = $text =~ /^(\w+)\s*=\s*([^\"\n]*)$/mg;
+    my %mline = $text =~ /^(\w+)\s*=\s*\"([^\"]*)\"$/mg;
+    my %hash  = ( %sline, %mline );
 
-	my $authors = join("\n", $text =~ /^# Contributor: .*$/mg, $text =~ /^# Maintainer: .*$/mg);
-	$hash{'authors'} = $authors if length($authors) > 1;
+    my $authors = join( "\n",
+        $text =~ /^# Contributor: .*$/mg,
+        $text =~ /^# Maintainer: .*$/mg );
+    $hash{'authors'} = $authors if length($authors) > 1;
 
-	my $provides = $text =~ m/^provides=\"(.*)\"".*$/mg;
-	$hash{'provides'} = $1 if length($provides) >= 1;
+    my $provides = $text =~ m/^provides=\"(.*)\"".*$/mg;
+    $hash{'provides'} = $1 if length($provides) >= 1;
 
-	my $requires = $text =~ m/^requires=\"(.*)\"".*$/mg;
-	$hash{'requires'} = $1 if length($requires) >= 1;
+    my $requires = $text =~ m/^requires=\"(.*)\"".*$/mg;
+    $hash{'requires'} = $1 if length($requires) >= 1;
 
-	return \%hash;
+    return \%hash;
 }
 
 sub map_cpan_to_apk {
-	my ($cpan_distrib) = @_;
-	return $package_mappings->{$cpan_distrib} if exists $package_mappings->{$cpan_distrib};
-	# most packages are named according to the
-	# distribution name
-	return 'perl-' . lc $cpan_distrib;
+    my ($cpan_distrib) = @_;
+    return $package_mappings->{$cpan_distrib}
+      if exists $package_mappings->{$cpan_distrib};
+
+    # most packages are named according to the
+    # distribution name
+    return 'perl-' . lc $cpan_distrib;
 }
 
 sub read_apkbuild {
-	return read_assignments_from_file("APKBUILD");
+    return read_assignments_from_file("APKBUILD");
 }
 
 sub write_apkbuild {
-	my ($distdata, $apkbuild, $moddata) = @_;
+    my ( $distdata, $apkbuild, $moddata ) = @_;
 
-	my $cpanid = $distdata->{id};
-	$cpanid = substr($cpanid, 0, 1) . "/" . substr($cpanid, 0, 2) . "/$cpanid";
+    my $cpanid = $distdata->{id};
+    $cpanid =
+      substr( $cpanid, 0, 1 ) . "/" . substr( $cpanid, 0, 2 ) . "/$cpanid";
 
-	my $authors = undef;
-	my $replaces = undef;
-	my $provides = undef;
-	my $pkgrel = 0;
-	if (defined $apkbuild) {
-		$authors = $apkbuild->{authors};
-		$provides = $apkbuild->{provides};
-		$replaces = $apkbuild->{replaces};
-		$pkgrel = $apkbuild->{pkgrel};
-		if ($apkbuild->{pkgver} eq $moddata->{version}) {
-			$pkgrel++;
-		}
-	}
-
-	my $builddir;
-
-	my $pkgver = $moddata->{version} =~ s/^[^0-9]+//r;
-	if ($pkgver ne $moddata->{version}) {
-		# Appears to only be needed for Class::DBI
-		$builddir = "\$srcdir/\$_pkgreal-" . $moddata->{version};
-        } else {
-		$builddir = "\$srcdir/\$_pkgreal-\$pkgver";
+    my $authors  = undef;
+    my $replaces = undef;
+    my $provides = undef;
+    my $pkgrel   = 0;
+    if ( defined $apkbuild ) {
+        $authors  = $apkbuild->{authors};
+        $provides = $apkbuild->{provides};
+        $replaces = $apkbuild->{replaces};
+        $pkgrel   = $apkbuild->{pkgrel};
+        if ( $apkbuild->{pkgver} eq $moddata->{version} ) {
+            $pkgrel++;
         }
+    }
 
-	my %repl = (
-		authors  => ($authors or "# Contributor: $packager\n# Maintainer: $packager"),
-		pkgname  => map_cpan_to_apk($moddata->{distribution}),
-		pkgreal  => $moddata->{distribution},
-		pkgver  => $moddata->{version} =~ s/^[^0-9]+//r,
-		pkgrel	 => $pkgrel,
-		source   => $moddata->{download_url},
-		pkgdesc  => $distdata->{abstract},
-		provides => ($provides or ''),
-		replaces => ($replaces or ''),
-		builddir => $builddir,
-	);
-	$repl{source} =~ s/-$repl{pkgver}/-\$pkgver/g;
-	$template =~ s/\[% (.*?) %\]/$repl{$1}/g;
+    my $builddir;
 
-	open my $fh, '>', "APKBUILD" or die;
-	print $fh $template;
-	close $fh;
+    my $pkgver = $moddata->{version} =~ s/^[^0-9]+//r;
+    if ( $pkgver ne $moddata->{version} ) {
 
-	say "Wrote $repl{pkgname}/APKBUILD";
+        # Appears to only be needed for Class::DBI
+        $builddir = "\$srcdir/\$_pkgreal-" . $moddata->{version};
+    }
+    else {
+        $builddir = "\$srcdir/\$_pkgreal-\$pkgver";
+    }
+
+    my %repl = (
+        authors => (
+            $authors
+              or "# Contributor: $packager\n# Maintainer: $packager"
+        ),
+        pkgname  => map_cpan_to_apk( $moddata->{distribution} ),
+        pkgreal  => $moddata->{distribution},
+        pkgver   => $moddata->{version} =~ s/^[^0-9]+//r,
+        pkgrel   => $pkgrel,
+        source   => $moddata->{download_url},
+        pkgdesc  => $distdata->{abstract},
+        provides => ( $provides or '' ),
+        replaces => ( $replaces or '' ),
+        builddir => $builddir,
+    );
+    $repl{source} =~ s/-$repl{pkgver}/-\$pkgver/g;
+    $template =~ s/\[% (.*?) %\]/$repl{$1}/g;
+
+    open my $fh, '>', "APKBUILD" or die;
+    print $fh $template;
+    close $fh;
+
+    say "Wrote $repl{pkgname}/APKBUILD";
 }
 
 sub parse_deps {
-	my ($reqs) = @_;
-	my $distfiles = {};
-	my $response;
-	my $deps = "";
-	my $reqmodlist = "";
+    my ($reqs) = @_;
+    my $distfiles = {};
+    my $response;
+    my $deps       = "";
+    my $reqmodlist = "";
 
-	#Get list of unique required modules from all parameters
-	foreach $reqs (@_) {
-		for my $module ($reqs->required_modules) {
-			$reqmodlist .= "$module " unless $reqmodlist =~ m/^$module$/;
-		}
-	}
+    #Get list of unique required modules from all parameters
+    foreach $reqs (@_) {
+        for my $module ( $reqs->required_modules ) {
+            $reqmodlist .= "$module " unless $reqmodlist =~ m/^$module$/;
+        }
+    }
 
-	# Check add the require module to $dep if not part of core perl
-	foreach my $module (split " ",  $reqmodlist) {
-		next if $module eq 'perl';
-		if (Module::CoreList->is_core($module)) {
-			my $perlver = Module::CoreList->first_release($module);
-			say "    $module is part of core perl since $perlver.";
-			next;
-		}
-		# map module name to package name
-		$response = $ua->get("https://fastapi.metacpan.org/module/$module");
-		$response->is_success or die $response->status_line;
-		my $moddata = $json->decode($response->decoded_content);
-		$moddata->{error} and die "Error trying to locate $module: $moddata->{error}\n";
-		$distfiles->{$module} = $moddata->{distribution};
-	}
+    # Check add the require module to $dep if not part of core perl
+    foreach my $module ( split " ", $reqmodlist ) {
+        next if $module eq 'perl';
+        if ( Module::CoreList->is_core($module) ) {
+            my $perlver = Module::CoreList->first_release($module);
+            say "    $module is part of core perl since $perlver.";
+            next;
+        }
 
-	# map package names to alpine packages
-	foreach ( keys %{ $distfiles } ) {
-		$response = $ua->get("https://fastapi.metacpan.org/module/$_");
-		$response->is_success or die $response->status_line;
-		my $distdata = $json->decode($response->decoded_content);
-		$distdata->{error} and die "Error trying to locate $_: $distdata->{error}\n";
+        # map module name to package name
+        $response = $ua->get("https://fastapi.metacpan.org/module/$module");
+        $response->is_success or die $response->status_line;
+        my $moddata = $json->decode( $response->decoded_content );
+        $moddata->{error}
+          and die "Error trying to locate $module: $moddata->{error}\n";
+        $distfiles->{$module} = $moddata->{distribution};
+    }
 
-		my $pkgname = map_cpan_to_apk($distdata->{distribution});
-		$deps .= "$pkgname " unless $deps =~ m/^$pkgname$/;
-	}
-	$deps =~ s/\h+/ /g;
-	$deps =~ s/ $//;
-	return $deps;
+    # map package names to alpine packages
+    foreach ( keys %{$distfiles} ) {
+        $response = $ua->get("https://fastapi.metacpan.org/module/$_");
+        $response->is_success or die $response->status_line;
+        my $distdata = $json->decode( $response->decoded_content );
+        $distdata->{error}
+          and die "Error trying to locate $_: $distdata->{error}\n";
+
+        my $pkgname = map_cpan_to_apk( $distdata->{distribution} );
+        $deps .= "$pkgname " unless $deps =~ m/^$pkgname$/;
+    }
+    $deps =~ s/\h+/ /g;
+    $deps =~ s/ $//;
+    return $deps;
 
 }
 
 sub prepare_tree {
-	system("abuild checksum unpack prepare") == 0 or
-		die "abuild checksum failed";
+    system("abuild checksum unpack prepare") == 0
+      or die "abuild checksum failed";
 }
 
 sub update_functions {
-	my $apkbuild = read_apkbuild;
-	my $metaprefix = "src/" . $apkbuild->{'_pkgreal'} . "-" . $apkbuild->{'pkgver'} . "/";
-	my $build_func;
-	my $check_func;
-	my $package_func;
+    my $apkbuild = read_apkbuild;
+    my $metaprefix =
+      "src/" . $apkbuild->{'_pkgreal'} . "-" . $apkbuild->{'pkgver'} . "/";
+    my $build_func;
+    my $check_func;
+    my $package_func;
 
-	my $text = read_file "APKBUILD";
-	if (-e "$metaprefix/Build.PL" ) {
-		$build_func = <<'EOF';
+    my $text = read_file "APKBUILD";
+    if ( -e "$metaprefix/Build.PL" ) {
+        $build_func = <<'EOF';
 build() {
 	export CFLAGS=$(perl -MConfig -E 'say $Config{ccflags}')
 	perl Build.PL --installdirs=vendor
 	./Build
 }
 EOF
-		$package_func = <<'EOF';
+        $package_func = <<'EOF';
 package() {
 	./Build install --destdir="$pkgdir"
 	find "$pkgdir" \( -name perllocal.pod -o -name .packlist \) -delete
 }
 EOF
-		$check_func = <<'EOF';
+        $check_func = <<'EOF';
 check() {
 	./Build test
 }
 EOF
-	} else {
-		$build_func = <<'EOF';
+    }
+    else {
+        $build_func = <<'EOF';
 build() {
 	export CFLAGS=$(perl -MConfig -E 'say $Config{ccflags}')
 	PERL_MM_USE_DEFAULT=1 perl -I. Makefile.PL INSTALLDIRS=vendor
 	make
 }
 EOF
-		$package_func = <<'EOF';
+        $package_func = <<'EOF';
 package() {
 	make DESTDIR="$pkgdir" install
 	find "$pkgdir" \( -name perllocal.pod -o -name .packlist \) -delete
 }
 EOF
-		$check_func = <<'EOF';
+        $check_func = <<'EOF';
 check() {
 	export CFLAGS=$(perl -MConfig -E 'say $Config{ccflags}')
 	make test
 }
 EOF
-	}
+    }
 
-	$text =~ s/^build\(\) \{.*?^\}\n/$build_func/smg or
-		die "Can't replace build function APKBUILD";
-	$text =~ s/^package\(\) \{.*?^\}\n/$package_func/smg or
-		die "Can't replace package function APKBUILD";
-	$text =~ s/^check\(\) \{.*?^\}\n/$check_func/smg or
-		die "Can't replace check function APKBUILD";
+    $text =~ s/^build\(\) \{.*?^\}\n/$build_func/smg
+      or die "Can't replace build function APKBUILD";
+    $text =~ s/^package\(\) \{.*?^\}\n/$package_func/smg
+      or die "Can't replace package function APKBUILD";
+    $text =~ s/^check\(\) \{.*?^\}\n/$check_func/smg
+      or die "Can't replace check function APKBUILD";
 
-	open my $fh, '>', "APKBUILD" or die;
-	print $fh $text;
-	close $fh;
+    open my $fh, '>', "APKBUILD" or die;
+    print $fh $text;
+    close $fh;
 }
 
 sub sort_pkgs_by_orig {
-    my $sort_order = shift;
-    my @array_to_sort = split / /, shift;;
+    my $sort_order    = shift;
+    my @array_to_sort = split / /, shift;
 
-    s/[\t\n\r\f]/ /g for $sort_order;  # remove embedded new lines from sort order
-    s/\h+/ /g for $sort_order;          # remove embedded spaces from sort order
+    s/[\t\n\r\f]/ /g
+      for $sort_order;    # remove embedded new lines from sort order
+    s/\h+/ /g for $sort_order;    # remove embedded spaces from sort order
 
     my @sort_order = split / /, $sort_order;
 
@@ -289,29 +305,31 @@ sub sort_pkgs_by_orig {
     my %position_of;
     $position_of{$_} = $count++ for @sort_order;
 
-    my %sorted;         # holds the position of array to sort
+    my %sorted;                   # holds the position of array to sort
 
     foreach (@array_to_sort) {
         my $pos = $position_of{$_};
-        if (!defined $pos) {
+        if ( !defined $pos ) {
+
             # not found in sort order so add to the end
             $sorted{$_} = $count;
             $count++;
-        } else {
+        }
+        else {
             $sorted{$_} = $pos;
         }
     }
 
     my @tmp;    # hold array of sorted in position order
 
-    foreach my $name (sort { $sorted{$a} <=> $sorted{$b} } keys %sorted) {
-            push @tmp, $name;
+    foreach my $name ( sort { $sorted{$a} <=> $sorted{$b} } keys %sorted ) {
+        push @tmp, $name;
     }
 
     # remove any duplicates
     uniq @tmp;
 
-    return join(" ", @tmp);
+    return join( " ", @tmp );
 }
 
 sub format_depends {
@@ -323,327 +341,386 @@ sub format_depends {
     $deps =~ s/^\s//g;
     $deps =~ s/\s$//g;
 
-    if (length($deps) >= $columns) {
-        $deps = wrap("\t", "\t", $deps);
+    if ( length($deps) >= $columns ) {
+        $deps = wrap( "\t", "\t", $deps );
     }
     $deps =~ s/\s$//g;
 
-    if (length($deps) >= $columns) {
+    if ( length($deps) >= $columns ) {
         $deps = "\n" . $deps . "\n\t";
     }
     return $deps;
 }
 
 sub do_depends {
-	my $modver = shift;
-        my $oldapkbuild = shift;
-	my $apkbuild = read_apkbuild;
+    my $modver      = shift;
+    my $oldapkbuild = shift;
+    my $apkbuild    = read_apkbuild;
 
-	$modver = defined($modver) ? $modver : $apkbuild->{'pkgver'};
-	my $metaprefix = '';
-	if ( exists $apkbuild->{'_realname'} ) {
-		$metaprefix = "src/" . $apkbuild->{'_realname'} . "-" . $modver . "/";
-	}
-	elsif ( exists $apkbuild->{'_pkgreal'} ) {
-		$metaprefix = "src/" . $apkbuild->{'_pkgreal'} . "-" . $modver . "/";
-	}
-	elsif ( exists $apkbuild->{'_pkgname'} ) {
-		$metaprefix = "src/" . $apkbuild->{'_pkgname'} . "-" . $modver . "/";
-	}
-	elsif ( exists $apkbuild->{'_name'} ) {
-		$metaprefix = "src/" . $apkbuild->{'_name'} . "-" . $modver . "/";
-	}
-	elsif ( exists $apkbuild->{'_realpkgname'} ) {
-		$metaprefix = "src/" . $apkbuild->{'_realpkgname'} . "-" . $modver . "/";
-	}
-	elsif ( exists $apkbuild->{'_pkg_real'} ) {
-		$metaprefix = "src/" . $apkbuild->{'_pkg_real'} . "-" . $modver . "/";
-	}
-	else {
-		die "Unable to find meta file directory - check APKBUILD Perl Module Name";
-	}
+    $modver = defined($modver) ? $modver : $apkbuild->{'pkgver'};
+    my $metaprefix = '';
+    if ( exists $apkbuild->{'_realname'} ) {
+        $metaprefix = "src/" . $apkbuild->{'_realname'} . "-" . $modver . "/";
+    }
+    elsif ( exists $apkbuild->{'_pkgreal'} ) {
+        $metaprefix = "src/" . $apkbuild->{'_pkgreal'} . "-" . $modver . "/";
+    }
+    elsif ( exists $apkbuild->{'_pkgname'} ) {
+        $metaprefix = "src/" . $apkbuild->{'_pkgname'} . "-" . $modver . "/";
+    }
+    elsif ( exists $apkbuild->{'_name'} ) {
+        $metaprefix = "src/" . $apkbuild->{'_name'} . "-" . $modver . "/";
+    }
+    elsif ( exists $apkbuild->{'_realpkgname'} ) {
+        $metaprefix =
+          "src/" . $apkbuild->{'_realpkgname'} . "-" . $modver . "/";
+    }
+    elsif ( exists $apkbuild->{'_pkg_real'} ) {
+        $metaprefix = "src/" . $apkbuild->{'_pkg_real'} . "-" . $modver . "/";
+    }
+    else {
+        die
+"Unable to find meta file directory - check APKBUILD Perl Module Name";
+    }
 
-	$metaprefix =~ s/-\$pkgver//g;
-        print "\nMetaprefix: $metaprefix\n";
+    $metaprefix =~ s/-\$pkgver//g;
+    print "\nMetaprefix: $metaprefix\n";
 
-	my $meta;
+    my $meta;
 
-	foreach my $metafile ("MYMETA.json", "META.json", "MYMETA.yml", "META.yml") {
-		if (-e "$metaprefix$metafile") {
-			say "Using meta information from $metafile";
-			$meta = CPAN::Meta->load_file("$metaprefix$metafile");
-			last;
-		}
-	}
-	die "No dependency meta file found" unless $meta;
-
-	my $abstract = $meta->abstract;
-	say "Abstract: $abstract";
-
-	my $license = join " OR ", map {$license_mappings->{$_} or $_} $meta->license;
-	say "License: $license";
-
-	my $deps = parse_deps( $meta->effective_prereqs->requirements_for('runtime', 'requires') );
-
-        if (defined $oldapkbuild->{'depends'}){
-            if (defined $oldapkbuild->{'cpandepends'}) {
-                $oldapkbuild->{'depends'} =~ s/\$cpandepends/$oldapkbuild->{'cpandepends'}/g;
-            }
-            my $libs = $oldapkbuild->{'depends'};
-            $libs =~ s/perl\-\w+[-\w+]+//g;
-            $libs =~ s/perl//g;
-            if ($libs ne '') {
-                $deps = $deps . " " .$libs;
-            }
-            $deps = sort_pkgs_by_orig ($oldapkbuild->{'depends'}, $deps);
+    foreach
+      my $metafile ( "MYMETA.json", "META.json", "MYMETA.yml", "META.yml" )
+    {
+        if ( -e "$metaprefix$metafile" ) {
+            say "Using meta information from $metafile";
+            $meta = CPAN::Meta->load_file("$metaprefix$metafile");
+            last;
         }
+    }
+    die "No dependency meta file found" unless $meta;
 
-	if ($deps eq '') {
-		$deps = "perl";
-	} else {
-		$deps = format_depends("perl " . $deps);
+    my $abstract = $meta->abstract;
+    say "Abstract: $abstract";
 
-	}
+    my $license = join " OR ",
+      map { $license_mappings->{$_} or $_ } $meta->license;
+    say "License: $license";
 
-	say "CPAN runtime Required: $deps";
-	say "CPAN runtime Recommended: " . parse_deps( $meta->effective_prereqs->requirements_for('runtime', 'recommends'));
+    my $deps = parse_deps(
+        $meta->effective_prereqs->requirements_for( 'runtime', 'requires' ) );
 
-	my $makedeps = parse_deps(
-		$meta->effective_prereqs->requirements_for('configure', 'requires'),
-		$meta->effective_prereqs->requirements_for('configure', 'recommends'),
-		$meta->effective_prereqs->requirements_for('build', 'requires'),
-		$meta->effective_prereqs->requirements_for('build', 'recommends')
-	);
-
-	if (-e "$metaprefix/Build.PL" ) {
-		$makedeps = "$makedeps perl-module-build" unless $makedeps =~ m/^perl-module-build$/;
-	}
-
-        if (defined $oldapkbuild->{'makedepends'}){
-            if (defined $oldapkbuild->{'cpanmakedepends'}) {
-                $oldapkbuild->{'makedepends'} =~ s/\$cpanmakedepends/$oldapkbuild->{'cpanmakedepends'}/g;
-            }
-            my $libs = $oldapkbuild->{'makedepends'};
-            $libs =~ s/perl\-\w+[-\w+]+//g;
-            $makedeps = $makedeps . " " .$libs;
-            $makedeps = sort_pkgs_by_orig ($oldapkbuild->{'makedepends'}, $makedeps);
+    if ( defined $oldapkbuild->{'depends'} ) {
+        if ( defined $oldapkbuild->{'cpandepends'} ) {
+            $oldapkbuild->{'depends'} =~
+              s/\$cpandepends/$oldapkbuild->{'cpandepends'}/g;
         }
-
-	if ($makedeps eq '') {
-		$makedeps = "perl-dev";
-	} else {
-		$makedeps = format_depends("perl-dev " . $makedeps);
-	}
-        $makedeps =~ s/ +$//g;
-
-	say "CPAN build deps: $makedeps";
-	say "    CPAN build requires: " . parse_deps($meta->effective_prereqs->requirements_for('configure', 'requires'), $meta->effective_prereqs->requirements_for('build', 'requires'));
-	say "    CPAN build recommends: " . parse_deps($meta->effective_prereqs->requirements_for('configure', 'recommends'), $meta->effective_prereqs->requirements_for('build', 'recommends'));
-
-	my $checkdeps = parse_deps($meta->effective_prereqs->requirements_for('test', 'requires'), $meta->effective_prereqs->requirements_for('test', 'recommends'));
-
-        if (defined $oldapkbuild->{'checkdepends'}){
-            if (defined $oldapkbuild->{'cpancheckdepends'}) {
-                $oldapkbuild->{'checkdepends'} =~ s/\$cpancheckdepends/$oldapkbuild->{'cpancheckdepends'}/g;
-            }
-            my $libs = $oldapkbuild->{'checkdepends'};
-            $libs =~ s/perl\-\w+[-\w+]+//g;
-            if ($libs ne "") {
-                $checkdeps = $checkdeps . " " .$libs;
-            }
-            $checkdeps = sort_pkgs_by_orig ($oldapkbuild->{'checkdepends'}, $checkdeps);
+        my $libs = $oldapkbuild->{'depends'};
+        $libs =~ s/perl\-\w+[-\w+]+//g;
+        $libs =~ s/perl//g;
+        if ( $libs ne '' ) {
+            $deps = $deps . " " . $libs;
         }
+        $deps = sort_pkgs_by_orig( $oldapkbuild->{'depends'}, $deps );
+    }
 
-        $checkdeps = format_depends($checkdeps);
-	say "CPAN check deps: $checkdeps";
+    if ( $deps eq '' ) {
+        $deps = "perl";
+    }
+    else {
+        $deps = format_depends( "perl " . $deps );
 
-	my $text = read_file "APKBUILD";
-	if ($abstract && $abstract ne 'unknown') {
-		$text =~ s/^pkgdesc=\"([^\"]*)\"$/pkgdesc=\"$abstract\"/mg or
-			die "Can't find pkgdesc line in APKBUILD";
-	}
-	if (length(`find $metaprefix -name '*.xs'`)) {
-		if (!exists $oldapkbuild->{'arch'}) {
-			$text =~ s/^arch=\"([^\"]*)\"$/arch="all"/mg or
-				die "Can't find arch line in APKBUILD";
-		}
-	}
-	if ($license ne 'unknown') {
-		$text =~ s/^license=\"([^\"]*)\"$/license=\"$license\"/mg or
-			die "Can't find license line in APKBUILD";
-	}
-	$text =~ s/^depends=\"([^\"]*)\"$/depends=\"$deps\"/mg or
-		$text =~ s/(license=.*\n)/$1depends=\"$deps\"/gm or
-			die "Can't insert depends line in APKBUILD";
+    }
 
-	$text =~ s/^makedepends=\"([^\"]*)\"$/makedepends=\"$makedeps\"/mg or
-		$text =~ s/(depends=.*\n)/$1makedepends=\"$makedeps\"/gm or
-			die "Can't insert makedepends line in APKBUILD";
+    say "CPAN runtime Required: $deps";
+    say "CPAN runtime Recommended: "
+      . parse_deps(
+        $meta->effective_prereqs->requirements_for( 'runtime', 'recommends' ) );
 
-	$text =~ s/^checkdepends=\"([^\"]*)\"$/checkdepends=\"$checkdeps\"/mg or
-		$text =~ s/(makedepends=.*\n)/$1checkdepends=\"$checkdeps\"/gm or
-			die "Can't insert checkdepends line in APKBUILD";
+    my $makedeps = parse_deps(
+        $meta->effective_prereqs->requirements_for( 'configure', 'requires' ),
+        $meta->effective_prereqs->requirements_for( 'configure', 'recommends' ),
+        $meta->effective_prereqs->requirements_for( 'build',     'requires' ),
+        $meta->effective_prereqs->requirements_for( 'build',     'recommends' )
+    );
 
-	# remove empty variables
-	$text =~ s/.*=""\n//g;
+    if ( -e "$metaprefix/Build.PL" ) {
+        $makedeps = "$makedeps perl-module-build"
+          unless $makedeps =~ m/^perl-module-build$/;
+    }
 
-	open my $fh, '>', "APKBUILD" or die;
-	print $fh $text;
-	close $fh;
+    if ( defined $oldapkbuild->{'makedepends'} ) {
+        if ( defined $oldapkbuild->{'cpanmakedepends'} ) {
+            $oldapkbuild->{'makedepends'} =~
+              s/\$cpanmakedepends/$oldapkbuild->{'cpanmakedepends'}/g;
+        }
+        my $libs = $oldapkbuild->{'makedepends'};
+        $libs =~ s/perl\-\w+[-\w+]+//g;
+        $makedeps = $makedeps . " " . $libs;
+        $makedeps =
+          sort_pkgs_by_orig( $oldapkbuild->{'makedepends'}, $makedeps );
+    }
+
+    if ( $makedeps eq '' ) {
+        $makedeps = "perl-dev";
+    }
+    else {
+        $makedeps = format_depends( "perl-dev " . $makedeps );
+    }
+    $makedeps =~ s/ +$//g;
+
+    say "CPAN build deps: $makedeps";
+    say "    CPAN build requires: "
+      . parse_deps(
+        $meta->effective_prereqs->requirements_for( 'configure', 'requires' ),
+        $meta->effective_prereqs->requirements_for( 'build',     'requires' )
+      );
+    say "    CPAN build recommends: "
+      . parse_deps(
+        $meta->effective_prereqs->requirements_for( 'configure', 'recommends' ),
+        $meta->effective_prereqs->requirements_for( 'build',     'recommends' )
+      );
+
+    my $checkdeps = parse_deps(
+        $meta->effective_prereqs->requirements_for( 'test', 'requires' ),
+        $meta->effective_prereqs->requirements_for( 'test', 'recommends' )
+    );
+
+    if ( defined $oldapkbuild->{'checkdepends'} ) {
+        if ( defined $oldapkbuild->{'cpancheckdepends'} ) {
+            $oldapkbuild->{'checkdepends'} =~
+              s/\$cpancheckdepends/$oldapkbuild->{'cpancheckdepends'}/g;
+        }
+        my $libs = $oldapkbuild->{'checkdepends'};
+        $libs =~ s/perl\-\w+[-\w+]+//g;
+        if ( $libs ne "" ) {
+            $checkdeps = $checkdeps . " " . $libs;
+        }
+        $checkdeps =
+          sort_pkgs_by_orig( $oldapkbuild->{'checkdepends'}, $checkdeps );
+    }
+
+    $checkdeps = format_depends($checkdeps);
+    say "CPAN check deps: $checkdeps";
+
+    my $text = read_file "APKBUILD";
+    if ( $abstract && $abstract ne 'unknown' ) {
+        $text =~ s/^pkgdesc=\"([^\"]*)\"$/pkgdesc=\"$abstract\"/mg
+          or die "Can't find pkgdesc line in APKBUILD";
+    }
+    if ( length(`find $metaprefix -name '*.xs'`) ) {
+        if ( !exists $oldapkbuild->{'arch'} ) {
+            $text =~ s/^arch=\"([^\"]*)\"$/arch="all"/mg
+              or die "Can't find arch line in APKBUILD";
+        }
+    }
+    if ( $license ne 'unknown' ) {
+        $text =~ s/^license=\"([^\"]*)\"$/license=\"$license\"/mg
+          or die "Can't find license line in APKBUILD";
+    }
+    $text =~ s/^depends=\"([^\"]*)\"$/depends=\"$deps\"/mg
+      or $text =~ s/(license=.*\n)/$1depends=\"$deps\"/gm
+      or die "Can't insert depends line in APKBUILD";
+
+    $text =~ s/^makedepends=\"([^\"]*)\"$/makedepends=\"$makedeps\"/mg
+      or $text =~ s/(depends=.*\n)/$1makedepends=\"$makedeps\"/gm
+      or die "Can't insert makedepends line in APKBUILD";
+
+    $text =~ s/^checkdepends=\"([^\"]*)\"$/checkdepends=\"$checkdeps\"/mg
+      or $text =~ s/(makedepends=.*\n)/$1checkdepends=\"$checkdeps\"/gm
+      or die "Can't insert checkdepends line in APKBUILD";
+
+    # remove empty variables
+    $text =~ s/.*=""\n//g;
+
+    open my $fh, '>', "APKBUILD" or die;
+    print $fh $text;
+    close $fh;
 }
 
 sub get_data {
-	my $apkbuild = read_apkbuild;
-	my $pkgreal = '';
+    my $apkbuild = read_apkbuild;
+    my $pkgreal  = '';
 
-	if (exists $apkbuild->{_realname}) {
-		$pkgreal = $apkbuild->{_realname};
-	} elsif (exists $apkbuild->{_pkgreal}) {
-		$pkgreal = $apkbuild->{_pkgreal};
-	} elsif (exists $apkbuild->{_pkgname}) {
-		$pkgreal = $apkbuild->{_pkgname};
-	} elsif (exists $apkbuild->{_name}) {
-		$pkgreal = $apkbuild->{_name};
-	} elsif (exists $apkbuild->{_realpkgname}) {
-		$pkgreal = $apkbuild->{_realpkgname};
-	} elsif (exists $apkbuild->{_pkg_real}) {
-		$pkgreal = $apkbuild->{_pkg_real};
-	} else {
-		my $module = '';
-		my $distribution = '';
-		while ((my $key, my $value ) = each (%$apkbuild)) {
-			# Do not parse any depends lines to not find incorrect module
-			if ($key =~ m/.*depends.*/) {
-				next;
-			}
-			# Try to find a perl module name in APKBUILD
-			if ($value=~m/((\w+::)+\w+)/g) {
-				# Match Perl Module names containing ::
-				$module .= "$1 " unless $module =~ m/$1/;
-			}
-			elsif ($value =~ m/(([A-Z]\w+-)+\w+)/) {
-				# Match possible distribution names with -
-				$distribution .= "$1 " unless $distribution =~ m/ *$1 /;
-			}
-			elsif ( $value =~ m/.*release\/([A-Z]\w+).*/ ) {
-				# Match Single Word Perl Module Name after release in URL?
-				$distribution .= "$1 " unless $distribution =~ m/ *$1 /;
-			}
-		}
+    if ( exists $apkbuild->{_realname} ) {
+        $pkgreal = $apkbuild->{_realname};
+    }
+    elsif ( exists $apkbuild->{_pkgreal} ) {
+        $pkgreal = $apkbuild->{_pkgreal};
+    }
+    elsif ( exists $apkbuild->{_pkgname} ) {
+        $pkgreal = $apkbuild->{_pkgname};
+    }
+    elsif ( exists $apkbuild->{_name} ) {
+        $pkgreal = $apkbuild->{_name};
+    }
+    elsif ( exists $apkbuild->{_realpkgname} ) {
+        $pkgreal = $apkbuild->{_realpkgname};
+    }
+    elsif ( exists $apkbuild->{_pkg_real} ) {
+        $pkgreal = $apkbuild->{_pkg_real};
+    }
+    else {
+        my $module       = '';
+        my $distribution = '';
+        while ( ( my $key, my $value ) = each(%$apkbuild) ) {
 
-		# Want to try the traditional Module::Name first
-		my $list = $module . $distribution;
-		foreach (split / /, $list) {
-			my $type = '';
-			if( $_ =~ m/::/ ) {
-				$type = 'module';
-			} else {
-				$type = 'release';
-			}
+            # Do not parse any depends lines to not find incorrect module
+            if ( $key =~ m/.*depends.*/ ) {
+                next;
+            }
 
-			my $response = $ua->get("https://fastapi.metacpan.org/$type/$_");
-			$response->is_success or next;;
+            # Try to find a perl module name in APKBUILD
+            if ( $value =~ m/((\w+::)+\w+)/g ) {
 
-			my $moddata = $json->decode($response->decoded_content);
-			$moddata->{error} and next;
+                # Match Perl Module names containing ::
+                $module .= "$1 " unless $module =~ m/$1/;
+            }
+            elsif ( $value =~ m/(([A-Z]\w+-)+\w+)/ ) {
 
-			$pkgreal = $moddata->{distribution};
-			last;
-		}
-	}
+                # Match possible distribution names with -
+                $distribution .= "$1 " unless $distribution =~ m/ *$1 /;
+            }
+            elsif ( $value =~ m/.*release\/([A-Z]\w+).*/ ) {
 
-	$pkgreal =~ s/-\$pkgver//g;
+                # Match Single Word Perl Module Name after release in URL?
+                $distribution .= "$1 " unless $distribution =~ m/ *$1 /;
+            }
+        }
 
-	my $response = $ua->get("https://fastapi.metacpan.org/release/$pkgreal");
-	$response->is_success or
-		die $response->status_line . " unable to find $pkgreal verify Perl Module name in APKBUILD\n";
-	my $distdata = $json->decode($response->decoded_content);
-	$distdata->{error} and die "Error trying to locate $pkgreal: $distdata->{error}\n";
+        # Want to try the traditional Module::Name first
+        my $list = $module . $distribution;
+        foreach ( split / /, $list ) {
+            my $type = '';
+            if ( $_ =~ m/::/ ) {
+                $type = 'module';
+            }
+            else {
+                $type = 'release';
+            }
 
-	$response = $ua->get("https://fastapi.metacpan.org/module/$distdata->{main_module}");
-	$response->is_success or die $response->status_line;
-	my $moddata = $json->decode($response->decoded_content);
-	$moddata->{error} and die "Error trying to locate $distdata->{main_module}: $moddata->{error}\n";
+            my $response = $ua->get("https://fastapi.metacpan.org/$type/$_");
+            $response->is_success or next;
 
-	return ($apkbuild, $distdata, $moddata);
+            my $moddata = $json->decode( $response->decoded_content );
+            $moddata->{error} and next;
+
+            $pkgreal = $moddata->{distribution};
+            last;
+        }
+    }
+
+    $pkgreal =~ s/-\$pkgver//g;
+
+    my $response = $ua->get("https://fastapi.metacpan.org/release/$pkgreal");
+    $response->is_success
+      or die $response->status_line
+      . " unable to find $pkgreal verify Perl Module name in APKBUILD\n";
+    my $distdata = $json->decode( $response->decoded_content );
+    $distdata->{error}
+      and die "Error trying to locate $pkgreal: $distdata->{error}\n";
+
+    $response =
+      $ua->get("https://fastapi.metacpan.org/module/$distdata->{main_module}");
+    $response->is_success or die $response->status_line;
+    my $moddata = $json->decode( $response->decoded_content );
+    $moddata->{error}
+      and die
+      "Error trying to locate $distdata->{main_module}: $moddata->{error}\n";
+
+    return ( $apkbuild, $distdata, $moddata );
 }
 
 my $abuild_conf = read_assignments_from_file("/etc/abuild.conf");
 $packager = $abuild_conf->{PACKAGER} if $abuild_conf->{PACKAGER};
 
-my $user_abuild_conf = read_assignments_from_file($ENV{"HOME"} . "/.abuild/abuild.conf");
+my $user_abuild_conf =
+  read_assignments_from_file( $ENV{"HOME"} . "/.abuild/abuild.conf" );
 $packager = $user_abuild_conf->{PACKAGER} if $user_abuild_conf->{PACKAGER};
 
 my $command = $ARGV[0];
 
-if ($command eq "create") {
-	my $module = $ARGV[1];
-	$module or die "Module name is a mandatory argument";
+if ( $command eq "create" ) {
+    my $module = $ARGV[1];
+    $module or die "Module name is a mandatory argument";
 
-	my $response = $ua->get("https://fastapi.metacpan.org/module/$module");
-	$response->is_success or die $response->status_line;
-	my $moddata = $json->decode($response->decoded_content);
-	$moddata->{error} and die "Error trying to locate $module: $moddata->{error}\n";
+    my $response = $ua->get("https://fastapi.metacpan.org/module/$module");
+    $response->is_success or die $response->status_line;
+    my $moddata = $json->decode( $response->decoded_content );
+    $moddata->{error}
+      and die "Error trying to locate $module: $moddata->{error}\n";
 
-	$response = $ua->get("https://fastapi.metacpan.org/release/$moddata->{distribution}");
-	$response->is_success or die $response->status_line;
-	my $distdata = $json->decode($response->decoded_content);
-	$distdata->{error} and die "Error trying to locate $module: $distdata->{error}\n";
+    $response =
+      $ua->get("https://fastapi.metacpan.org/release/$moddata->{distribution}");
+    $response->is_success or die $response->status_line;
+    my $distdata = $json->decode( $response->decoded_content );
+    $distdata->{error}
+      and die "Error trying to locate $module: $distdata->{error}\n";
 
-	my $apkname = map_cpan_to_apk $distdata->{metadata}{name};
-	mkdir $apkname;
-	chdir $apkname;
-	write_apkbuild($distdata, undef, $moddata);
-	prepare_tree;
-	update_functions;
-	do_depends $moddata->{version};
-} elsif ($command eq "recreate" ) {
-	#TODO: likely should keep pkgrel the same on recreate
-	my ($apkbuild, $distdata, $moddata) = get_data;
-	my $pkgver = $moddata->{version} =~ s/^[^0-9]+//r;
-	if ($pkgver ne $apkbuild->{pkgver}) {
-		#Reset pkgrel on upgrade on recreate
-		say "Upgrading CPAN module from $apkbuild->{pkgver} to $pkgver";
-		$apkbuild->{pkgrel}=0;
-	}
-	write_apkbuild($distdata, $apkbuild, $moddata);
-	prepare_tree;
-	update_functions;
-	do_depends($moddata->{version}, $apkbuild);
-} elsif ($command eq "upgrade") {
-	my ($apkbuild, $distdata, $moddata) = get_data;
+    my $apkname = map_cpan_to_apk $distdata->{metadata}{name};
+    mkdir $apkname;
+    chdir $apkname;
+    write_apkbuild( $distdata, undef, $moddata );
+    prepare_tree;
+    update_functions;
+    do_depends $moddata->{version};
+}
+elsif ( $command eq "recreate" ) {
 
-	my $pkgver = $moddata->{version} =~ s/^[^0-9]+//r;
-	if ($pkgver ne $apkbuild->{pkgver}) {
-		say "Upgrading CPAN module from $apkbuild->{pkgver} to $pkgver";
+    #TODO: likely should keep pkgrel the same on recreate
+    my ( $apkbuild, $distdata, $moddata ) = get_data;
+    my $pkgver = $moddata->{version} =~ s/^[^0-9]+//r;
+    if ( $pkgver ne $apkbuild->{pkgver} ) {
 
-		my $text = read_file "APKBUILD";
-		$text =~ s/^pkgver=(.*)$/pkgver=$pkgver/mg or
-			die "Can't find pkgver line in APKBUILD";
-		$text =~ s/^pkgrel=(.*)$/pkgrel=0/mg;
-		#FIXME: review whether this works over time
-		#       It deletes the blank line before the checksum
-		#       So prepare_tree does not insert extra blank line
-		$text =~ s/\n^(.*sums=.*\n)/$1/mg;
-		open my $fh, '>', "APKBUILD" or die;
-		say $fh $text;
-		close $fh;
-		prepare_tree;
-		do_depends ($moddata->{version}, $apkbuild);
-	} else {
-		say "Up-to-data with CPAN";
-	}
-} elsif ($command eq "check") {
-	my ($apkbuild, $distdata, $moddata) = get_data;
-	my $pkgver = $moddata->{version} =~ s/^[^0-9]+//r;
-	say "$apkbuild->{pkgname}: Latest version: $pkgver Packaged version: $apkbuild->{pkgver}";
-	if ($pkgver ne $apkbuild->{pkgver}) {
-		exit(1);
-	}
-} elsif ($command eq "update") {
-	prepare_tree;
-	do_depends;
-} else {
-	say "Usage: apkbuild-cpan [create <Module::Name> | check | recreate | update | upgrade]";
-	exit;
+        #Reset pkgrel on upgrade on recreate
+        say "Upgrading CPAN module from $apkbuild->{pkgver} to $pkgver";
+        $apkbuild->{pkgrel} = 0;
+    }
+    write_apkbuild( $distdata, $apkbuild, $moddata );
+    prepare_tree;
+    update_functions;
+    do_depends( $moddata->{version}, $apkbuild );
+}
+elsif ( $command eq "upgrade" ) {
+    my ( $apkbuild, $distdata, $moddata ) = get_data;
+
+    my $pkgver = $moddata->{version} =~ s/^[^0-9]+//r;
+    if ( $pkgver ne $apkbuild->{pkgver} ) {
+        say "Upgrading CPAN module from $apkbuild->{pkgver} to $pkgver";
+
+        my $text = read_file "APKBUILD";
+        $text =~ s/^pkgver=(.*)$/pkgver=$pkgver/mg
+          or die "Can't find pkgver line in APKBUILD";
+        $text =~ s/^pkgrel=(.*)$/pkgrel=0/mg;
+
+        #FIXME: review whether this works over time
+        #       It deletes the blank line before the checksum
+        #       So prepare_tree does not insert extra blank line
+        $text =~ s/\n^(.*sums=.*\n)/$1/mg;
+        open my $fh, '>', "APKBUILD" or die;
+        say $fh $text;
+        close $fh;
+        prepare_tree;
+        do_depends( $moddata->{version}, $apkbuild );
+    }
+    else {
+        say "Up-to-data with CPAN";
+    }
+}
+elsif ( $command eq "check" ) {
+    my ( $apkbuild, $distdata, $moddata ) = get_data;
+    my $pkgver = $moddata->{version} =~ s/^[^0-9]+//r;
+    say
+"$apkbuild->{pkgname}: Latest version: $pkgver Packaged version: $apkbuild->{pkgver}";
+    if ( $pkgver ne $apkbuild->{pkgver} ) {
+        exit(1);
+    }
+}
+elsif ( $command eq "update" ) {
+    prepare_tree;
+    do_depends;
+}
+else {
+    say
+"Usage: apkbuild-cpan [create <Module::Name> | check | recreate | update | upgrade]";
+    exit;
 }
