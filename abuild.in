@@ -2514,7 +2514,7 @@ rootbld() {
 	if ! [ $CBUILD_ARCH = "$(apk --print-arch)" ]; then
 		# cross-building, so check for binfmt registration
 		local qarch="$(rootbld_qemu_arch)"
-		if ! [ -f "/proc/sys/fs/binfmt_misc/$qarch" ]; then
+		if ! [ -f "/proc/sys/fs/binfmt_misc/qemu-$qarch" ]; then
 			warning "rootbld: binfmt registration missing for $qarch binaries"
 		fi
 		# TODO: it's not safe to mix a cache dir between architectures,
