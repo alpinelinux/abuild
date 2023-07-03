@@ -574,81 +574,76 @@ $packager = $abuild_conf->{PACKAGER} if $abuild_conf->{PACKAGER};
 my $user_abuild_conf = read_assignments_from_file($ENV{"HOME"} . "/.abuild/abuild.conf");
 $packager = $user_abuild_conf->{PACKAGER} if $user_abuild_conf->{PACKAGER};
 
-given ( $ARGV[0] ) {
-	when ("create") {
-		my $module = $ARGV[1];
-		$module or die "Module name is a mandatory argument";
+my $command = $ARGV[0];
 
-		my $response = $ua->get("https://fastapi.metacpan.org/module/$module");
-		$response->is_success or die $response->status_line;
-		my $moddata = $json->decode($response->decoded_content);
-		$moddata->{error} and die "Error trying to locate $module: $moddata->{error}\n";
+if ($command eq "create") {
+	my $module = $ARGV[1];
+	$module or die "Module name is a mandatory argument";
 
-		$response = $ua->get("https://fastapi.metacpan.org/release/$moddata->{distribution}");
-		$response->is_success or die $response->status_line;
-		my $distdata = $json->decode($response->decoded_content);
-		$distdata->{error} and die "Error trying to locate $module: $distdata->{error}\n";
+	my $response = $ua->get("https://fastapi.metacpan.org/module/$module");
+	$response->is_success or die $response->status_line;
+	my $moddata = $json->decode($response->decoded_content);
+	$moddata->{error} and die "Error trying to locate $module: $moddata->{error}\n";
 
-		my $apkname = map_cpan_to_apk $distdata->{metadata}{name};
-		mkdir $apkname;
-		chdir $apkname;
-		write_apkbuild($distdata, undef, $moddata);
+	$response = $ua->get("https://fastapi.metacpan.org/release/$moddata->{distribution}");
+	$response->is_success or die $response->status_line;
+	my $distdata = $json->decode($response->decoded_content);
+	$distdata->{error} and die "Error trying to locate $module: $distdata->{error}\n";
+
+	my $apkname = map_cpan_to_apk $distdata->{metadata}{name};
+	mkdir $apkname;
+	chdir $apkname;
+	write_apkbuild($distdata, undef, $moddata);
+	prepare_tree;
+	update_functions;
+	do_depends $moddata->{version};
+} elsif ($command eq "recreate" ) {
+	#TODO: likely should keep pkgrel the same on recreate
+	my ($apkbuild, $distdata, $moddata) = get_data;
+	my $pkgver = $moddata->{version} =~ s/^[^0-9]+//r;
+	if ($pkgver ne $apkbuild->{pkgver}) {
+		#Reset pkgrel on upgrade on recreate
+		say "Upgrading CPAN module from $apkbuild->{pkgver} to $pkgver";
+		$apkbuild->{pkgrel}=0;
+	}
+	write_apkbuild($distdata, $apkbuild, $moddata);
+	prepare_tree;
+	update_functions;
+	do_depends($moddata->{version}, $apkbuild);
+} elsif ($command eq "upgrade") {
+	my ($apkbuild, $distdata, $moddata) = get_data;
+
+	my $pkgver = $moddata->{version} =~ s/^[^0-9]+//r;
+	if ($pkgver ne $apkbuild->{pkgver}) {
+		say "Upgrading CPAN module from $apkbuild->{pkgver} to $pkgver";
+
+		my $text = read_file "APKBUILD";
+		$text =~ s/^pkgver=(.*)$/pkgver=$pkgver/mg or
+			die "Can't find pkgver line in APKBUILD";
+		$text =~ s/^pkgrel=(.*)$/pkgrel=0/mg;
+		#FIXME: review whether this works over time
+		#       It deletes the blank line before the checksum
+		#       So prepare_tree does not insert extra blank line
+		$text =~ s/\n^(.*sums=.*\n)/$1/mg;
+		open my $fh, '>', "APKBUILD" or die;
+		say $fh $text;
+		close $fh;
 		prepare_tree;
-		update_functions;
-		do_depends $moddata->{version};
+		do_depends ($moddata->{version}, $apkbuild);
+	} else {
+		say "Up-to-data with CPAN";
 	}
-	when ("recreate") {
-		#TODO: likely should keep pkgrel the same on recreate
-		my ($apkbuild, $distdata, $moddata) = get_data;
-		my $pkgver = $moddata->{version} =~ s/^[^0-9]+//r;
-		if ($pkgver ne $apkbuild->{pkgver}) {
-			#Reset pkgrel on upgrade on recreate
-			say "Upgrading CPAN module from $apkbuild->{pkgver} to $pkgver";
-			$apkbuild->{pkgrel}=0;
-		}
-		write_apkbuild($distdata, $apkbuild, $moddata);
-		prepare_tree;
-		update_functions;
-		do_depends($moddata->{version}, $apkbuild);
+} elsif ($command eq "check") {
+	my ($apkbuild, $distdata, $moddata) = get_data;
+	my $pkgver = $moddata->{version} =~ s/^[^0-9]+//r;
+	say "$apkbuild->{pkgname}: Latest version: $pkgver Packaged version: $apkbuild->{pkgver}";
+	if ($pkgver ne $apkbuild->{pkgver}) {
+		exit(1);
 	}
-	when ("upgrade") {
-		my ($apkbuild, $distdata, $moddata) = get_data;
-
-		my $pkgver = $moddata->{version} =~ s/^[^0-9]+//r;
-		if ($pkgver ne $apkbuild->{pkgver}) {
-			say "Upgrading CPAN module from $apkbuild->{pkgver} to $pkgver";
-
-			my $text = read_file "APKBUILD";
-			$text =~ s/^pkgver=(.*)$/pkgver=$pkgver/mg or
-				die "Can't find pkgver line in APKBUILD";
-			$text =~ s/^pkgrel=(.*)$/pkgrel=0/mg;
-                        #FIXME: review whether this works over time
-                        #       It deletes the blank line before the checksum
-                        #       So prepare_tree does not insert extra blank line
-			$text =~ s/\n^(.*sums=.*\n)/$1/mg;
-			open my $fh, '>', "APKBUILD" or die;
-			say $fh $text;
-			close $fh;
-			prepare_tree;
-			do_depends ($moddata->{version}, $apkbuild);
-		} else {
-			say "Up-to-data with CPAN";
-		}
-	}
-	when ('check') {
-		my ($apkbuild, $distdata, $moddata) = get_data;
-		my $pkgver = $moddata->{version} =~ s/^[^0-9]+//r;
-		say "$apkbuild->{pkgname}: Latest version: $pkgver Packaged version: $apkbuild->{pkgver}";
-		if ($pkgver ne $apkbuild->{pkgver}) {
-			exit(1);
-		}
-	}
-	when ("update") {
-		prepare_tree;
-		do_depends;
-	}
-	default {
-		say "Usage: apkbuild-cpan [create <Module::Name> | check | recreate | update | upgrade]";
-		exit;
-	}
+} elsif ($command eq "update") {
+	prepare_tree;
+	do_depends;
+} else {
+	say "Usage: apkbuild-cpan [create <Module::Name> | check | recreate | update | upgrade]";
+	exit;
 }
