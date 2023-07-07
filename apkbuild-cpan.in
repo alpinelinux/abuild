@@ -703,7 +703,7 @@ elsif ( $command eq "upgrade" ) {
         do_depends( $moddata->{version}, $apkbuild );
     }
     else {
-        say "Up-to-data with CPAN";
+        say "Up-to-date with CPAN";
     }
 }
 elsif ( $command eq "check" ) {
