@@ -43,7 +43,7 @@ check() {
 }
 
 package() {
-	PYTHONPATH=$pkgdir`python3 -c "import site; print(site.getsitepackages()[0])"` \
+	PYTHONPATH=$pkgdir$(python3 -c "import site; print(site.getsitepackages()[0])") \
 	python3 setup.py install \
 		--prefix=/usr \
 		--root="$pkgdir" \
