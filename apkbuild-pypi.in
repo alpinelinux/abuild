@@ -4,7 +4,6 @@ use strict;
 use warnings;
 use autodie qw(:all);
 use feature qw(:5.14);
-use experimental 'switch';
 use LWP::UserAgent;
 use LWP::ConnCache;
 use JSON;
@@ -247,82 +246,82 @@ In the package root:
 EOF
 }
 
-given ($ARGV[0]) {
-    when ('create') {
-        my $package = $ARGV[1];
-        $package or die usage;
+if (! defined $ARGV[0]) {
+    die usage;
+} elsif ($ARGV[0] eq 'create') {
+    my $package = $ARGV[1];
+    $package or die usage;
 
-        my $distdata = get_data($package);
-        my $apkname = map_pypi_to_apk($package);
+    my $distdata = get_data($package);
+    my $apkname = map_pypi_to_apk($package);
 
-        mkdir $apkname;
-        chdir $apkname;
+    mkdir $apkname;
+    chdir $apkname;
 
-        my $data = write_apkbuild($distdata, undef);
-        prepare_tree;
+    my $data = write_apkbuild($distdata, undef);
+    prepare_tree;
 
-        get_deps($data);
-    } when ('recreate') {
-        my $apkbuild = read_apkbuild;
-        if (! defined $apkbuild->{_pkgreal}) {
-	     $apkbuild->{_pkgreal} = find_package_name($apkbuild);
-        }
-        my $distdata = get_data($apkbuild->{_pkgreal});
-	my $pkgver = $distdata->{info}{version} =~ s/^[^0-9]+//r;
-	if ($pkgver ne $apkbuild->{pkgver}) {
-		#Reset pkgrel on upgrade on recreate
-		say "Upgrading PyPI module from $apkbuild->{pkgver} to $pkgver";
-		$apkbuild->{pkgrel}=0;
-	}
-	my $data = write_apkbuild($distdata, $apkbuild);
-
-        prepare_tree;
-        get_deps($data);
-    } when ('upgrade') {
-        my $apkbuild = read_apkbuild;
-
-        if (! defined $apkbuild->{_pkgreal}) {
-	     $apkbuild->{_pkgreal} = find_package_name($apkbuild);
-        }
-
-        my $distdata = get_data($apkbuild->{_pkgreal});
-
-        my $pkgver = $distdata->{info}{version};
-
-        if ($pkgver ne $apkbuild->{pkgver}) {
-            say "Upgrading PyPI package from $apkbuild->{pkgver} to $pkgver";
-
-            my $text = read_file('APKBUILD');
-
-            $text =~ s/^(pkgver)=.*$/$1=$pkgver/mg or
-                die "Can't find pkgver line in APKBUILD";
-            $text =~ s/^(pkgrel)=.*$/$1=0/mg or
-                die "Can't find pkgrel line in APKBUILD";
-
-            open my $fh, '>:utf8', 'APKBUILD';
-            print $fh $text;
-            close $fh;
-        } else {
-            say "Already up to date with PyPI";
-        }
-    } when ('check') {
-        my $apkbuild = read_apkbuild;
-
-        if (! defined $apkbuild->{_pkgreal}) {
-	     $apkbuild->{_pkgreal} = find_package_name($apkbuild);
-        }
-        my $distdata = get_data($apkbuild->{_pkgreal});
-
-        my $pkgver = $distdata->{info}{version};
-
-
-        say "$apkbuild->{pkgname}: Latest version: $pkgver Packaged version: $apkbuild->{pkgver}";
-        if ($pkgver ne $apkbuild->{pkgver}) {
-            exit(1);
-        }
-    } when ('update') {
-        prepare_tree;
-    } default {
-        die usage;
+    get_deps($data);
+} elsif ($ARGV[0] eq 'recreate') {
+    my $apkbuild = read_apkbuild;
+    if (! defined $apkbuild->{_pkgreal}) {
+        $apkbuild->{_pkgreal} = find_package_name($apkbuild);
     }
+    my $distdata = get_data($apkbuild->{_pkgreal});
+    my $pkgver = $distdata->{info}{version} =~ s/^[^0-9]+//r;
+    if ($pkgver ne $apkbuild->{pkgver}) {
+        #Reset pkgrel on upgrade on recreate
+        say "Upgrading PyPI module from $apkbuild->{pkgver} to $pkgver";
+        $apkbuild->{pkgrel}=0;
+    }
+    my $data = write_apkbuild($distdata, $apkbuild);
+
+    prepare_tree;
+    get_deps($data);
+} elsif ($ARGV[0] eq 'upgrade') {
+    my $apkbuild = read_apkbuild;
+
+    if (! defined $apkbuild->{_pkgreal}) {
+        $apkbuild->{_pkgreal} = find_package_name($apkbuild);
+    }
+
+    my $distdata = get_data($apkbuild->{_pkgreal});
+
+    my $pkgver = $distdata->{info}{version};
+
+    if ($pkgver ne $apkbuild->{pkgver}) {
+        say "Upgrading PyPI package from $apkbuild->{pkgver} to $pkgver";
+
+        my $text = read_file('APKBUILD');
+
+        $text =~ s/^(pkgver)=.*$/$1=$pkgver/mg or
+            die "Can't find pkgver line in APKBUILD";
+        $text =~ s/^(pkgrel)=.*$/$1=0/mg or
+            die "Can't find pkgrel line in APKBUILD";
+
+        open my $fh, '>:utf8', 'APKBUILD';
+        print $fh $text;
+        close $fh;
+    } else {
+        say "Already up to date with PyPI";
+    }
+} elsif ($ARGV[0] eq 'check') {
+    my $apkbuild = read_apkbuild;
+
+    if (! defined $apkbuild->{_pkgreal}) {
+        $apkbuild->{_pkgreal} = find_package_name($apkbuild);
+    }
+    my $distdata = get_data($apkbuild->{_pkgreal});
+
+    my $pkgver = $distdata->{info}{version};
+
+
+    say "$apkbuild->{pkgname}: Latest version: $pkgver Packaged version: $apkbuild->{pkgver}";
+    if ($pkgver ne $apkbuild->{pkgver}) {
+        exit(1);
+    }
+} elsif ($ARGV[0] eq 'update') {
+    prepare_tree;
+} else {
+    die usage;
 }
