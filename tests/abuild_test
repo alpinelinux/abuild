@@ -45,7 +45,8 @@ init_tests \
 	abuild_command_provides \
 	abuild_gocache_dir \
 	abuild_cargo_home_dir \
-	abuild_fish_comp_split
+	abuild_fish_comp_split \
+	abuild_deps
 
 export ABUILD_SHAREDIR=$(atf_get_srcdir)/..
 export ABUILD_CONF=/dev/null
@@ -1062,4 +1063,59 @@ abuild_fish_comp_split_body() {
 		echo "missing new dir"
 		exit 1
 	fi
+}
+
+create_mock_apk() {
+	mkdir -p bin
+	cat > bin/apk <<-EOF
+		#!/bin/sh
+		if [ "\$1" = "--print-arch" ]; then
+			echo 'aarch64'
+			exit 0
+		fi
+		echo apk "\$@" >&2
+	EOF
+	chmod +x bin/apk
+	ln -s apk bin/abuild-apk
+	PATH="$PWD/bin:$PATH"
+}
+
+abuild_deps_body() {
+	create_mock_apk
+	mkdir testdeps
+	cd testdeps
+	cat >APKBUILD <<-EOF
+		# Maintainer: Joe User <juser@example.com>
+		pkgname="testdeps"
+		pkgver="1.0"
+		pkgrel=0
+		pkgdesc="Dummy test package"
+		url="https://gitlab.alpinelinux.org/alpine/aports"
+		arch="noarch"
+		license="MIT"
+		depends="foo"
+		makedepends="bar"
+		makedepends_host="hostdep"
+		makedepends_build="builddep"
+	EOF
+
+	# native build. pull in both depends and makedepends
+	# do not install in any --root
+	atf_check \
+		-e match:'Installing for build: foo bar' \
+		-e match:'apk add .*--virtual .makedepends-testdeps foo bar' \
+		-e not-match:'apk add .*--root' \
+		abuild deps
+
+	# crosscompile:
+	#   install makedepends_build without --root
+	#   install makedepends_host with --root
+	CTARGET='s390x' CHOST='ppc64le' CBUILDROOT="$PWD/root" atf_check \
+		-e match:'Installing for build: builddep' \
+		-e match:'Installing for host: hostdep' \
+		-e match:'apk add .*--virtual .makedepends-testdeps builddep' \
+		-e not-match:'apk add.*--root.*builddep' \
+		-e match:'apk add .*--root.*hostdep' \
+		-e match:'apk add .*--arch s390x.*hostdep' \
+		abuild deps
 }
