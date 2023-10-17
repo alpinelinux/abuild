@@ -5,7 +5,27 @@ tests:
   image:
     name: alpinelinux/abuild-ci
   stage: verify
-  script: [pwd]
+  script:
+    - make
+    - make check
+  tags:
+    - docker-alpine
+    - x86_64
+
+build-clang:
+  image:
+    name: alpinelinux/abuild-ci
+  stage: verify
+  script: [CC=clang make]
+  tags:
+    - docker-alpine
+    - x86_64
+
+build-scan:
+  image:
+    name: alpinelinux/abuild-ci
+  stage: verify
+  script: [scan-build --status-bugs make]
   tags:
     - docker-alpine
     - x86_64
