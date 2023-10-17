@@ -127,7 +127,7 @@ Kyuafile: tests/Kyuafile
 	echo "include('tests/Kyuafile')" >> $@
 
 check: $(SCRIPTS) $(USR_BIN_FILES) functions.sh tests/Kyuafile Kyuafile tests/testdata/abuild.key.pub
-	kyua test || (kyua report --verbose && exit 1)
+	kyua --variable parallelism=$(shell nproc) test || (kyua report --verbose && exit 1)
 
 install: $(USR_BIN_FILES) $(SAMPLES) $(MAN_PAGES) default.conf abuild.conf functions.sh
 	install -d $(DESTDIR)/$(bindir) $(DESTDIR)/$(sysconfdir) \
