@@ -18,7 +18,7 @@
 
 #define PREFIX "/var/tmp/abuild."
 
-static void fail() {
+static void fail(void) {
 	errx(1, "%s", strerror(errno));
 }
 
