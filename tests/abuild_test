@@ -1095,6 +1095,7 @@ abuild_deps_body() {
 		license="MIT"
 		depends="foo"
 		makedepends="bar"
+		checkdepends="checkdep"
 		makedepends_host="hostdep"
 		makedepends_build="builddep"
 	EOF
@@ -1102,9 +1103,14 @@ abuild_deps_body() {
 	# native build. pull in both depends and makedepends
 	# do not install in any --root
 	atf_check \
-		-e match:'Installing for build: foo bar' \
-		-e match:'apk add .*--virtual .makedepends-testdeps foo bar' \
+		-e match:'Installing for build: foo bar checkdep$' \
+		-e match:'apk add .*--virtual .makedepends-testdeps foo bar checkdep' \
 		-e not-match:'apk add .*--root' \
+		abuild deps
+
+	# dont install checkdep with ABUILD_BOOTSTRAP
+	ABUILD_BOOTSTRAP=1 atf_check \
+		-e not-match:"apk add.*checkdep" \
 		abuild deps
 
 	# crosscompile:
@@ -1117,5 +1123,6 @@ abuild_deps_body() {
 		-e not-match:'apk add.*--root.*builddep' \
 		-e match:'apk add .*--root.*hostdep' \
 		-e match:'apk add .*--arch s390x.*hostdep' \
+		-e not-match:'apk add.*checkdep' \
 		abuild deps
 }
