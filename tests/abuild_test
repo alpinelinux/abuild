@@ -1125,4 +1125,13 @@ abuild_deps_body() {
 		-e match:'apk add .*--arch s390x.*hostdep' \
 		-e not-match:'apk add.*checkdep' \
 		abuild deps
+
+	# crosscompile, set only CHOST
+	CHOST='armhf' atf_check \
+		-e match:'apk add.*builddep' \
+		-e not-match:'apk add.*--root.*builddep' \
+		-e match:'apk add.*--root.*--arch armhf.*hostdep' \
+		-e not-match:'apk add.*--arch armhf.*builddep' \
+		abuild deps
+
 }
