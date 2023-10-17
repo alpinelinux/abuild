@@ -125,9 +125,11 @@ int main(int argc, const char *argv[])
 
 	argv[0] = path;
 	/* set our uid to root so bbsuid --install works */
-	setuid(0);
+	if (setuid(0) < 0)
+		err(1, "setuid(0) failed");
 	/* set our gid to root so apk commit hooks run with the same gid as for "sudo apk add ..." */
-	setgid(0);
+	if (setgid(0) < 0)
+		err(1, "setgid(0) failed");
 	execv(path, (char * const*)argv);
 	perror(path);
 	return 1;
