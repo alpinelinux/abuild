@@ -221,7 +221,8 @@ static int buf_padto(struct buf *b, size_t alignment)
 	newsize = (oldsize + alignment - 1) & -alignment;
 	if (buf_resize(b, newsize)) return -ENOMEM;
 	b->size = newsize;
-	memset(b->ptr + oldsize, 0, newsize - oldsize);
+	if (b->ptr)
+		memset(b->ptr + oldsize, 0, newsize - oldsize);
 	return 0;
 }
 
@@ -260,6 +261,8 @@ static int buf_add_ext_header_hexdump(struct buf *b, const char *hdr, const unsi
 	for (i = len; i > 9; i /= 10) len++;
 
 	if (buf_resize(b, b->size + len)) return -ENOMEM;
+	if (b->ptr == NULL)
+		return 0;
 	b->size += snprintf(&b->ptr[b->size], len, "%u %s=", len, hdr);
 	for (i = 0; i < valuelen; i++)
 		b->size += snprintf(&b->ptr[b->size], 3, "%02x", (int)value[i]);
