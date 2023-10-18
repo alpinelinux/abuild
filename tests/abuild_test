@@ -831,7 +831,7 @@ abuild_cleanoldpkg_body() {
 					mkdir -p "\$pkgdir"
 				}
 			EOF
-			CARCH=$arch atf_check -e not-empty abuild
+			CARCH=$arch atf_check -e not-empty abuild clean unpack rootpkg
 		done
 	done
 
