@@ -51,7 +51,7 @@ if [ $# -gt 0 ]; then
 	exit 2
 fi
 
-if ! [ -f "$ABUILD_CONF" ] && ! [ -f "$ABUILD_USERCONF" ]; then
+if ! [ -f "$ABUILD_CONF" ] && ! [ -f "$ABUILD_USERCONF" ] && ! [ -f "$ABUILD_DEFCONF" ]; then
 	die "no abuild.conf found"
 fi
 

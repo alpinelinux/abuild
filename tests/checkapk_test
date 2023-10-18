@@ -3,9 +3,15 @@
 . $(atf_get_srcdir)/test_env.sh
 init_tests \
 	checkapk_help \
-	checkapk_invalid_opt
+	checkapk_invalid_opt \
+	checkapk_missing_abuild_conf \
+	checkapk_missing_apkbuild
 
 DATADIR=$(atf_get_srcdir)/testdata
+
+export ABUILD_SHAREDIR=$(atf_get_srcdir)/..
+export ABUILD_CONF=/dev/null
+export ABUILD_USERCONF=/dev/null
 
 checkapk_help_body() {
 	atf_check -s exit:0 \
@@ -17,4 +23,18 @@ checkapk_invalid_opt_body() {
 	atf_check -s not-exit:0 \
 		-e match:"Usage:" \
 		checkapk --invalid
+}
+
+checkapk_missing_abuild_conf_body() {
+	ABUILD_DEFCONF=/dev/null atf_check \
+		-s not-exit:0 \
+		-e match:"no abuild.conf found" \
+		checkapk
+}
+
+checkapk_missing_apkbuild_body() {
+	atf_check \
+		-s not-exit:0 \
+		-e match:"must be run in the directory of a built package" \
+		checkapk
 }
