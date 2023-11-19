@@ -11,7 +11,7 @@ SCRIPTS		:= abuild abuild-keygen abuild-sign newapkbuild \
 		   abump apkgrel buildlab apkbuild-cpan apkbuild-pypi checkapk \
 		   apkbuild-gem-resolver
 USR_BIN_FILES	:= $(SCRIPTS) abuild-tar abuild-gzsplit abuild-sudo abuild-fetch abuild-rmtemp
-MAN_1_PAGES	:= newapkbuild.1 abuild.1
+MAN_1_PAGES	:= newapkbuild.1 abuild.1 abump.1
 MAN_5_PAGES	:= APKBUILD.5
 SAMPLES		:= sample.APKBUILD sample.initd sample.confd \
 		sample.pre-install sample.post-install
