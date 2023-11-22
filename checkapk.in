@@ -117,7 +117,7 @@ for i in $pkgname $subpackages; do
 	fi
 
 	apk fetch --quiet --repositories-file "$tmpdir"/repositories --stdout "$_pkgname" > apks/old.apk \
-		|| msg2 "Old apk for $_pkgname missing. (new package? broken internet?)"
+		|| msg2 "Old apk for $_pkgname missing. (new package/arch? broken internet?)"
 
 	# pre-uncompress to not decompress twice
 	# we do a decompression + tar -t for the file list, but then later we might do a full extraction for sodiff.
