@@ -29,7 +29,7 @@ arch="noarch"
 license="[% license %]"
 makedepends="py3-gpep517 py3-setuptools py3-wheel"
 checkdepends="py3-pytest"
-subpackages=""
+subpackages="$pkgname-pyc"
 source="[% source %]"
 builddir="$srcdir/$_pkgreal-$pkgver"
 
