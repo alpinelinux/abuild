@@ -78,17 +78,17 @@ amove() {
 	d="$(pwd -L)"
 
 	cd "$pkgdir"
-	local pattern f
+	local pattern f IFS=""
 	for pattern; do
 		for f in ${pattern#/}; do # let shell expand the pattern
 			# strip trailing /
 			f=${f%/}
 			if [ "${f%/*}" != "$f" ]; then
 				mkdir -p "$subpkgdir/${f%/*}"
-				mv -v "$pkgdir"/$f "$subpkgdir/${f%/*}"
+				mv -v "$pkgdir/$f" "$subpkgdir/${f%/*}"
 			else
 				mkdir -p "$subpkgdir"
-				mv -v "$pkgdir"/$f "$subpkgdir/"
+				mv -v "$pkgdir/$f" "$subpkgdir/"
 			fi
 			# cleanup
 			rmdir -p "$f" 2>/dev/null || rmdir -p "${f%/*}" 2>/dev/null || true

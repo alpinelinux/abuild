@@ -667,7 +667,8 @@ abuild_amove_body() {
 			\$pkgname-bin:_bin
 			\$pkgname-sbin:_sbin
 			\$pkgname-var:_var
-			\$pkgname-usr:_usr"
+			\$pkgname-usr:_usr
+			\$pkgname-space:_space"
 
 		package() {
 			mkdir -p "\$pkgdir"/etc \
@@ -679,6 +680,7 @@ abuild_amove_body() {
 				"\$pkgdir"/etc/\$pkgname.conf \
 				"\$pkgdir"/bin/hello \
 				"\$pkgdir"/sbin/shello \
+				"\$pkgdir"/sbin/space' ' \
 				"\$pkgdir"/var/lib/\$pkgname/testfile \
 				"\$pkgdir"/usr/share/a \
 				"\$pkgdir"/usr/share/b
@@ -706,6 +708,10 @@ abuild_amove_body() {
 			# glob *
 			amove usr/share/*
 		}
+		_space() {
+			# with space
+			amove sbin/space' '
+		}
 
 	EOF
 	abuild rootpkg || atf_fail "abuild rootpkg failed"
@@ -717,8 +723,9 @@ abuild_amove_body() {
 			test-amove-var/var/lib/test-amove/testfile \
 			test-amove-usr/usr/share/a \
 			test-amove-usr/usr/share/b \
+			test-amove-space/sbin/space' ' \
 			; do \
-		test -f pkg/$i || atf_fail "$i failed"
+		test -f pkg/"$i" || atf_fail "$i failed"
 	done
 }
 
