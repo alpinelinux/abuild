@@ -8,6 +8,7 @@ use LWP::UserAgent;
 use LWP::ConnCache;
 use JSON;
 use URI;
+use Text::Wrap qw(wrap $columns);
 
 our $packager = '';
 my %pkgmap = ();
@@ -214,6 +215,26 @@ sub get_data {
     return $distdata;
 }
 
+sub format_depends {
+    my $deps = shift;
+
+    $columns = 102;
+
+    $deps =~ s/ {2,}/ /g;
+    $deps =~ s/^\s//g;
+    $deps =~ s/\s$//g;
+
+    if ( length($deps) >= $columns ) {
+        $deps = wrap( "\t", "\t", $deps );
+    }
+    $deps =~ s/\s$//g;
+
+    if ( length($deps) >= $columns ) {
+        $deps = "\n" . $deps . "\n\t";
+    }
+    return $deps;
+}
+
 sub get_deps {
     my ($distdata, $data) = @_;
 
@@ -238,12 +259,12 @@ sub get_deps {
 
     my $apk = read_file('APKBUILD');
 
-    $reqs = join ' ', @reqs;
+    $reqs = format_depends(join ' ', @reqs);
 
     $apk =~ s/depends=""/depends="$reqs"/;
 
     unshift @checkdeps, 'py3-pytest';
-    my $checkdeps = join ' ', @checkdeps;
+    my $checkdeps = format_depends(join ' ', @checkdeps);
 
     $apk =~ s/checkdepends="py3-pytest"/checkdepends="$checkdeps"/;
 
