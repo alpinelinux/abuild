@@ -160,6 +160,7 @@ sub write_apkbuild {
         provides => ($provides or ''),
         replaces => ($replaces or ''),
     );
+    $repl{source} =~ s/-$repl{pkgver}/-\$pkgver/g;
     $template =~ s/\[% (.*?) %\]/$repl{$1}/g;
 
     open my $fh, '>:utf8', 'APKBUILD';
