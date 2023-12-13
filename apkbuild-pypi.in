@@ -208,7 +208,7 @@ sub find_package_name {
 
 sub get_data {
     my ($package) = @_;
-    my $response = $ua->get("https://pypi.python.org/pypi/$package/json");
+    my $response = $ua->get("https://pypi.org/pypi/$package/json");
     $response->is_success or die $response->status_line;
     my $distdata = $json->decode($response->decoded_content);
 
