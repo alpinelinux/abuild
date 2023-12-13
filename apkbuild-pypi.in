@@ -27,6 +27,7 @@ replaces="[% replaces %]"
 url="http://packages.python.org/pypi/[% pkgreal %]"
 arch="noarch"
 license="[% license %]"
+depends=""
 makedepends="py3-gpep517 py3-setuptools py3-wheel"
 checkdepends="py3-pytest"
 subpackages="$pkgname-pyc"
@@ -214,25 +215,37 @@ sub get_data {
 }
 
 sub get_deps {
-    my ($data) = @_;
+    my ($distdata, $data) = @_;
 
-    chdir "src/$data->{pkgreal}-$data->{pkgver}";
-    my $reqs = `python3 ./setup.py --requires`;
+    my $reqs = $distdata->{info}{requires_dist};
+    my %depends = ('py3-pytest' => 'py3-pytest');
 
-    my @reqs = split /\n/, $reqs;
+    my @reqs =
+        map {
+            my $apkname = map_pypi_to_apk(s/(\(|\s+).*$//r);
+            $depends{$apkname} = $apkname
+        }
+        grep { $_ !~ m/; extra ==/ }
+        @$reqs;
 
-    foreach my $i (0 .. $#reqs) {
-        $reqs[$i] =~ s/(\(|\s+).*$//;
-        $reqs[$i] = map_pypi_to_apk($reqs[$i]);
-    }
-
-    chdir '../..';
+    my @checkdeps =
+        map {
+            my $apkname = map_pypi_to_apk(s/(\(|\s+).*$//r);
+            exists($depends{$apkname}) ? () : $apkname
+        }
+        grep { m/; extra == 'tests'/ }
+        @$reqs;
 
     my $apk = read_file('APKBUILD');
 
     $reqs = join ' ', @reqs;
 
-    $apk =~ s/pymakedepends=""/pymakedepends="$reqs"/;
+    $apk =~ s/depends=""/depends="$reqs"/;
+
+    unshift @checkdeps, 'py3-pytest';
+    my $checkdeps = join ' ', @checkdeps;
+
+    $apk =~ s/checkdepends="py3-pytest"/checkdepends="$checkdeps"/;
 
     # remove empty variables
     $apk =~ s/.*=""\n//g;
@@ -241,7 +254,7 @@ sub get_deps {
 
     print $fh $apk;
 
-    say "Requires: $reqs";
+    say "Requires: @reqs\n\nCheckDepends: @checkdeps";
 }
 
 my $abuild_conf = read_assignments_from_file('/etc/abuild.conf');
@@ -280,7 +293,7 @@ if (! defined $ARGV[0]) {
     my $data = write_apkbuild($distdata, undef);
     prepare_tree;
 
-    get_deps($data);
+    get_deps($distdata, $data);
 } elsif ($ARGV[0] eq 'recreate') {
     my $apkbuild = read_apkbuild;
     if (! defined $apkbuild->{_pkgreal}) {
@@ -296,7 +309,7 @@ if (! defined $ARGV[0]) {
     my $data = write_apkbuild($distdata, $apkbuild);
 
     prepare_tree;
-    get_deps($data);
+    get_deps($distdata, $data);
 } elsif ($ARGV[0] eq 'upgrade') {
     my $apkbuild = read_apkbuild;
 
