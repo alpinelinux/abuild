@@ -227,6 +227,30 @@ sub get_data {
     return $distdata;
 }
 
+sub parse_requires_dist {
+    my $reqs = shift;
+
+    # Valid PyPI regex: https://peps.python.org/pep-0508/#names
+    my $pypi_regex = qr/(?i)([A-Z0-9][A-Z0-9][A-Z0-9._-]*[A-Z0-9])/;
+
+    my @depends =
+        map { m/$pypi_regex/; $1 || () }
+        grep { $_ !~ m/; extra ==/ }
+        @$reqs;
+
+    my @checkdeps =
+        map { m/$pypi_regex/; $1 || () }
+        grep { m/; extra == ["'](tests|pytest)["']/ }
+        @$reqs;
+
+    my %reqs = (
+	depends    => \@depends,
+	checkdeps  => \@checkdeps,
+    );
+
+    return \%reqs;
+}
+
 sub format_depends {
     my $deps = shift;
 
@@ -250,35 +274,34 @@ sub format_depends {
 sub get_deps {
     my ($distdata, $data) = @_;
 
-    my $reqs = $distdata->{info}{requires_dist};
+    my $reqs = parse_requires_dist($distdata->{info}{requires_dist});
     my %depends = ('py3-pytest' => 'py3-pytest');
 
-    my @reqs =
+    my @depends =
         map {
-            my $apkname = map_pypi_to_apk(s/(\(|\s+).*$//r);
-            $depends{$apkname} = $apkname
+            my $apkname = map_pypi_to_apk($_);
+            if (exists $depends{$apkname}) { () }
+            else { $depends{$apkname} = $apkname }
         }
-        grep { $_ !~ m/; extra ==/ }
-        @$reqs;
+        @{$reqs->{depends}};
 
     my @checkdeps =
         map {
-            my $apkname = map_pypi_to_apk(s/(\(|\s+).*$//r);
+            my $apkname = map_pypi_to_apk($_);
             exists($depends{$apkname}) ? () : $apkname
         }
-        grep { m/; extra == 'tests'/ }
-        @$reqs;
+        @{$reqs->{checkdeps}};
 
     my $apk = read_file('APKBUILD');
 
-    $reqs = format_depends(join ' ', @reqs);
+    my $depends = format_depends(join ' ', @depends);
 
-    $apk =~ s/depends=""/depends="$reqs"/;
+    $apk =~ s/^depends=""/depends="$depends"/m;
 
     unshift @checkdeps, 'py3-pytest';
     my $checkdeps = format_depends(join ' ', @checkdeps);
 
-    $apk =~ s/checkdepends="py3-pytest"/checkdepends="$checkdeps"/;
+    $apk =~ s/^checkdepends="py3-pytest"/checkdepends="$checkdeps"/m;
 
     # remove empty variables
     $apk =~ s/.*=""\n//g;
@@ -287,7 +310,7 @@ sub get_deps {
 
     print $fh $apk;
 
-    say "Requires: @reqs\n\nCheckDepends: @checkdeps";
+    say "Requires: @depends\n\nCheckDepends: @checkdeps";
 }
 
 my $abuild_conf = read_assignments_from_file('/etc/abuild.conf');
