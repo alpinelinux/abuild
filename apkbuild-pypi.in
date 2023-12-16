@@ -23,7 +23,7 @@ _pkgreal=[% pkgreal %]
 pkgver=[% pkgver %]
 pkgrel=[% pkgrel %]
 pkgdesc="[% pkgdesc %]"
-url="https://pypi.org/project/[% pkgreal %]/"
+url="[% url %]"
 arch="noarch"
 license="[% license %]"
 depends=""
@@ -135,12 +135,20 @@ sub write_apkbuild {
     my $replaces = undef;
     my $provides = undef;
     my $authors = undef;
+    my $license = undef;
+    my $url = undef;
+    my $pkgname = undef;
+    my $pkgdesc = undef;
     my $pkgrel = 0;
 
     if (defined $apkbuild) {
         $authors = $apkbuild->{authors};
         $provides = $apkbuild->{provides};
         $replaces = $apkbuild->{replaces};
+        $license = $apkbuild->{license};
+        $url = $apkbuild->{url};
+        $pkgname = $apkbuild->{pkgname};
+        $pkgdesc = $apkbuild->{pkgdesc};
         $pkgrel = $apkbuild->{pkgrel};
 
 	if ($apkbuild->{pkgver} eq $distdata->{info}{version}) {
@@ -148,15 +156,18 @@ sub write_apkbuild {
 	}
     }
 
+    my $pkgreal = $distdata->{info}{name};
+
     my %repl = (
 	authors  => ($authors or "# Contributor: $packager\n# Maintainer: $packager"),
-        pkgname  => map_pypi_to_apk($distdata->{info}{name}),
-        pkgreal  => $distdata->{info}{name},
+        pkgname  => ($pkgname or map_pypi_to_apk($pkgreal)),
+        pkgreal  => $pkgreal,
         pkgver   => $distdata->{info}{version},
         pkgrel	 => $pkgrel,
         source   => get_source($distdata),
-        license  => map_license($distdata->{info}{license}),
-        pkgdesc  => $distdata->{info}{summary},
+        license  => ($license or map_license($distdata->{info}{license})),
+        url      => ($url or "https://pypi.org/project/${pkgreal}/"),
+        pkgdesc  => ($pkgdesc or $distdata->{info}{summary}),
     );
 
     $repl{compatibility} .= "\nreplaces=\"$replaces\"" if $replaces;
