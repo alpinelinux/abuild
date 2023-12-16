@@ -23,8 +23,6 @@ _pkgreal=[% pkgreal %]
 pkgver=[% pkgver %]
 pkgrel=[% pkgrel %]
 pkgdesc="[% pkgdesc %]"
-provides="[% provides %]"
-replaces="[% replaces %]"
 url="https://pypi.org/project/[% pkgreal %]/"
 arch="noarch"
 license="[% license %]"
@@ -34,7 +32,7 @@ checkdepends="py3-pytest"
 subpackages="$pkgname-pyc"
 source="[% source %]"
 builddir="$srcdir/$_pkgreal-$pkgver"
-
+[% compatibility %]
 build() {
 	gpep517 build-wheel \
 		--wheel-dir .dist \
@@ -159,9 +157,12 @@ sub write_apkbuild {
         source   => get_source($distdata),
         license  => map_license($distdata->{info}{license}),
         pkgdesc  => $distdata->{info}{summary},
-        provides => ($provides or ''),
-        replaces => ($replaces or ''),
     );
+
+    $repl{compatibility} .= "\nreplaces=\"$replaces\"" if $replaces;
+    $repl{compatibility} .= "\nprovides=\"$provides\"" if $provides;
+    $repl{compatibility} .= "\n" if $replaces or $provides;
+
     $repl{source} =~ s/-$repl{pkgver}/-\$pkgver/g;
     $template =~ s/\[% (.*?) %\]/$repl{$1}/g;
 
