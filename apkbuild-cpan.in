@@ -140,9 +140,16 @@ sub write_apkbuild {
 
     my $pkgver = $moddata->{version} =~ s/^[^0-9]+//r;
     if ( $pkgver ne $moddata->{version} ) {
-
         # Appears to only be needed for Class::DBI
-        $builddir = "\$srcdir/\$_pkgreal-" . $moddata->{version};
+        if ( $distdata->{distribution} !~ /class-dbi/i &&
+            $distdata->{distribution} !~ /mail-spf/i &&
+            $distdata->{distribution} !~ /test-mockmodule/i &&
+            $distdata->{distribution} !~ /net-snmp/i
+        ) {
+            $builddir = "\$srcdir/\$_pkgreal-\$pkgver";
+        } else {
+            $builddir = "\$srcdir/\$_pkgreal-" . $moddata->{version};
+        }
     }
     else {
         $builddir = "\$srcdir/\$_pkgreal-\$pkgver";
@@ -218,7 +225,7 @@ sub parse_deps {
     }
     $deps =~ s/\h+/ /g;
     $deps =~ s/ $//;
-    return $deps;
+    return defined $deps ? $deps : '';
 
 }
 
@@ -291,8 +298,11 @@ EOF
 }
 
 sub sort_pkgs_by_orig {
-    my $sort_order    = shift;
-    my @array_to_sort = split / /, shift;
+    my $sort_order = shift;
+    my $list       = shift;
+
+    return '' if !defined $list;
+    my @array_to_sort = split / /, $list;
 
     s/[\t\n\r\f]/ /g
       for $sort_order;    # remove embedded new lines from sort order
@@ -335,6 +345,7 @@ sub sort_pkgs_by_orig {
 sub format_depends {
     my $deps = shift;
 
+    return '' if !defined $deps;
     $columns = 102;
 
     $deps =~ s/ {2,}/ /g;
@@ -360,31 +371,38 @@ sub do_depends {
     $modver = defined($modver) ? $modver : $apkbuild->{'pkgver'};
     my $metaprefix = '';
     if ( exists $apkbuild->{'_realname'} ) {
-        $metaprefix = "src/" . $apkbuild->{'_realname'} . "-" . $modver . "/";
+        $metaprefix = "src/" . $apkbuild->{'_realname'};
     }
     elsif ( exists $apkbuild->{'_pkgreal'} ) {
-        $metaprefix = "src/" . $apkbuild->{'_pkgreal'} . "-" . $modver . "/";
+        $metaprefix = "src/" . $apkbuild->{'_pkgreal'};
     }
     elsif ( exists $apkbuild->{'_pkgname'} ) {
-        $metaprefix = "src/" . $apkbuild->{'_pkgname'} . "-" . $modver . "/";
+        $metaprefix = "src/" . $apkbuild->{'_pkgname'};
     }
     elsif ( exists $apkbuild->{'_name'} ) {
-        $metaprefix = "src/" . $apkbuild->{'_name'} . "-" . $modver . "/";
+        $metaprefix = "src/" . $apkbuild->{'_name'};
     }
     elsif ( exists $apkbuild->{'_realpkgname'} ) {
         $metaprefix =
-          "src/" . $apkbuild->{'_realpkgname'} . "-" . $modver . "/";
+          "src/" . $apkbuild->{'_realpkgname'};
     }
     elsif ( exists $apkbuild->{'_pkg_real'} ) {
-        $metaprefix = "src/" . $apkbuild->{'_pkg_real'} . "-" . $modver . "/";
+        $metaprefix = "src/" . $apkbuild->{'_pkg_real'};
     }
     else {
         die
 "Unable to find meta file directory - check APKBUILD Perl Module Name";
     }
 
+    if ( $metaprefix !~ /class-dbi/i &&
+        $metaprefix !~ /mail-spf/i &&
+        $metaprefix !~ /test-mockmodule/i &&
+        $metaprefix !~ /net-snmp/i
+    ) {
+        $modver =~ s/v//g;
+    }
+    $metaprefix = $metaprefix .  "-" . $modver . "/";
     $metaprefix =~ s/-\$pkgver//g;
-    print "\nMetaprefix: $metaprefix\n";
 
     my $meta;
 
@@ -397,17 +415,21 @@ sub do_depends {
             last;
         }
     }
-    die "No dependency meta file found" unless $meta;
 
-    my $abstract = $meta->abstract;
-    say "Abstract: $abstract";
+    my $deps;
+    my $abstract;
+    my $license;
+    if ($meta) {
+        $license = join " OR ",
+          map { $license_mappings->{$_} or $_ } $meta->license;
+        say "License: $license";
 
-    my $license = join " OR ",
-      map { $license_mappings->{$_} or $_ } $meta->license;
-    say "License: $license";
+        $abstract = $meta->abstract;
+        say "Abstract: $abstract";
 
-    my $deps = parse_deps(
-        $meta->effective_prereqs->requirements_for( 'runtime', 'requires' ) );
+        $deps = parse_deps(
+            $meta->effective_prereqs->requirements_for( 'runtime', 'requires' ) );
+    }
 
     if ( defined $oldapkbuild->{'depends'} ) {
         if ( defined $oldapkbuild->{'cpandepends'} ) {
@@ -418,36 +440,42 @@ sub do_depends {
         $libs =~ s/perl\-\w+[-\w+]+//g;
         $libs =~ s/perl//g;
         if ( $libs ne '' ) {
-            $deps = $deps . " " . $libs;
+            $deps = $deps . " " . $libs if defined $deps;
         }
         $deps = sort_pkgs_by_orig( $oldapkbuild->{'depends'}, $deps );
     }
 
-    if ( $deps eq '' ) {
-        $deps = "perl";
+    if ( defined $deps && $deps eq '' ) {
+        if (defined $oldapkbuild->{'depends'} && ! $meta ) {
+            $deps = $oldapkbuild->{'depends'};
+        } else {
+            $deps = "perl";
+        }
     }
     else {
-        $deps = format_depends( "perl " . $deps );
-
+        $deps = format_depends( "perl " . $deps ) if defined $deps;
     }
 
-    say "CPAN runtime Required: $deps";
-    say "CPAN runtime Recommended: "
-      . parse_deps(
-        $meta->effective_prereqs->requirements_for( 'runtime', 'recommends' ) );
+    my $makedeps = '';
+    if ($meta) {
+        say "CPAN runtime Required: $deps";
+        say "CPAN runtime Recommended: "
+          . parse_deps(
+            $meta->effective_prereqs->requirements_for( 'runtime', 'recommends' ) );
 
-    my $makedeps = parse_deps(
-        $meta->effective_prereqs->requirements_for( 'configure', 'requires' ),
-        $meta->effective_prereqs->requirements_for( 'configure', 'recommends' ),
-        $meta->effective_prereqs->requirements_for( 'build',     'requires' ),
-        $meta->effective_prereqs->requirements_for( 'build',     'recommends' )
-    );
+        $makedeps = parse_deps(
+            $meta->effective_prereqs->requirements_for( 'configure', 'requires' ),
+            $meta->effective_prereqs->requirements_for( 'configure', 'recommends' ),
+            $meta->effective_prereqs->requirements_for( 'build', 'requires' ),
+            $meta->effective_prereqs->requirements_for( 'build', 'recommends' )
+        );
 
-    if ( -e "$metaprefix/Build.PL" ) {
-        $makedeps = "$makedeps perl-module-build"
-          unless $makedeps =~ m/^perl-module-build$/;
+        if ( -e "$metaprefix/Build.PL" ) {
+            $makedeps = "$makedeps perl-module-build"
+              unless $makedeps =~ m/^perl-module-build$/;
+        }
+
     }
-
     if ( defined $oldapkbuild->{'makedepends'} ) {
         if ( defined $oldapkbuild->{'cpanmakedepends'} ) {
             $oldapkbuild->{'makedepends'} =~
@@ -460,30 +488,42 @@ sub do_depends {
           sort_pkgs_by_orig( $oldapkbuild->{'makedepends'}, $makedeps );
     }
 
-    if ( $makedeps eq '' ) {
-        $makedeps = "perl-dev";
+    my $perldev = (
+        ( defined $oldapkbuild->{'makedepends'}
+              && $oldapkbuild->{'makedepends'} =~ 'perl-dev' ) ||
+          length(`find $metaprefix -name '*.xs'`) )
+      ? "perl-dev" : '';
+    if ( defined $makedeps && $makedeps eq '' ) {
+        if (defined $oldapkbuild->{'makedepends'} && ! $meta) {
+            $makedeps = $oldapkbuild->{'makedepends'};
+        } else {
+            $makedeps = $perldev;
+        }
     }
     else {
-        $makedeps = format_depends( "perl-dev " . $makedeps );
+        $makedeps = format_depends( $perldev . " " . $makedeps );
     }
     $makedeps =~ s/ +$//g;
 
-    say "CPAN build deps: $makedeps";
-    say "    CPAN build requires: "
-      . parse_deps(
-        $meta->effective_prereqs->requirements_for( 'configure', 'requires' ),
-        $meta->effective_prereqs->requirements_for( 'build',     'requires' )
-      );
-    say "    CPAN build recommends: "
-      . parse_deps(
-        $meta->effective_prereqs->requirements_for( 'configure', 'recommends' ),
-        $meta->effective_prereqs->requirements_for( 'build',     'recommends' )
-      );
+    my $checkdeps;
+    if ($meta) {
+        say "CPAN build deps: $makedeps";
+        say "    CPAN build requires: "
+          . parse_deps(
+            $meta->effective_prereqs->requirements_for( 'configure', 'requires' ),
+            $meta->effective_prereqs->requirements_for( 'build', 'requires' )
+          );
+        say "    CPAN build recommends: "
+          . parse_deps(
+            $meta->effective_prereqs->requirements_for( 'configure', 'recommends' ),
+            $meta->effective_prereqs->requirements_for( 'build', 'recommends' )
+          );
 
-    my $checkdeps = parse_deps(
-        $meta->effective_prereqs->requirements_for( 'test', 'requires' ),
-        $meta->effective_prereqs->requirements_for( 'test', 'recommends' )
-    );
+        $checkdeps = parse_deps(
+            $meta->effective_prereqs->requirements_for( 'test', 'requires' ),
+            $meta->effective_prereqs->requirements_for( 'test', 'recommends' )
+        );
+    }
 
     if ( defined $oldapkbuild->{'checkdepends'} ) {
         if ( defined $oldapkbuild->{'cpancheckdepends'} ) {
@@ -499,7 +539,14 @@ sub do_depends {
           sort_pkgs_by_orig( $oldapkbuild->{'checkdepends'}, $checkdeps );
     }
 
-    $checkdeps = format_depends($checkdeps);
+    if ( defined $checkdeps && $checkdeps eq '' ) {
+        if (defined $oldapkbuild->{'checkdeps'} && ! $meta) {
+            $checkdeps = $oldapkbuild->{'checkdeps'};
+        }
+    } else {
+        $checkdeps = format_depends($checkdeps);
+    }
+
     say "CPAN check deps: $checkdeps";
 
     my $text = read_file "APKBUILD";
@@ -507,27 +554,31 @@ sub do_depends {
         $text =~ s/^pkgdesc=\"([^\"]*)\"$/pkgdesc=\"$abstract\"/mg
           or die "Can't find pkgdesc line in APKBUILD";
     }
+
     if ( length(`find $metaprefix -name '*.xs'`) ) {
         if ( !exists $oldapkbuild->{'arch'} ) {
             $text =~ s/^arch=\"([^\"]*)\"$/arch="all"/mg
               or die "Can't find arch line in APKBUILD";
+        } else {
+            $text =~ s/^arch=\"([^\"]*)\"$/arch="$oldapkbuild->{'arch'}"/mg
+              or die "Can't find arch line in APKBUILD";
         }
     }
-    if ( $license ne 'unknown' ) {
+    if ( defined $license && $license ne 'unknown' ) {
         $text =~ s/^license=\"([^\"]*)\"$/license=\"$license\"/mg
           or die "Can't find license line in APKBUILD";
     }
     $text =~ s/^depends=\"([^\"]*)\"$/depends=\"$deps\"/mg
       or $text =~ s/(license=.*\n)/$1depends=\"$deps\"/gm
-      or die "Can't insert depends line in APKBUILD";
+      or die "Can't insert depends line in APKBUILD" if defined $deps;
 
     $text =~ s/^makedepends=\"([^\"]*)\"$/makedepends=\"$makedeps\"/mg
       or $text =~ s/(depends=.*\n)/$1makedepends=\"$makedeps\"/gm
-      or die "Can't insert makedepends line in APKBUILD";
+      or die "Can't insert makedepends line in APKBUILD" if defined $makedeps;
 
     $text =~ s/^checkdepends=\"([^\"]*)\"$/checkdepends=\"$checkdeps\"/mg
       or $text =~ s/(makedepends=.*\n)/$1checkdepends=\"$checkdeps\"/gm
-      or die "Can't insert checkdepends line in APKBUILD";
+      or die "Can't insert checkdepends line in APKBUILD" if defined $checkdeps;
 
     # remove empty variables
     $text =~ s/.*=""\n//g;
