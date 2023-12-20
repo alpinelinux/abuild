@@ -14,6 +14,8 @@ use Module::CoreList;
 use JSON;
 use Text::Wrap qw(wrap $columns);
 use List::Util qw (uniq);
+use File::Basename qw(dirname);
+use URI;
 
 my $license_mappings = {
     "perl_5"     => "GPL-1.0-or-later OR Artistic-1.0-Perl",
@@ -138,21 +140,17 @@ sub write_apkbuild {
 
     my $builddir;
 
+    my $srcurl = $moddata->{download_url};
+    my $filename = (URI->new($srcurl)->path_segments)[-1];
+
+    my $pkgreal = $moddata->{distribution};
     my $pkgver = $moddata->{version} =~ s/^[^0-9]+//r;
-    if ( $pkgver ne $moddata->{version} ) {
-        # Appears to only be needed for Class::DBI
-        if ( $distdata->{distribution} !~ /class-dbi/i &&
-            $distdata->{distribution} !~ /mail-spf/i &&
-            $distdata->{distribution} !~ /test-mockmodule/i &&
-            $distdata->{distribution} !~ /net-snmp/i
-        ) {
-            $builddir = "\$srcdir/\$_pkgreal-\$pkgver";
-        } else {
-            $builddir = "\$srcdir/\$_pkgreal-" . $moddata->{version};
-        }
-    }
-    else {
+    if ( $filename =~ m/$pkgreal-$pkgver/ ) {
         $builddir = "\$srcdir/\$_pkgreal-\$pkgver";
+    } elsif ( $filename =~ m/$pkgreal-v${pkgver}/ ) {
+        $builddir = "\$srcdir/\$_pkgreal-v\$pkgver";
+    } else {
+        $builddir = "\$srcdir/\$_pkgreal-" . $moddata->{version};
     }
 
     my %repl = (
@@ -161,16 +159,16 @@ sub write_apkbuild {
               or "# Contributor: $packager\n# Maintainer: $packager"
         ),
         pkgname  => map_cpan_to_apk( $moddata->{distribution} ),
-        pkgreal  => $moddata->{distribution},
-        pkgver   => $moddata->{version} =~ s/^[^0-9]+//r,
+        pkgreal  => $pkgreal,
+        pkgver   => $pkgver,
         pkgrel   => $pkgrel,
-        source   => $moddata->{download_url},
+        source   => $srcurl,
         pkgdesc  => $distdata->{abstract},
         provides => ( $provides or '' ),
         replaces => ( $replaces or '' ),
         builddir => $builddir,
     );
-    $repl{source} =~ s/-$repl{pkgver}/-\$pkgver/g;
+    $repl{source} =~ s/$repl{pkgver}/\$pkgver/g;
     $template =~ s/\[% (.*?) %\]/$repl{$1}/g;
 
     open my $fh, '>', "APKBUILD" or die;
@@ -368,7 +366,6 @@ sub do_depends {
     my $oldapkbuild = shift;
     my $apkbuild    = read_apkbuild;
 
-    $modver = defined($modver) ? $modver : $apkbuild->{'pkgver'};
     my $metaprefix = '';
     if ( exists $apkbuild->{'_realname'} ) {
         $metaprefix = "src/" . $apkbuild->{'_realname'};
@@ -394,24 +391,52 @@ sub do_depends {
 "Unable to find meta file directory - check APKBUILD Perl Module Name";
     }
 
-    if ( $metaprefix !~ /class-dbi/i &&
-        $metaprefix !~ /mail-spf/i &&
-        $metaprefix !~ /test-mockmodule/i &&
-        $metaprefix !~ /net-snmp/i
-    ) {
-        $modver =~ s/v//g;
+    $modver = defined($modver) ? $modver : $apkbuild->{'pkgver'};
+    $modver =~ s/v//g;
+
+    # try with partial metaprefix
+    my @metafiles = glob("
+        $metaprefix-*${modver}/*META.json
+        $metaprefix-*${modver}/*META.yml
+    ");
+
+    if ( @metafiles ) {
+        $metaprefix = dirname($metafiles[0]);
+    } elsif (my $makefile = glob("src/*${modver}/Makefile.PL")) {
+        $metaprefix = dirname($makefile);
+        system("cd $metaprefix && perl -I. Makefile.PL");
+    } elsif (my $buildpl = glob("src/*${modver}/Build.PL")) {
+        $metaprefix = dirname($buildpl);
+    } else {
+        die "Unable to find meta, makefile, and build.pl - cannot proceed"
     }
-    $metaprefix = $metaprefix .  "-" . $modver . "/";
-    $metaprefix =~ s/-\$pkgver//g;
+
+    # try again with full metaprefix
+    push @metafiles, glob("
+        $metaprefix/*META.json
+        $metaprefix/*META.yml
+    ") unless @metafiles;
+
+    my $builddir = do {
+        my $pkgreal = $apkbuild->{'_pkgreal'};
+        my $oldbuilddir = $apkbuild->{builddir};
+        my $newbuilddir = $metaprefix;
+
+        $newbuilddir =~ s/src/\$srcdir/;
+        $newbuilddir =~ s/$pkgreal/\$_pkgreal/;
+        $newbuilddir =~ s/$modver/\$pkgver/;
+
+        $newbuilddir eq $oldbuilddir ? undef : $newbuilddir
+    };
 
     my $meta;
 
     foreach
-      my $metafile ( "MYMETA.json", "META.json", "MYMETA.yml", "META.yml" )
+      my $metafile ( @metafiles )
     {
-        if ( -e "$metaprefix$metafile" ) {
+        if ( -e "$metafile" ) {
             say "Using meta information from $metafile";
-            $meta = CPAN::Meta->load_file("$metaprefix$metafile");
+            $meta = CPAN::Meta->load_file("$metafile");
             last;
         }
     }
@@ -579,6 +604,13 @@ sub do_depends {
     $text =~ s/^checkdepends=\"([^\"]*)\"$/checkdepends=\"$checkdeps\"/mg
       or $text =~ s/(makedepends=.*\n)/$1checkdepends=\"$checkdeps\"/gm
       or die "Can't insert checkdepends line in APKBUILD" if defined $checkdeps;
+
+    if (defined $builddir) {
+        print "\n\$builddir redefined:\n\tOLD: '", $apkbuild->{builddir},
+            "', NEW: '", $builddir, "'\n";
+
+        $text =~ s/^builddir=\"([^\"]*)\"/builddir="$builddir"/mg;
+    }
 
     # remove empty variables
     $text =~ s/.*=""\n//g;
