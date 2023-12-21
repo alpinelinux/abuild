@@ -576,6 +576,9 @@ sub do_depends {
 
     my $text = read_file "APKBUILD";
     if ( $abstract && $abstract ne 'unknown' ) {
+        $abstract =~ s/"/\\"/g;
+        $abstract =~ s/[.\s]+$//;
+
         $text =~ s/^pkgdesc=\"([^\"]*)\"$/pkgdesc=\"$abstract\"/mg
           or die "Can't find pkgdesc line in APKBUILD";
     }
