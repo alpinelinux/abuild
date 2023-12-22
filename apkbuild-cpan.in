@@ -47,6 +47,7 @@ provides="[% provides %]"
 replaces="[% replaces %]"
 url="https://metacpan.org/release/[% pkgreal %]/"
 arch="noarch"
+options="[% options %]" [% options_comment %]
 license="GPL-1.0-or-later OR Artistic-1.0-Perl"
 depends="perl"
 makedepends=""
@@ -100,6 +101,15 @@ sub read_assignments_from_file {
     my $requires = $text =~ m/^requires=\"(.*)\"".*$/mg;
     $hash{'requires'} = $1 if length($requires) >= 1;
 
+    my $options = $text =~ m/^options=\"(.*)\"(.*)$/mg;
+    $hash{'options'} = "$1" if length($options) >= 1;
+    $hash{'options_comment'} = "$2" if length($options) >= 1;
+
+    my $source = $text =~ m/^source=\"([^\"]*)\"/mg;
+    my @patches =  split (/\n/m, $1);
+    shift @patches;
+    $hash{'patches'} = \@patches;
+
     return \%hash;
 }
 
@@ -128,11 +138,17 @@ sub write_apkbuild {
     my $replaces = undef;
     my $provides = undef;
     my $pkgrel   = 0;
+    my $options = undef;
+    my $options_comment = undef;
+    my $patches  = "";
     if ( defined $apkbuild ) {
         $authors  = $apkbuild->{authors};
         $provides = $apkbuild->{provides};
         $replaces = $apkbuild->{replaces};
         $pkgrel   = $apkbuild->{pkgrel};
+        $options  = $apkbuild->{options} if defined $apkbuild->{options};
+        $options_comment  = $apkbuild->{options_comment} if defined $apkbuild->{options_comment};
+        $patches  = "\n" . join ("\n", @{$apkbuild->{patches}}) if scalar @{$apkbuild->{patches}};
         if ( $apkbuild->{pkgver} eq $moddata->{version} ) {
             $pkgrel++;
         }
@@ -162,11 +178,13 @@ sub write_apkbuild {
         pkgreal  => $pkgreal,
         pkgver   => $pkgver,
         pkgrel   => $pkgrel,
-        source   => $srcurl,
+        source   => defined $patches ? ($srcurl . $patches) : $srcurl,
         pkgdesc  => $distdata->{abstract},
         provides => ( $provides or '' ),
         replaces => ( $replaces or '' ),
         builddir => $builddir,
+        options  => ( $options or '' ),
+        options_comment => ( $options_comment or '' ),
     );
     $repl{source} =~ s/$repl{pkgver}/\$pkgver/g;
     $template =~ s/\[% (.*?) %\]/$repl{$1}/g;
@@ -616,7 +634,7 @@ sub do_depends {
     }
 
     # remove empty variables
-    $text =~ s/.*=""\n//g;
+    $text =~ s/.*="".{0,}\n//g;
 
     open my $fh, '>', "APKBUILD" or die;
     print $fh $text;
