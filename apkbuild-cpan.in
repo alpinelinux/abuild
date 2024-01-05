@@ -419,22 +419,27 @@ sub do_depends {
         $metaprefix-*${modver}/*META.yml
     ");
 
+    my $build_file = glob("
+        src/*${modver}/Build.PL
+        src/*${modver}/Makefile.PL
+    ");
+
     if ( @metafiles ) {
         $metaprefix = dirname($metafiles[0]);
-    } elsif (my $makefile = glob("src/*${modver}/Makefile.PL")) {
-        $metaprefix = dirname($makefile);
-        system("cd $metaprefix && perl -I. Makefile.PL");
-    } elsif (my $buildpl = glob("src/*${modver}/Build.PL")) {
-        $metaprefix = dirname($buildpl);
+    } elsif ( $build_file ) {
+        $metaprefix = dirname($build_file);
+        system("cd $metaprefix && perl -I. $build_file");
+
+        # try again with full metaprefix
+        push @metafiles, glob("
+            $metaprefix/*META.json
+            $metaprefix/*META.yml
+        ");
     } else {
         die "Unable to find meta, makefile, and build.pl - cannot proceed"
     }
 
-    # try again with full metaprefix
-    push @metafiles, glob("
-        $metaprefix/*META.json
-        $metaprefix/*META.yml
-    ") unless @metafiles;
+    die "No meta files found after executing $build_file" unless @metafiles;
 
     my $builddir = do {
         my $pkgreal = $apkbuild->{'_pkgreal'};
