@@ -105,10 +105,11 @@ sub read_assignments_from_file {
     $hash{'options'} = "$1" if length($options) >= 1;
     $hash{'options_comment'} = "$2" if length($options) >= 1;
 
-    my $source = $text =~ m/^source=\"([^\"]*)\"/mg;
-    my @patches =  split (/\n/m, $1);
-    shift @patches;
-    $hash{'patches'} = \@patches;
+    if ($text =~ m/^source=\"([^\"]*)\"/mg) {
+        my @patches =  split (/\n/m, $1);
+        shift @patches;
+        $hash{'patches'} = \@patches;
+    }
 
     return \%hash;
 }
