@@ -32,6 +32,12 @@ my $package_mappings = {
     "TermReadKey" => "perl-term-readkey",
     "perl-ldap"   => "perl-ldap",
     "PerlIO-gzip" => "perl-io-gzip",
+    "ControlX10-CM11" => "perl-control-x10",
+    "File-RsyncP" => "perl-file-rsync",
+    "Perl-Critic" => "perl-critic",
+    "Perl-Tidy"   => "perl-tidy",
+    "ack"         => "ack",
+    "Mail-SpamAssassin" => "spamassassin",
 };
 our $packager = "";
 my $template = <<'EOF';
