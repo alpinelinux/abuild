@@ -23,6 +23,7 @@ init_tests \
 	abuild_invalid_pkgnames \
 	abuild_invalid_subpkgnames \
 	abuild_invalid_subpkg_version \
+	abuild_subpackage_arch \
 	abuild_large_doc_subpackage \
 	abuild_bigdocs \
 	abuild_warn_pkgver_patch_version \
@@ -448,6 +449,21 @@ abuild_invalid_subpkg_version_body() {
 	TESTDEPVER="1.0-0" atf_check -s exit:1 \
 		-e match:"Invalid version" \
 		abuild all
+}
+
+abuild_subpackage_arch_body() {
+	init_keys
+	cp -ra "$testrepo" .
+	cd testrepo/subpackage-arch
+	arch="$(abuild -A)"
+
+	for i in noarch all "$arch"; do
+		TESTSUBARCH="$i" abuild all
+
+		[ -f "$REPODEST/testrepo/$arch/test-pkgname-$i-1.0-r0.apk" ] || \
+			atf_fail "Failed to place $i arch subpackage correctly"
+		rm -rf "$REPODEST/testrepo"
+	done
 }
 
 abuild_large_doc_subpackage_body() {

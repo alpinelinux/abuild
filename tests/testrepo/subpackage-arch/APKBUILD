@@ -1,0 +1,24 @@
+# Maintainer: Natanael Copa <ncopa@alpinelinux.org>
+
+# test package
+pkgname=${TESTNAME-test-pkgname}
+pkgver="${TESTPKGVER-1.0}"
+pkgrel=0
+pkgdesc="Dummy subpackage arch"
+url="https://gitlab.alpinelinux.org/alpine/aports"
+arch="noarch"
+license="MIT"
+subpackages="$pkgname-$TESTSUBARCH:_sub:$TESTSUBARCH"
+options="!archcheck"
+
+check() {
+	true
+}
+
+package() {
+	mkdir -p "$pkgdir"
+}
+
+_sub() {
+	mkdir -p "$subpkgdir"
+}

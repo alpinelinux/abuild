@@ -607,13 +607,19 @@ subpkg_set() {
 	fi
 }
 
+arch2dir() {
+	local arch="$1"
+	[ "$arch" = "noarch" -o "$arch" = "all" ] && arch="$CARCH"
+	printf '%s\n' "$arch"
+}
+
 cleanpkg() {
 	local i
 	msg "Cleaning built packages..."
 	rm -f "$REPODEST/$repo/src/$pkgname-$pkgver-r$pkgrel.src.tar.gz"
 	for i in $allpackages; do
 		subpkg_set "$i"
-		rm -f "$REPODEST/$repo/${subpkgarch/noarch/$CARCH}/$subpkgname-$pkgver-r$pkgrel.apk"
+		rm -f "$REPODEST/$repo/$(arch2dir "$subpkgarch")/$subpkgname-$pkgver-r$pkgrel.apk"
 	done
 	subpkg_unset
 
@@ -1854,8 +1860,8 @@ create_apks() {
 		abuild-sign -q control.tar.gz || exit 1
 
 		msg "Create $apk"
-		mkdir -p "$REPODEST"/$repo/${subpkgarch/noarch/$CARCH}
-		cat control.tar.gz data.tar.gz > "$REPODEST"/$repo/${subpkgarch/noarch/$CARCH}/$apk
+		mkdir -p "$REPODEST/$repo/$(arch2dir "$subpkgarch")"
+		cat control.tar.gz data.tar.gz > "$REPODEST/$repo/$(arch2dir "$subpkgarch")/$apk"
 		)
 	done
 }
@@ -1897,9 +1903,9 @@ update_abuildrepo_index() {
 		##NOARCH: These packages are really in $CARCH and do not need their
 		# own repository. --rewrite-arch is used below to make sure the index
 		# thinks they are for $CARCH and apk-tools will fetch them from
-		# correct URL path. Remainder of the script uses ${subpkgarch/noarch/$CARCH}
+		# correct URL path. Remainder of the script uses $(arch2dir "$subpkgarch")
 		# when expanding to the target repository path.
-		[ "$subpkgarch" = "noarch" ] && subpkgarch="$CARCH"
+		[ "$subpkgarch" = "noarch" -o "$subpkgarch" = "all" ] && subpkgarch="$CARCH"
 		list_has "$subpkgarch" "$allarch" || allarch="$allarch $subpkgarch"
 	done
 	subpkg_unset
@@ -2301,7 +2307,7 @@ apk_up2date() {
 	local i s
 	for i in $allpackages; do
 		subpkg_set "$i"
-		if [ ! -f "$REPODEST/$repo/${subpkgarch/noarch/$CARCH}/$subpkgname-$pkgver-r$pkgrel.apk" ]; then
+		if [ ! -f "$REPODEST/$repo/$(arch2dir "$subpkgarch")/$subpkgname-$pkgver-r$pkgrel.apk" ]; then
 			subpkg_unset
 			return 1
 		fi
@@ -2316,7 +2322,7 @@ apk_up2date() {
 		else
 			s="$startdir/${i##*/}"
 		fi
-		if [ "$s" -nt "$REPODEST/$repo/${pkgarch/noarch/$CARCH}/$pkgname-$pkgver-r$pkgrel.apk" ]; then
+		if [ "$s" -nt "$REPODEST/$repo/$(arch2dir "$pkgarch")/$pkgname-$pkgver-r$pkgrel.apk" ]; then
 			return 1
 		fi
 	done
@@ -2328,7 +2334,7 @@ abuildindex_up2date() {
 
 	for i in $allpackages; do
 		subpkg_set "$i"
-		local dir="$REPODEST"/$repo/${subpkgarch/noarch/$CARCH}
+		local dir="$REPODEST/$repo/$(arch2dir "$subpkgarch")"
 		local idx="$dir"/APKINDEX.tar.gz
 		local file="$dir"/$subpkgname-$pkgver-r$pkgrel.apk
 
