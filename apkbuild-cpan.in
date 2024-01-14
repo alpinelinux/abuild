@@ -259,8 +259,9 @@ sub prepare_tree {
 
 sub update_functions {
     my $apkbuild = read_apkbuild;
+    my $pkgver = $apkbuild->{'pkgver'};
     my $metaprefix =
-      "src/" . $apkbuild->{'_pkgreal'} . "-" . $apkbuild->{'pkgver'} . "/";
+      "src/" . $apkbuild->{'_pkgreal'} . "-" . $pkgver . "/";
     my $build_func;
     my $check_func;
     my $package_func;
@@ -307,6 +308,18 @@ EOF
 check() {
 	export CFLAGS=$(perl -MConfig -E 'say $Config{ccflags}')
 	make test
+}
+EOF
+    }
+
+    if ( length(`find src/*$pkgver/lib -name '*.pod'`) ) {
+        $package_func .= <<'EOF';
+
+doc() {
+	local file; find "$pkgdir" -name "*.pod" | while read -r file; do
+		amove "${file#"$pkgdir"}"
+	done
+	default_doc
 }
 EOF
     }
