@@ -236,7 +236,7 @@ sub parse_deps {
     }
 
     # map package names to alpine packages
-    foreach ( keys %{$distfiles} ) {
+    foreach ( sort keys %{$distfiles} ) {
         $response = $ua->get("https://fastapi.metacpan.org/module/$_");
         $response->is_success or die $response->status_line;
         my $distdata = $json->decode( $response->decoded_content );
@@ -244,7 +244,7 @@ sub parse_deps {
           and die "Error trying to locate $_: $distdata->{error}\n";
 
         my $pkgname = map_cpan_to_apk( $distdata->{distribution} );
-        $deps .= "$pkgname " unless $deps =~ m/^$pkgname$/;
+        $deps .= "$pkgname " unless $deps =~ m/\b$pkgname\b/;
     }
     $deps =~ s/\h+/ /g;
     $deps =~ s/ $//;
