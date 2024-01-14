@@ -559,10 +559,12 @@ sub do_depends {
           sort_pkgs_by_orig( $oldapkbuild->{'makedepends'}, $makedeps );
     }
 
+    my $has_xs = length(`find $metaprefix -name '*.xs'`);
+
     my $perldev = (
         ( defined $oldapkbuild->{'makedepends'}
               && $oldapkbuild->{'makedepends'} =~ 'perl-dev' ) ||
-          length(`find $metaprefix -name '*.xs'`) )
+          $has_xs )
       ? "perl-dev" : '';
     if ( defined $makedeps && $makedeps eq '' ) {
         if (defined $oldapkbuild->{'makedepends'} && ! $meta) {
@@ -629,15 +631,19 @@ sub do_depends {
           or die "Can't find pkgdesc line in APKBUILD";
     }
 
-    if ( length(`find $metaprefix -name '*.xs'`) ) {
-        if ( !exists $oldapkbuild->{'arch'} ) {
-            $text =~ s/^arch=\"([^\"]*)\"$/arch="all"/mg
-              or die "Can't find arch line in APKBUILD";
-        } else {
-            $text =~ s/^arch=\"([^\"]*)\"$/arch="$oldapkbuild->{'arch'}"/mg
-              or die "Can't find arch line in APKBUILD";
-        }
+    if ( exists $oldapkbuild->{'arch'} ) {
+        # Prevent removal of empty arch variable for disabled aports
+        my $subst_arch = $oldapkbuild->{'arch'}
+          ? '"' . $oldapkbuild->{'arch'} . '"'
+          : "";
+
+        $text =~ s/^arch=\"([^\"]*)\"$/arch=$subst_arch/mg
+          or die "Can't find arch line in APKBUILD";
+    } elsif ( $has_xs ) {
+        $text =~ s/^arch=\"([^\"]*)\"$/arch="all"/mg
+          or die "Can't find arch line in APKBUILD";
     }
+
     if ( defined $license && $license ne 'unknown' ) {
         $text =~ s/^license=\"([^\"]*)\"$/license=\"$license\"/mg
           or die "Can't find license line in APKBUILD";
