@@ -837,7 +837,7 @@ postcheck() {
 			warning "Found /usr/share/man but package name doesn't end with -doc"
 		fi
 		# check for uncompressed man pages
-		i=$(find "$dir"/usr/share/man -name '*.[0-8]' -type f | sed "s|^$dir|\t|")
+		i=$(find "$dir"/usr/share/man -name '*.[0-8]' -type f | sed -e 's/^/\t/')
 		if [ -n "$i" ]; then
 			error "Found uncompressed man pages:"
 			echo "$i"
@@ -860,7 +860,7 @@ postcheck() {
 		e=1
 	fi
 	# check directory permissions
-	i=$(find "$dir" -type d -perm -777 | sed "s|^$dir|\t|")
+	i=$(find "$dir" -type d -perm -777 | sed -e 's/^/\t/')
 	if [ -n "$i" ]; then
 		warning "World writeable directories found:"
 		echo "$i"
@@ -868,7 +868,7 @@ postcheck() {
 	# check so we dont have any suid root binaries that are not PIE
 	i=$(find "$dir" -type f -perm /6000 \
 		| xargs scanelf --nobanner --etype ET_EXEC \
-		| sed "s|ET_EXEC $dir|\t|")
+		| sed -e 's/ET_EXEC /\t/')
 	if [ -n "$i" ]; then
 		warning "Found non-PIE files that have SUID:"
 		echo "$i"
