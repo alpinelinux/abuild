@@ -260,14 +260,13 @@ sub prepare_tree {
 sub update_functions {
     my $apkbuild = read_apkbuild;
     my $pkgver = $apkbuild->{'pkgver'};
-    my $metaprefix =
-      "src/" . $apkbuild->{'_pkgreal'} . "-" . $pkgver . "/";
+    my $build_pl_found = glob("src/*${pkgver}/Build.PL");
     my $build_func;
     my $check_func;
     my $package_func;
 
     my $text = read_file "APKBUILD";
-    if ( -e "$metaprefix/Build.PL" ) {
+    if ( $build_pl_found ) {
         $build_func = <<'EOF';
 build() {
 	export CFLAGS=$(perl -MConfig -E 'say $Config{ccflags}')
