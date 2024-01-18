@@ -14,7 +14,7 @@ use Module::CoreList;
 use JSON;
 use Text::Wrap qw(wrap $columns);
 use List::Util qw (uniq);
-use File::Basename qw(dirname);
+use File::Basename qw(basename dirname);
 use URI;
 
 my $license_mappings = {
@@ -440,15 +440,16 @@ sub do_depends {
         $metaprefix-*${modver}/*META.yml
     ");
 
-    my $build_file = glob("
+    my $build_path = glob("
         src/*${modver}/Build.PL
         src/*${modver}/Makefile.PL
     ");
 
     if ( @metafiles ) {
         $metaprefix = dirname($metafiles[0]);
-    } elsif ( $build_file ) {
-        $metaprefix = dirname($build_file);
+    } elsif ( $build_path ) {
+        $metaprefix = dirname($build_path);
+        my $build_file = basename($build_path);
         system("cd $metaprefix && perl -I. $build_file");
 
         # try again with full metaprefix
@@ -460,7 +461,7 @@ sub do_depends {
         die "Unable to find meta, makefile, and build.pl - cannot proceed"
     }
 
-    die "No meta files found after executing $build_file" unless @metafiles;
+    die "No meta files found after executing $build_path" unless @metafiles;
 
     my $builddir = do {
         my $pkgreal = $apkbuild->{'_pkgreal'};
@@ -506,11 +507,11 @@ sub do_depends {
             $oldapkbuild->{'depends'} =~
               s/\$cpandepends/$oldapkbuild->{'cpandepends'}/g;
         }
-        my $libs = $oldapkbuild->{'depends'};
-        $libs =~ s/perl\-\w+[-\w+]+//g;
-        $libs =~ s/perl//g;
-        if ( $libs ne '' ) {
-            $deps = $deps . " " . $libs if defined $deps;
+        my @libs = split /\s+/, $oldapkbuild->{'depends'};
+        if ( @libs ) {
+            my $libs = join ' ',
+              grep { not (m/perl\-\w+[-\w+]+/ or ($_ eq 'perl')) } @libs;
+            $deps .= " " . $libs if defined $deps;
         }
         $deps = sort_pkgs_by_orig( $oldapkbuild->{'depends'}, $deps );
     }
@@ -551,9 +552,11 @@ sub do_depends {
             $oldapkbuild->{'makedepends'} =~
               s/\$cpanmakedepends/$oldapkbuild->{'cpanmakedepends'}/g;
         }
-        my $libs = $oldapkbuild->{'makedepends'};
-        $libs =~ s/perl\-\w+[-\w+]+//g;
-        $makedeps = $makedeps . " " . $libs;
+        my @libs = split /\s+/, $oldapkbuild->{'makedepends'};
+        if ( @libs ) {
+            my $libs = join ' ', grep { not (m/perl\-\w+[-\w+]+/) } @libs;
+            $makedeps .= " " . $libs;
+        }
         $makedeps =
           sort_pkgs_by_orig( $oldapkbuild->{'makedepends'}, $makedeps );
     }
@@ -602,10 +605,10 @@ sub do_depends {
             $oldapkbuild->{'checkdepends'} =~
               s/\$cpancheckdepends/$oldapkbuild->{'cpancheckdepends'}/g;
         }
-        my $libs = $oldapkbuild->{'checkdepends'};
-        $libs =~ s/perl\-\w+[-\w+]+//g;
-        if ( $libs ne "" ) {
-            $checkdeps = $checkdeps . " " . $libs;
+        my @libs = split /\s+/, $oldapkbuild->{'checkdepends'};
+        if ( @libs ) {
+            my $libs = join ' ', grep { not (m/perl\-\w+[-\w+]+/) } @libs;
+            $checkdeps .= " " . $libs;
         }
         $checkdeps =
           sort_pkgs_by_orig( $oldapkbuild->{'checkdepends'}, $checkdeps );
