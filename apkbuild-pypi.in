@@ -113,6 +113,7 @@ sub map_pypi_to_apk {
 sub map_license {
     my ($license) = @_;
 
+    $license //= '';
     $license =~ s/ or / /g;
 
     return $license;
@@ -221,12 +222,13 @@ sub write_apkbuild {
         source   => format_source($srcurl, $orig_source),
         license  => ($license or map_license($distdata->{info}{license})),
         url      => ($url or "https://pypi.org/project/${pkgreal}/"),
-        pkgdesc  => ($pkgdesc or $distdata->{info}{summary}),
-        builddir => $builddir,
+        pkgdesc  => ($pkgdesc or $distdata->{info}{summary} or "Python module for $pkgreal"),
+        builddir => ($builddir or ''),
         options  => ($options or ''),
         options_comment => ($options_comment or ''),
     );
 
+    $repl{compatibility} = "";
     if ($replaces) {
         my $comment = $apkbuild->{'replaces_comment'} // '';
         $repl{compatibility} .= "\nreplaces=\"$replaces\"" . $comment;
