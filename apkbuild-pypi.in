@@ -32,6 +32,7 @@ checkdepends="py3-pytest"
 subpackages="$pkgname-pyc"
 source="[% source %]"
 builddir="$srcdir/$_pkgreal-$pkgver"
+options="[% options %]"[% options_comment %]
 [% compatibility %]
 build() {
 	gpep517 build-wheel \
@@ -82,6 +83,11 @@ sub read_assignments_from_file {
     my $requires = $text =~ m/^requires=\"(.*)\"".*$/mg;
     $hash{'requires'} = $1 if length($requires) >= 1;
 
+    if ($text =~ m/^options=\"(.*)\"(.*)$/mg) {
+        $hash{'options'} = $1;
+        $hash{'options_comment'} = $2;
+    }
+
     return \%hash;
 }
 
@@ -129,6 +135,32 @@ sub read_apkbuild {
     return read_assignments_from_file('APKBUILD');
 }
 
+sub format_line {
+    my $line = shift;
+    return "\t" . $line . "\n";
+}
+
+sub format_source {
+    my $srcurl   = shift;
+    my $orig_src = shift;
+
+    $orig_src =~ s/^\s+//mg;
+    $orig_src =~ s/\s+/ /g;
+
+    my @sources = split (/\s/, $orig_src);
+
+    return $srcurl if @sources <= 1;
+
+    shift @sources if $sources[0] =~ m/pkgver/;
+    my $patches;
+    for my $patch (@sources) {
+        next if $patch eq "";
+        $patches .= format_line($patch);
+    }
+
+    return $srcurl . "\n" . ($patches // '') . "\t";
+}
+
 sub write_apkbuild {
     my ($distdata, $apkbuild) = @_;
 
@@ -140,6 +172,9 @@ sub write_apkbuild {
     my $pkgname = undef;
     my $pkgdesc = undef;
     my $pkgrel = 0;
+    my $options = undef;
+    my $options_comment = undef;
+    my $orig_source = "";
 
     if (defined $apkbuild) {
         $authors = $apkbuild->{authors};
@@ -150,6 +185,9 @@ sub write_apkbuild {
         $pkgname = $apkbuild->{pkgname};
         $pkgdesc = $apkbuild->{pkgdesc};
         $pkgrel = $apkbuild->{pkgrel};
+        $options  = $apkbuild->{options} if defined $apkbuild->{options};
+        $options_comment  = $apkbuild->{options_comment} if defined $apkbuild->{options_comment};
+        $orig_source      = $apkbuild->{source};
 
 	if ($apkbuild->{pkgver} eq $distdata->{info}{version}) {
 	    $pkgrel++;
@@ -157,6 +195,7 @@ sub write_apkbuild {
     }
 
     my $pkgreal = $distdata->{info}{name};
+    my $srcurl = get_source($distdata);
 
     my %repl = (
 	authors  => ($authors or "# Contributor: $packager\n# Maintainer: $packager"),
@@ -164,10 +203,12 @@ sub write_apkbuild {
         pkgreal  => $pkgreal,
         pkgver   => $distdata->{info}{version},
         pkgrel	 => $pkgrel,
-        source   => get_source($distdata),
+        source   => format_source($srcurl, $orig_source),
         license  => ($license or map_license($distdata->{info}{license})),
         url      => ($url or "https://pypi.org/project/${pkgreal}/"),
         pkgdesc  => ($pkgdesc or $distdata->{info}{summary}),
+        options  => ($options or ''),
+        options_comment => ($options_comment or ''),
     );
 
     $repl{compatibility} .= "\nreplaces=\"$replaces\"" if $replaces;
@@ -304,7 +345,7 @@ sub get_deps {
     $apk =~ s/^checkdepends="py3-pytest"/checkdepends="$checkdeps"/m;
 
     # remove empty variables
-    $apk =~ s/.*=""\n//g;
+    $apk =~ s/.*="".{0,}\n//g;
 
     open my $fh, '>:utf8', 'APKBUILD';
 
@@ -339,7 +380,7 @@ sub write_old_deps {
     }
 
     # remove empty variables
-    $apk =~ s/.*=""\n//g;
+    $apk =~ s/.*="".{0,}\n//g;
 
     open my $fh, '>:utf8', 'APKBUILD';
 
