@@ -9,6 +9,7 @@ use LWP::ConnCache;
 use JSON;
 use URI;
 use Text::Wrap qw(wrap $columns);
+use File::Basename qw(dirname);
 
 our $packager = '';
 my %pkgmap = ();
@@ -31,7 +32,7 @@ makedepends="py3-gpep517 py3-setuptools py3-wheel"
 checkdepends="py3-pytest"
 subpackages="$pkgname-pyc"
 source="[% source %]"
-builddir="$srcdir/$_pkgreal-$pkgver"
+builddir="[% builddir %]"
 options="[% options %]"[% options_comment %]
 [% compatibility %]
 build() {
@@ -88,6 +89,11 @@ sub read_assignments_from_file {
     if ($text =~ m/^replaces=\"(.*)\"(.*)$/m) {
         $hash{'replaces'} = $1;
         $hash{'replaces_comment'} = $2;
+    }
+
+    # workaround for `builddir="$srcdir"/$_pkgname-$pkgver`
+    if ($text =~ m/^builddir=\"(.*)\"([^\s]*)/m) {
+        $hash{'builddir'} = $1 . $2;
     }
 
     if ($text =~ m/^options=\"(.*)\"(.*)$/m) {
@@ -179,6 +185,7 @@ sub write_apkbuild {
     my $pkgname = undef;
     my $pkgdesc = undef;
     my $pkgrel = 0;
+    my $builddir = undef;
     my $options = undef;
     my $options_comment = undef;
     my $orig_source = "";
@@ -192,6 +199,7 @@ sub write_apkbuild {
         $pkgname = $apkbuild->{pkgname};
         $pkgdesc = $apkbuild->{pkgdesc};
         $pkgrel = $apkbuild->{pkgrel};
+        $builddir = $apkbuild->{builddir};
         $options  = $apkbuild->{options} if defined $apkbuild->{options};
         $options_comment  = $apkbuild->{options_comment} if defined $apkbuild->{options_comment};
         $orig_source      = $apkbuild->{source};
@@ -214,6 +222,7 @@ sub write_apkbuild {
         license  => ($license or map_license($distdata->{info}{license})),
         url      => ($url or "https://pypi.org/project/${pkgreal}/"),
         pkgdesc  => ($pkgdesc or $distdata->{info}{summary}),
+        builddir => $builddir,
         options  => ($options or ''),
         options_comment => ($options_comment or ''),
     );
@@ -240,8 +249,15 @@ sub write_apkbuild {
     return \%repl;
 }
 
+sub unpack_source {
+    system('abuild checksum unpack');
+}
+
 sub prepare_tree {
-    system('abuild checksum unpack prepare');
+    my %options = @_;
+
+    unpack_source if $options{unpack};
+    system('abuild prepare');
 }
 
 sub find_package_name {
@@ -400,6 +416,48 @@ sub write_old_deps {
     print $fh $apk;
 }
 
+sub update_builddir {
+    my $apkbuild = read_apkbuild;
+    my $pkgreal = $apkbuild->{'_pkgreal'};
+    my $pkgname = $apkbuild->{pkgname};
+    my $pkgver = $apkbuild->{pkgver};
+    my $oldbuilddir = $apkbuild->{builddir};
+
+    my $build_path = glob("
+      src/*${pkgver}/pyproject.toml
+      src/*${pkgver}/setup.py
+    ");
+
+    if ($build_path) {
+        my $newbuilddir = dirname($build_path);
+
+        $newbuilddir =~ s/src/\$srcdir/;
+        $newbuilddir =~ s/$pkgreal/\$_pkgreal/;
+        $newbuilddir =~ s/$pkgver/\$pkgver/;
+
+        my $apk = read_file('APKBUILD');
+
+        if ($pkgname eq $pkgreal and
+          $newbuilddir eq '$srcdir/$_pkgreal-$pkgver') {
+            # this will be deleted by the remove empty
+            # variables regex in get_deps/write_old_deps
+            $apk =~ s/^builddir=".*"/builddir=""/m;
+
+            $newbuilddir = '<same as default, deleted>';
+        } elsif ($newbuilddir eq $oldbuilddir) {
+            return;
+        } else {
+            $apk =~ s/^builddir=".*"/builddir="$newbuilddir"/m;
+        }
+
+        print "\n\$builddir redefined:\n\t",
+            "OLD: $oldbuilddir, NEW: $newbuilddir\n\n";
+
+        open my $fh, '>:utf8', 'APKBUILD';
+        print $fh $apk;
+    }
+}
+
 my $abuild_conf = read_assignments_from_file('/etc/abuild.conf');
 $packager = $abuild_conf->{PACKAGER} if $abuild_conf->{PACKAGER};
 
@@ -434,9 +492,11 @@ if (! defined $ARGV[0]) {
     chdir $apkname;
 
     my $data = write_apkbuild($distdata, undef);
-    prepare_tree;
+    unpack_source;
+    update_builddir;
 
     get_deps($distdata, $data);
+    prepare_tree( unpack => 0 );
 } elsif ($ARGV[0] eq 'recreate') {
     my $apkbuild = read_apkbuild;
     if (! defined $apkbuild->{_pkgreal}) {
@@ -449,11 +509,14 @@ if (! defined $ARGV[0]) {
         say "Upgrading PyPI module from $apkbuild->{pkgver} to $pkgver";
         $apkbuild->{pkgrel}=0;
     }
-    my $data = write_apkbuild($distdata, $apkbuild);
 
-    prepare_tree;
+    my $data = write_apkbuild($distdata, $apkbuild);
+    unpack_source;
+    update_builddir;
+
     if ($ARGV[1] and $ARGV[1] eq 'deps') { get_deps($distdata, $data); }
     else { write_old_deps($data, $apkbuild); }
+    prepare_tree( unpack => 0 );
 } elsif ($ARGV[0] eq 'upgrade') {
     my $apkbuild = read_apkbuild;
 
@@ -497,7 +560,7 @@ if (! defined $ARGV[0]) {
         exit(1);
     }
 } elsif ($ARGV[0] eq 'update') {
-    prepare_tree;
+    prepare_tree( unpack => 1 );
 } else {
     die usage;
 }
