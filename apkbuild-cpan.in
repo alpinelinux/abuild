@@ -651,15 +651,15 @@ sub do_depends {
           or die "Can't find license line in APKBUILD";
     }
     $text =~ s/^depends=\"([^\"]*)\"$/depends=\"$deps\"/mg
-      or $text =~ s/(license=.*\n)/$1depends=\"$deps\"/gm
+      or $text =~ s/(license=.*\n)/$1depends=\"$deps\"\n/gm
       or die "Can't insert depends line in APKBUILD" if defined $deps;
 
     $text =~ s/^makedepends=\"([^\"]*)\"$/makedepends=\"$makedeps\"/mg
-      or $text =~ s/(depends=.*\n)/$1makedepends=\"$makedeps\"/gm
+      or $text =~ s/(depends=.*\n)/$1makedepends=\"$makedeps\"\n/gm
       or die "Can't insert makedepends line in APKBUILD" if defined $makedeps;
 
     $text =~ s/^checkdepends=\"([^\"]*)\"$/checkdepends=\"$checkdeps\"/mg
-      or $text =~ s/(makedepends=.*\n)/$1checkdepends=\"$checkdeps\"/gm
+      or $text =~ s/(makedepends=.*\n)/$1checkdepends=\"$checkdeps\"\n/gm
       or die "Can't insert checkdepends line in APKBUILD" if defined $checkdeps;
 
     if (defined $builddir) {
