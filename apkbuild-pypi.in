@@ -74,16 +74,23 @@ sub read_assignments_from_file {
     my %mline = $text =~ /^(\w+)\s*=\s*\"([^\"]*)\".*$/mg;
     my %hash = ( %sline, %mline );
 
-    my $authors = join("\n", $text =~ /^# Contributor: .*$/mg, $text =~ /^# Maintainer: .*$/mg);
+    return \%hash if $filename ne 'APKBUILD';
+    my $authors = join( "\n",
+        $text =~ /^# Contributor: .*$/mg,
+        $text =~ /^# Maintainer: .*$/mg );
     $hash{'authors'} = $authors if length($authors) > 1;
 
-    my $provides = $text =~ m/provides=\"(.*)\"".*/mg;
-    $hash{'provides'} = $1 if length($provides) >= 1;
+    if ($text =~ m/^provides=\"(.*)\"(.*)$/m) {
+        $hash{'provides'} = $1;
+        $hash{'provides_comment'} = $2;
+    }
 
-    my $requires = $text =~ m/^requires=\"(.*)\"".*$/mg;
-    $hash{'requires'} = $1 if length($requires) >= 1;
+    if ($text =~ m/^replaces=\"(.*)\"(.*)$/m) {
+        $hash{'replaces'} = $1;
+        $hash{'replaces_comment'} = $2;
+    }
 
-    if ($text =~ m/^options=\"(.*)\"(.*)$/mg) {
+    if ($text =~ m/^options=\"(.*)\"(.*)$/m) {
         $hash{'options'} = $1;
         $hash{'options_comment'} = $2;
     }
@@ -211,8 +218,14 @@ sub write_apkbuild {
         options_comment => ($options_comment or ''),
     );
 
-    $repl{compatibility} .= "\nreplaces=\"$replaces\"" if $replaces;
-    $repl{compatibility} .= "\nprovides=\"$provides\"" if $provides;
+    if ($replaces) {
+        my $comment = $apkbuild->{'replaces_comment'} // '';
+        $repl{compatibility} .= "\nreplaces=\"$replaces\"" . $comment;
+    }
+    if ($provides) {
+        my $comment = $apkbuild->{'provides_comment'} // '';
+        $repl{compatibility} .= "\nprovides=\"$provides\"" . $comment;
+    }
     $repl{compatibility} .= "\n" if $replaces or $provides;
 
     $repl{source} =~ s/-$repl{pkgver}/-\$pkgver/g;
