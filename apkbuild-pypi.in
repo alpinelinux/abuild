@@ -191,6 +191,12 @@ sub write_apkbuild {
     my $options_comment = undef;
     my $orig_source = "";
 
+    if (our $use_homepage) {
+        $url =
+          $distdata->{info}{project_urls}{Homepage}
+          || $distdata->{info}{home_page};
+    }
+
     if (defined $apkbuild) {
         $authors = $apkbuild->{authors};
         $provides = $apkbuild->{provides};
@@ -468,10 +474,11 @@ $packager = $user_abuild_conf->{PACKAGER} if $user_abuild_conf->{PACKAGER};
 
 sub usage {
     say <<'EOF';
-Usage: apkbuild-pypi [create <package> | check | recreate | upgrade | update]
+Usage: apkbuild-pypi [create <package> [homepage] | check | recreate [deps] | upgrade | update]
 
 In the repository root:
     create <package>: Creates an APKBUILD for <package>
+    create <package> homepage: Creates an APKBUILD for <package> with url= field set to project homepage, if available
 
 In the package root:
     check           : Reports current & latest version of the package
@@ -492,6 +499,8 @@ if (! defined $ARGV[0]) {
 
     mkdir $apkname;
     chdir $apkname;
+
+    if ($ARGV[2] and $ARGV[2] eq 'homepage') { our $use_homepage = 1; }
 
     my $data = write_apkbuild($distdata, undef);
     unpack_source;
