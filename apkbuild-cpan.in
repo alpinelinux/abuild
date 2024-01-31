@@ -96,25 +96,23 @@ sub read_assignments_from_file {
     my %mline = $text =~ /^(\w+)\s*=\s*\"([^\"]*)\"$/mg;
     my %hash  = ( %sline, %mline );
 
+    return \%hash if $filename ne 'APKBUILD';
     my $authors = join( "\n",
         $text =~ /^# Contributor: .*$/mg,
         $text =~ /^# Maintainer: .*$/mg );
     $hash{'authors'} = $authors if length($authors) > 1;
 
-    my $provides = $text =~ m/^provides=\"(.*)\"".*$/mg;
-    $hash{'provides'} = $1 if length($provides) >= 1;
-
-    my $requires = $text =~ m/^requires=\"(.*)\"".*$/mg;
-    $hash{'requires'} = $1 if length($requires) >= 1;
-
     my $options = $text =~ m/^options=\"(.*)\"(.*)$/mg;
     $hash{'options'} = "$1" if length($options) >= 1;
     $hash{'options_comment'} = "$2" if length($options) >= 1;
 
-    if ($text =~ m/^source=\"([^\"]*)\"/mg) {
-        my @patches =  split (/\n/m, $1);
+    if ($hash{source} ne '') {
+        $hash{source} =~ s/^\n//g;
+        my @patches =  split (/\n/m, $hash{source});
         shift @patches;
         $hash{'patches'} = \@patches;
+    } else {
+        warn "Unexpected: unable to find 'source' in APKBUILD!!!";
     }
 
     return \%hash;
@@ -155,7 +153,7 @@ sub write_apkbuild {
         $pkgrel   = $apkbuild->{pkgrel};
         $options  = $apkbuild->{options} if defined $apkbuild->{options};
         $options_comment  = $apkbuild->{options_comment} if defined $apkbuild->{options_comment};
-        $patches  = "\n" . join ("\n", @{$apkbuild->{patches}}) if scalar @{$apkbuild->{patches}};
+        $patches  = "\n" . join ("\n", @{$apkbuild->{patches}}) if defined $apkbuild->{patches} and scalar @{$apkbuild->{patches}};
         if ( $apkbuild->{pkgver} eq $moddata->{version} ) {
             $pkgrel++;
         }
