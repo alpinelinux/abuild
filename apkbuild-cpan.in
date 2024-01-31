@@ -201,10 +201,24 @@ sub write_apkbuild {
     say "Wrote $repl{pkgname}/APKBUILD";
 }
 
+sub query_metacpan {
+    my ($type, $name) = @_;
+
+    my $response = $ua->get("https://fastapi.metacpan.org/$type/$name");
+    $response->is_success
+      or die $response->status_line
+      . " unable to find $name, verify Perl Module name in APKBUILD\n";
+
+    my $data = $json->decode( $response->decoded_content );
+    $data->{error}
+      and die "Error trying to locate $name: $data->{error}\n";
+
+    return $data;
+}
+
 sub parse_deps {
     my ($reqs) = @_;
     my $distfiles = {};
-    my $response;
     my $deps       = "";
     my $reqmodlist = "";
 
@@ -225,21 +239,13 @@ sub parse_deps {
         }
 
         # map module name to package name
-        $response = $ua->get("https://fastapi.metacpan.org/module/$module");
-        $response->is_success or die $response->status_line;
-        my $moddata = $json->decode( $response->decoded_content );
-        $moddata->{error}
-          and die "Error trying to locate $module: $moddata->{error}\n";
+        my $moddata = query_metacpan( module => $module );
         $distfiles->{$module} = $moddata->{distribution};
     }
 
     # map package names to alpine packages
     foreach ( sort keys %{$distfiles} ) {
-        $response = $ua->get("https://fastapi.metacpan.org/module/$_");
-        $response->is_success or die $response->status_line;
-        my $distdata = $json->decode( $response->decoded_content );
-        $distdata->{error}
-          and die "Error trying to locate $_: $distdata->{error}\n";
+        my $distdata = query_metacpan( module => $_ );
 
         my $pkgname = map_cpan_to_apk( $distdata->{distribution} );
         $deps .= "$pkgname " unless $deps =~ m/\b$pkgname\b/;
@@ -247,7 +253,6 @@ sub parse_deps {
     $deps =~ s/\h+/ /g;
     $deps =~ s/ $//;
     return defined $deps ? $deps : '';
-
 }
 
 sub prepare_tree {
@@ -736,11 +741,11 @@ sub get_data {
                 $type = 'release';
             }
 
-            my $response = $ua->get("https://fastapi.metacpan.org/$type/$_");
-            $response->is_success or next;
-
-            my $moddata = $json->decode( $response->decoded_content );
-            $moddata->{error} and next;
+            my $moddata;
+            eval { $moddata = query_metacpan( $type => $_ ); };
+            next if $@
+              or ref $moddata ne 'HASH'
+              or not $moddata->{distribution};
 
             $pkgreal = $moddata->{distribution};
             last;
@@ -749,21 +754,9 @@ sub get_data {
 
     $pkgreal =~ s/-\$pkgver//g;
 
-    my $response = $ua->get("https://fastapi.metacpan.org/release/$pkgreal");
-    $response->is_success
-      or die $response->status_line
-      . " unable to find $pkgreal verify Perl Module name in APKBUILD\n";
-    my $distdata = $json->decode( $response->decoded_content );
-    $distdata->{error}
-      and die "Error trying to locate $pkgreal: $distdata->{error}\n";
+    my $distdata = query_metacpan( release => $pkgreal );
 
-    $response =
-      $ua->get("https://fastapi.metacpan.org/module/$distdata->{main_module}");
-    $response->is_success or die $response->status_line;
-    my $moddata = $json->decode( $response->decoded_content );
-    $moddata->{error}
-      and die
-      "Error trying to locate $distdata->{main_module}: $moddata->{error}\n";
+    my $moddata = query_metacpan( module => $distdata->{main_module} );
 
     return ( $apkbuild, $distdata, $moddata );
 }
@@ -781,18 +774,9 @@ if ( $command eq "create" ) {
     my $module = $ARGV[1];
     $module or die "Module name is a mandatory argument";
 
-    my $response = $ua->get("https://fastapi.metacpan.org/module/$module");
-    $response->is_success or die $response->status_line;
-    my $moddata = $json->decode( $response->decoded_content );
-    $moddata->{error}
-      and die "Error trying to locate $module: $moddata->{error}\n";
+    my $moddata = query_metacpan( module => $module );
 
-    $response =
-      $ua->get("https://fastapi.metacpan.org/release/$moddata->{distribution}");
-    $response->is_success or die $response->status_line;
-    my $distdata = $json->decode( $response->decoded_content );
-    $distdata->{error}
-      and die "Error trying to locate $module: $distdata->{error}\n";
+    my $distdata = query_metacpan( release => $moddata->{distribution} );
 
     my $apkname = map_cpan_to_apk $distdata->{metadata}{name};
     mkdir $apkname;
