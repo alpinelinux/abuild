@@ -785,7 +785,7 @@ my $user_abuild_conf =
   read_assignments_from_file( $ENV{"HOME"} . "/.abuild/abuild.conf" );
 $packager = $user_abuild_conf->{PACKAGER} if $user_abuild_conf->{PACKAGER};
 
-my $command = $ARGV[0];
+my $command = $ARGV[0] // '';
 
 if ( $command eq "create" ) {
     my $module = $ARGV[1];
