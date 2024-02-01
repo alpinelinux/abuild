@@ -106,15 +106,6 @@ sub read_assignments_from_file {
     $hash{'options'} = "$1" if length($options) >= 1;
     $hash{'options_comment'} = "$2" if length($options) >= 1;
 
-    if ($hash{source} ne '') {
-        $hash{source} =~ s/^\n//g;
-        my @patches =  split (/\n/m, $hash{source});
-        shift @patches;
-        $hash{'patches'} = \@patches;
-    } else {
-        warn "Unexpected: unable to find 'source' in APKBUILD!!!";
-    }
-
     return \%hash;
 }
 
@@ -132,6 +123,34 @@ sub read_apkbuild {
     return read_assignments_from_file("APKBUILD");
 }
 
+sub format_line {
+    my $line = shift;
+    return "\t" . $line . "\n";
+}
+
+sub format_source {
+    my $srcurl   = shift;
+    my $orig_src = shift;
+
+    $orig_src =~ s/^\n//mg;
+
+    my @sources = split (/\n/m, $orig_src);
+
+    return $srcurl if scalar @sources le 1;
+
+    my $source = format_line($srcurl);
+
+    shift @sources;
+    my $patches = undef;
+    for my $patch (@sources) {
+        $patch =~ s/\t//g;
+        next if $patch eq "";
+        $patches .= format_line($patch);
+    }
+
+    return "\n" . $source . (defined $patches ? $patches : '') . "\t";
+}
+
 sub write_apkbuild {
     my ( $distdata, $apkbuild, $moddata ) = @_;
 
@@ -145,7 +164,7 @@ sub write_apkbuild {
     my $pkgrel   = 0;
     my $options = undef;
     my $options_comment = undef;
-    my $patches  = "";
+    my $orig_source = undef;
     if ( defined $apkbuild ) {
         $authors  = $apkbuild->{authors};
         $provides = $apkbuild->{provides};
@@ -153,7 +172,7 @@ sub write_apkbuild {
         $pkgrel   = $apkbuild->{pkgrel};
         $options  = $apkbuild->{options} if defined $apkbuild->{options};
         $options_comment  = $apkbuild->{options_comment} if defined $apkbuild->{options_comment};
-        $patches  = "\n" . join ("\n", @{$apkbuild->{patches}}) if defined $apkbuild->{patches} and scalar @{$apkbuild->{patches}};
+        $orig_source      = $apkbuild->{source};
         if ( $apkbuild->{pkgver} eq $moddata->{version} ) {
             $pkgrel++;
         }
@@ -183,7 +202,7 @@ sub write_apkbuild {
         pkgreal  => $pkgreal,
         pkgver   => $pkgver,
         pkgrel   => $pkgrel,
-        source   => defined $patches ? ($srcurl . $patches) : $srcurl,
+        source   => format_source($srcurl, $orig_source),
         pkgdesc  => $distdata->{abstract},
         provides => ( $provides or '' ),
         replaces => ( $replaces or '' ),
