@@ -152,10 +152,6 @@ sub format_source {
 sub write_apkbuild {
     my ( $distdata, $apkbuild, $moddata ) = @_;
 
-    my $cpanid = $distdata->{id};
-    $cpanid =
-      substr( $cpanid, 0, 1 ) . "/" . substr( $cpanid, 0, 2 ) . "/$cpanid";
-
     my $authors  = undef;
     my $replaces = undef;
     my $provides = undef;
