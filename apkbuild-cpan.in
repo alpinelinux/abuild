@@ -257,10 +257,8 @@ sub parse_deps {
     }
 
     # map package names to alpine packages
-    foreach ( sort keys %{$distfiles} ) {
-        my $distdata = query_metacpan( module => $_ );
-
-        my $pkgname = map_cpan_to_apk( $distdata->{distribution} );
+    foreach my $module ( sort keys %{$distfiles} ) {
+        my $pkgname = map_cpan_to_apk( $distfiles->{$module} );
         $deps .= "$pkgname " unless $deps =~ m/\b$pkgname\b/;
     }
     $deps =~ s/\h+/ /g;
