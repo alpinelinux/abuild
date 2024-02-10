@@ -579,11 +579,7 @@ sub do_depends {
 
     my $has_xs = length(`find $metaprefix -name '*.xs'`);
 
-    my $perldev = (
-        ( defined $oldapkbuild->{'makedepends'}
-              && $oldapkbuild->{'makedepends'} =~ 'perl-dev' ) ||
-          $has_xs )
-      ? "perl-dev" : '';
+    my $perldev = $has_xs ? "perl-dev" : '';
     if ( defined $makedeps && $makedeps eq '' ) {
         if (defined $oldapkbuild->{'makedepends'} && ! $meta) {
             $makedeps = $oldapkbuild->{'makedepends'};
