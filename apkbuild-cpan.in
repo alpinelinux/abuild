@@ -583,6 +583,9 @@ sub do_depends {
     if ( defined $makedeps && $makedeps eq '' ) {
         if (defined $oldapkbuild->{'makedepends'} && ! $meta) {
             $makedeps = $oldapkbuild->{'makedepends'};
+            my @tmp = split(" ", $makedeps);
+            @tmp = grep ! /$perldev/, @tmp if ! $has_xs;
+            $makedeps = format_depends(join(" ", @tmp));
         } else {
             $makedeps = $perldev;
         }
