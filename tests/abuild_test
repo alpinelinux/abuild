@@ -28,6 +28,7 @@ init_tests \
 	abuild_bigdocs \
 	abuild_warn_pkgver_patch_version \
 	abuild_multiline_license \
+	abuild_license_spdx \
 	abuild_git_ceiling \
 	abuild_package_size_zero \
 	abuild_package_size_nonzero \
@@ -499,8 +500,16 @@ abuild_multiline_license_body() {
 	cp -ra "$testrepo"/test-licenses .
 	cd test-licenses
 	abuild rootpkg
-	atf_check -o match:'^license = MIT AND GPL-3.0-only OR GPL-3.0-or-later AND BSD-Clause-4$' \
+	atf_check -o match:'^license = MIT AND \(GPL-3.0-only OR GPL-3.0-or-later AND BSD-Clause-4\)$' \
 		cat pkg/.control.test-licenses/.PKGINFO
+}
+
+abuild_license_spdx_body() {
+	cp -ra "$testrepo"/test-licenses .
+	cd test-licenses
+	TESTPKGVER=1.0_p1 atf_check -s exit:0 \
+		-e not-match:'WARNING' \
+		abuild sanitycheck
 }
 
 abuild_git_ceiling_body() {

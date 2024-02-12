@@ -8,10 +8,10 @@ pkgdesc='Dummy test package that has multi-line licenses'
 url='https://gitlab.alpinelinux.org/alpine/aports'
 arch='noarch'
 license='MIT AND
-         GPL-3.0-only OR  
+         (GPL-3.0-only OR  
   
  GPL-3.0-or-later AND   
-		 BSD-Clause-4
+		 BSD-Clause-4)
 '
 
 prepare() {
