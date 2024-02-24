@@ -1152,7 +1152,6 @@ prepare_metafiles() {
 	if [ -n "$FAKEROOTKEY" ]; then
 		echo "# using $($FAKEROOT -v)" >> "$pkginfo"
 	fi
-	echo "# $(date -u -d @$SOURCE_DATE_EPOCH)" >> "$pkginfo"
 	cat >> "$pkginfo" <<-EOF
 		pkgname = $name
 		pkgver = $pkgver-r$pkgrel
