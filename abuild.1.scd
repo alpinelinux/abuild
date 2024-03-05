@@ -6,8 +6,7 @@ abuild(1)
 
 # SYNOPSIS
 
-*abuild* [options] [-P _REPODEST_] [-s _SRCDEST_] [-D _DESCRIPTION_] [cmd] ...++
-*abuild* [-c] -n _PKGNAME_[-_PKGVER_]
+*abuild* [options] [-P _REPODEST_] [-s _SRCDEST_] [-D _DESCRIPTION_] [cmd] ...
 
 # DESCRIPTION
 
