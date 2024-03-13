@@ -200,10 +200,16 @@ default_sanitycheck() {
 	# give 0 as it is always valid and give the pkgrel
 	$APK version --check --quiet 0-r"$pkgrel" || \
 		die "$pkgrel is not a valid pkgrel"
-	# warn when p1 should be _p1
-	case "$pkgver" in
-		*[0-9]p[0-9]) warning "pkgver should probably be $(echo "$pkgver" | sed -E -e 's/(.*[0-9])p([0-9])/\1_p\2/')";;
-	esac
+
+	# warn when <letter><digit> should be <suffix><digit>
+	# eg p1 -> _p1, a5 -> _alpha5 and b10 -> _beta10
+	suggestion=$(echo "$pkgver" | sed -E \
+		-e 's/(.*[0-9])a([0-9]+)$/\1_alpha\2/' \
+		-e 's/(.*[0-9])b([0-9]+)$/\1_beta\2/' \
+		-e 's/(.*[0-9])p([0-9]+)$/\1_p\2/')
+	if [ "$pkgver" != "$suggestion" ]; then
+		warning "Did you mean 'pkgver=$suggestion'?"
+	fi
 	[ -z "$pkgdesc" ] && die "Missing pkgdesc in APKBUILD"
 	[ -z "$url" ] && die "Missing url in APKBUILD"
 	[ -z "$license" ] && die "Missing license in APKBUILD"

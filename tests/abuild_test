@@ -26,7 +26,7 @@ init_tests \
 	abuild_subpackage_arch \
 	abuild_large_doc_subpackage \
 	abuild_bigdocs \
-	abuild_warn_pkgver_patch_version \
+	abuild_warn_pkgver_suffix \
 	abuild_multiline_license \
 	abuild_license_spdx \
 	abuild_git_ceiling \
@@ -485,7 +485,7 @@ abuild_bigdocs_body() {
 		abuild all
 }
 
-abuild_warn_pkgver_patch_version_body() {
+abuild_warn_pkgver_suffix_body() {
 	cp -ra "$testrepo"/test-pkgname .
 	cd test-pkgname
 	TESTPKGVER=1.0_p1 atf_check -s exit:0 \
@@ -493,6 +493,12 @@ abuild_warn_pkgver_patch_version_body() {
 		abuild sanitycheck
 	TESTPKGVER=1.0p1 atf_check -s exit:0 \
 		-e match:'WARNING.*1.0_p1' \
+		abuild sanitycheck
+	TESTPKGVER=1.0a1 atf_check -s exit:0 \
+		-e match:'WARNING.*1.0_alpha1' \
+		abuild sanitycheck
+	TESTPKGVER=1.0b10 atf_check -s exit:0 \
+		-e match:'WARNING.*1.0_beta10' \
 		abuild sanitycheck
 }
 
