@@ -180,9 +180,8 @@ spell_error() {
 }
 
 verify_pkgname() {
-	local name=${1%%=*}
-	case "$name" in
-		""|*" "*|-*) return 1;;
+	case $1 in
+		''|*[!a-zA-Z0-9._+-]*|[!a-zA-Z0-9]*) return 1;;
 	esac
 	return 0
 }

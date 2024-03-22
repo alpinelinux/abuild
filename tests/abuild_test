@@ -415,6 +415,9 @@ abuild_valid_pkgnames_body() {
 	TESTSUBNAME=foo atf_check -s exit:0 \
 		-e match:"Checking sanity" \
 		abuild sanitycheck
+	TESTNAME="more_+-2.0-complicated" atf_check -s exit:0 \
+		-e match:"Checking sanity" \
+		abuild sanitycheck
 }
 
 abuild_invalid_pkgnames_body() {
@@ -428,6 +431,12 @@ abuild_invalid_pkgnames_body() {
 		-e match:"Checking sanity" \
 		abuild sanitycheck
 	TESTNAME="foo with spaces" atf_check -s exit:1 \
+		-e match:"Checking sanity" \
+		abuild sanitycheck
+	TESTNAME="width@at" atf_check -s exit:1 \
+		-e match:"Checking sanity" \
+		abuild sanitycheck
+	TESTNAME="width=equal" atf_check -s exit:1 \
 		-e match:"Checking sanity" \
 		abuild sanitycheck
 }
