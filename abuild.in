@@ -1788,12 +1788,14 @@ human_size() {
 create_apks() {
 	local file= dir= name= ver= apk= datadir= size=
 	local gzip=$(command -v pigz || echo gzip)
-	rmdir "$pkgdir"/usr/lib \
-		"$pkgdir"/usr/bin \
-		"$pkgdir"/usr/share \
-		"$pkgdir"/usr \
-		"$pkgdir"/etc/ \
-		2>/dev/null || :
+	if ! options_has "keepdirs"; then
+		rmdir "$pkgdir"/usr/lib \
+			"$pkgdir"/usr/bin \
+			"$pkgdir"/usr/share \
+			"$pkgdir"/usr \
+			"$pkgdir"/etc/ \
+			2>/dev/null || :
+	fi
 	if ! options_has "!tracedeps"; then
 		for file in "$pkgbasedir"/.control.*/.PKGINFO; do
 			dir="${file%/.PKGINFO}"

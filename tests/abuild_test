@@ -32,6 +32,7 @@ init_tests \
 	abuild_git_ceiling \
 	abuild_package_size_zero \
 	abuild_package_size_nonzero \
+	abuild_keepdirs \
 	abuild_amove \
 	abuild_doc \
 	abuild_dev \
@@ -617,6 +618,32 @@ abuild_package_size_nonzero_body() {
 	# should not be set to 1
 	atf_check -o not-match:'^size = 1$' \
 		cat pkg/.control.test-size/.PKGINFO
+}
+
+abuild_keepdirs_body() {
+	init_keys
+	mkdir -p test-amove
+
+	cd test-amove
+	cat > APKBUILD <<-EOF
+		# Maintainer: Test User 123 <123@example.com>
+
+		# test package
+		pkgname="test-keepdirs"
+		pkgver="1.0"
+		pkgrel=0
+		pkgdesc='Dummy test package - keepdirs'
+		url='https://gitlab.alpinelinux.org/alpine/aports'
+		arch='noarch'
+		license='MIT'
+		options='keepdirs'
+
+		package() {
+			mkdir -p "\$pkgdir"/usr/bin
+		}
+	EOF
+	abuild rootpkg || atf_fail "abuild rootpkg failed"
+	test -d pkg/test-keepdirs/usr/bin || atf_fail "$i failed"
 }
 
 abuild_amove_body() {
