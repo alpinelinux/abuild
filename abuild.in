@@ -191,10 +191,8 @@ default_sanitycheck() {
 	local i= j= suggestion=
 	msg "Checking sanity of $APKBUILD..."
 	[ -z "$pkgver" ] && die "Missing pkgver in APKBUILD"
-	if [ -z "$nodeps" ]; then
-		$APK version --check --quiet "$pkgver" ||\
-			die "$pkgver is not a valid version"
-	fi
+	$APK version --check --quiet "$pkgver" || \
+		die "$pkgver is not a valid version"
 	[ -z "$pkgrel" ] && die "Missing pkgrel in APKBUILD"
 	# give 0 as it is always valid and give the pkgrel
 	$APK version --check --quiet 0-r"$pkgrel" || \
