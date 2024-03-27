@@ -168,6 +168,12 @@ file.
 	Specifies packages that the package replaces. This is typically
 	used for packages renamed by upstream.
 
+*replaces_priority*
+	Specifies the numeric value that is used by apk(8) when multiple
+	packages with *replaces* include the same file. It is also used
+	to decide which package should define the permissions of a directory
+	even without *replaces* set.
+
 *subpackages*
 	Specifies subpackages or split packages built with this
 	package. Typically, this will include _$pkgname-dev_ for development
