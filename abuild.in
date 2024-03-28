@@ -2860,7 +2860,7 @@ usage() {
 		 -m  Disable colors (monochrome)
 		 -P  Set REPODEST as the repository location for created packages
 		 -q  Quiet
-		 -r  Install missing dependencies from system repository (using sudo)
+		 -r  Install missing dependencies from system repository (using \$SUDO_APK)
 		 -s  Set source package destination directory
 		 -v  Verbose: show every command as it is run (very noisy)
 
@@ -2876,7 +2876,7 @@ usage() {
 		  fetch       Fetch sources to \$SRCDEST (consider: 'abuild fetch verify')
 		  index       Regenerate indexes in \$REPODEST
 		  listpkg     List target packages
-		  package     Install project into $pkgdir
+		  package     Install project into \$pkgdir
 		  prepare     Apply patches
 		  rootbld     Build package in clean chroot
 		  rootpkg     Run 'package', the split functions and create apks as fakeroot
