@@ -98,11 +98,11 @@ readconfig() {
 	[ -n "${USE_COLORS+x}" ] && _USE_COLORS="$USE_COLORS"
 	[ -n "${USE_CCACHE+x}" ] && _USE_CCACHE="$USE_CCACHE"
 	: ${ABUILD_DEFCONF:=${ABUILD_SHAREDIR:-$sharedir}/default.conf}
+	[ -f "$ABUILD_DEFCONF" ] && . "$ABUILD_DEFCONF"
 	: ${ABUILD_CONF:=$sysconfdir/abuild.conf}
+	[ -f "$ABUILD_CONF" ] && . "$ABUILD_CONF"
 	: ${ABUILD_USERDIR:=$HOME/.abuild}
 	: ${ABUILD_USERCONF:=$ABUILD_USERDIR/abuild.conf}
-	[ -f "$ABUILD_DEFCONF" ] && . "$ABUILD_DEFCONF"
-	[ -f "$ABUILD_CONF" ] && . "$ABUILD_CONF"
 	[ -f "$ABUILD_USERCONF" ] && . "$ABUILD_USERCONF"
 	APORTSDIR=${_APORTSDIR-$APORTSDIR}
 
