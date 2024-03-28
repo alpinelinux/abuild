@@ -188,7 +188,7 @@ verify_pkgname() {
 
 # check if apkbuild is basically sane
 default_sanitycheck() {
-	local i= j= suggestion=
+	local i= j=
 	msg "Checking sanity of $APKBUILD..."
 	[ -z "$pkgver" ] && die "Missing pkgver in APKBUILD"
 	$APK version --check --quiet -- "$pkgver"-r0 || \
@@ -197,16 +197,13 @@ default_sanitycheck() {
 	# give 0 as it is always valid and give the pkgrel
 	$APK version --check --quiet 0-r"$pkgrel" || \
 		die "$pkgrel is not a valid pkgrel"
+	# digit+letter+digit passes the apk2 version check
+	case $pkgver in
+		*[0-9][a-z][0-9]*)
+			die "the digit+letter+digit version format is invalid. Use suffixes instead"
+			;;
+	esac
 
-	# warn when <letter><digit> should be <suffix><digit>
-	# eg p1 -> _p1, a5 -> _alpha5 and b10 -> _beta10
-	suggestion=$(echo "$pkgver" | sed -E \
-		-e 's/(.*[0-9])a([0-9]+)$/\1_alpha\2/' \
-		-e 's/(.*[0-9])b([0-9]+)$/\1_beta\2/' \
-		-e 's/(.*[0-9])p([0-9]+)$/\1_p\2/')
-	if [ "$pkgver" != "$suggestion" ]; then
-		warning "Did you mean 'pkgver=$suggestion'?"
-	fi
 	[ -z "$pkgdesc" ] && die "Missing pkgdesc in APKBUILD"
 	[ -z "$url" ] && die "Missing url in APKBUILD"
 	[ -z "$license" ] && die "Missing license in APKBUILD"
