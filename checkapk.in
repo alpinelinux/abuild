@@ -142,17 +142,8 @@ for i in $pkgname $subpackages; do
 		# filter to things that start with -+ but strip the header (---/+++)
 		diff -U0 "filelist-$_pkgname-old" "filelist-$_pkgname-new" | grep -E '^(\+|-)[A-Za-z0-9]+' | grep '\.so' | while read -r diff_sofile; do
 			case "$diff_sofile" in
-			-*)
-				path="$_pkgname-pkg-old"
-				sofile="${diff_sofile#\-}"
-				soname=$(scanelf -qS "$path/$sofile" | awk '{print $1}')
-				rebuild_required=$(apk search -r --origin --exact -q "so:$soname" | sort -u | wc -l)
-				;;
-			+*)
-				path="$_pkgname-pkg-new"
-				sofile="${diff_sofile#\+}"
-				rebuild_required=0
-				;;
+			-*) path="$_pkgname-pkg-old"; sofile="${diff_sofile#\-}" ;;
+			+*) path="$_pkgname-pkg-new"; sofile="${diff_sofile#\+}" ;;
 			esac
 
 			# skip symlinks (only adds duplicate output or is dangling), and things that aren't valid elfs
@@ -160,18 +151,8 @@ for i in $pkgname $subpackages; do
 			if ! [ -L "$path"/"$sofile" ] && readelf -h "$path"/"$sofile" >/dev/null 2>&1; then
 				echo "$diff_sofile: " "$(objdump -p "$path"/"$sofile" | grep SONAME)"
 			fi
-
-			if [ "$rebuild_required" -ne 0 ]; then
-				echo "*** $rebuild_required packages linked against $soname need to be rebuild!" >> "$tmpdir"/rebuilds
-			fi
 		done
 	else
 		msg "No soname differences for $_pkgname."
-	fi
-
-	if [ -e "$tmpdir"/rebuilds ]; then
-		echo "REBUILDS:"
-		cat "$tmpdir"/rebuilds
-		rm "$tmpdir"/rebuilds
 	fi
 done
