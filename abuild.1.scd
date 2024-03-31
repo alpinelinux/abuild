@@ -62,6 +62,11 @@ other related operations.
 
 # COMMANDS
 
+*all*
+	Runs the entire build process. This is the default when no other command is
+	specified, and is roughly an alias for *sanitycheck builddeps clean fetch
+	unpack prepare mkusers build check rootpkg*.
+
 *build*
 	Compile and install package into *$pkgdir*.
 
