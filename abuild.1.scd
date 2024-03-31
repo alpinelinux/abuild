@@ -24,7 +24,7 @@ other related operations.
 *-d*
 	Disable dependency checking
 
-*-D*
+*-D DESCRIPTION*
 	Set APKINDEX description (default: *$repo $(git describe)*)
 
 *-f*
@@ -45,7 +45,7 @@ other related operations.
 *-m*
 	Disable colors (monochrome)
 
-*-P*
+*-P REPODEST*
 	Set REPODEST as the repository location for created packages
 
 *-q*
@@ -54,8 +54,8 @@ other related operations.
 *-r*
 	Install missing dependencies from system repository
 
-*-s*
-	Set source package destination directory
+*-s SRCDEST*
+	Set source package destination directory to SRCDEST
 
 *-v*
 	Verbose: show every command as it is run (very noisy)
