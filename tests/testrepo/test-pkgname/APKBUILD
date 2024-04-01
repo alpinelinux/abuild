@@ -8,6 +8,7 @@ pkgdesc="Dummy test package that fails to build"
 url="https://gitlab.alpinelinux.org/alpine/aports"
 arch="noarch"
 license="MIT"
+provides="${TESTPROVIDES-provided}"
 subpackages="${TESTSUBNAME-$pkgname-sub}:_sub"
 
 prepare() {

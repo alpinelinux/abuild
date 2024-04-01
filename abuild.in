@@ -1097,7 +1097,7 @@ check_depends_dev() {
 check_provides() {
 	local i
 	for i in $provides; do
-		if [ "${i%%[<>=]*}" = "$pkgname" ]; then
+		if [ "${i%%[<>=~]*}" = "$pkgname" ]; then
 			return 1
 		fi
 	done
@@ -2373,17 +2373,17 @@ calcdeps() {
 			builddeps="$builddeps $i"
 		done
 		for i in $EXTRADEPENDS_HOST $EXTRADEPENDS_TARGET $makedepends_host; do
-			[ "$pkgname" = "${i%%[<>=]*}" ] && continue
+			[ "$pkgname" = "${i%%[<>=~]*}" ] && continue
 			list_has $i $hostdeps && continue
-			subpackages_has ${i%%[<>=]*} || hostdeps="$hostdeps $i"
+			subpackages_has ${i%%[<>=~]*} || hostdeps="$hostdeps $i"
 		done
 	else
 		[ -z "$makedepends" ] && makedepends="$makedepends_build $makedepends_host"
 		want_check && makedepends="$makedepends $checkdepends"
 		for i in $EXTRADEPENDS_BUILD $EXTRADEPENDS_HOST $1 $depends $makedepends; do
-			[ "$pkgname" = "${i%%[<>=]*}" ] && continue
+			[ "$pkgname" = "${i%%[<>=~]*}" ] && continue
 			list_has $i $builddeps && continue
-			subpackages_has ${i%%[<>=]*} || builddeps="$builddeps $i"
+			subpackages_has ${i%%[<>=~]*} || builddeps="$builddeps $i"
 		done
 		hostdeps="$EXTRADEPENDS_TARGET"
 	fi
@@ -2731,7 +2731,7 @@ deplist_has() {
 	local i
 	shift
 	for i in $@; do
-		i=${i%%[<>=]*}
+		i=${i%%[<>=~]*}
 		[ "$needle" = "$i" ] && return 0
 		[ "$needle" = "!$i" ] && return 1
 	done

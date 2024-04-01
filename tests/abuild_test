@@ -23,6 +23,7 @@ init_tests \
 	abuild_invalid_pkgnames \
 	abuild_invalid_subpkgnames \
 	abuild_invalid_subpkg_version \
+	abuild_provide_pkgname \
 	abuild_subpackage_arch \
 	abuild_large_doc_subpackage \
 	abuild_bigdocs \
@@ -460,6 +461,27 @@ abuild_invalid_subpkg_version_body() {
 	TESTDEPVER="1.0-0" atf_check -s exit:1 \
 		-e match:"Invalid version" \
 		abuild all
+}
+
+abuild_provide_pkgname_body() {
+	init_keys
+	cp -ra "$testrepo"/test-pkgname .
+	cd test-pkgname
+	TESTNAME=provided atf_check -s exit:1 \
+		-e match:"provides must not contain" \
+		abuild sanitycheck
+	TESTNAME=test TESTPROVIDES='test~1' atf_check -s exit:1 \
+		-e match:"provides must not contain" \
+		abuild sanitycheck
+	TESTNAME=test TESTPROVIDES='test=1' atf_check -s exit:1 \
+		-e match:"provides must not contain" \
+		abuild sanitycheck
+	TESTNAME=test TESTPROVIDES='test>1' atf_check -s exit:1 \
+		-e match:"provides must not contain" \
+		abuild sanitycheck
+	TESTNAME=test TESTPROVIDES='test<=1' atf_check -s exit:1 \
+		-e match:"provides must not contain" \
+		abuild sanitycheck
 }
 
 abuild_subpackage_arch_body() {
