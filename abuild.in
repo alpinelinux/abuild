@@ -1748,7 +1748,7 @@ scan_python3_dependency() {
 		fi
 		local pyver="${site_pkg_dir##*usr/lib/python}"
 		pyver="${pyver%%/*}"
-		if [ -n "$pyver" ]; then
+		if [ -n "$pyver" ] && [ "${subpkgname:-$pkgname}" != python3 ]; then
 			echo "python3~$pyver" \
 				>> "$controldir"/.python3-needs
 		fi
