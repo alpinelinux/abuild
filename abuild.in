@@ -1296,8 +1296,12 @@ prepare_command_provides() {
 	options_has "!tracedeps" && return 0
 	cd "$dir" || return 1
 	for i in bin/* sbin/* usr/bin/* usr/sbin/*; do
-		if ! [ -x "$i" ] || ! [ -f "$i" ]; then
-			continue
+		# We can't check symlinks properly with absolute paths,
+		# subpackages and dependencies so assume that they are commands
+		if ! [ -L "$i" ]; then
+			if ! [ -x "$i" ] || ! [ -f "$i" ]; then
+				continue
+			fi
 		fi
 		# exclude any provides: lines for commands that has '@' because '@'
 		# is used as seperator between command name and repository. This

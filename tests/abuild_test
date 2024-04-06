@@ -1058,6 +1058,7 @@ abuild_command_provides_body() {
 			chmod +x "\$pkgdir/usr/bin/foo"
 			cp -a "\$pkgdir/usr/bin/foo" "\$pkgdir/usr/bin/foo@"
 			mkdir -p "\$pkgdir/usr/bin/dir/"
+			ln -s /bin/not-on-the-host-system-but-in-a-dependency "\$pkgdir/usr/bin/link"
 		}
 	EOF
 	abuild rootpkg
@@ -1065,6 +1066,7 @@ abuild_command_provides_body() {
 	atf_check \
 		-o match:"provides = cmd:foo=1.0-r0" \
 		-o not-match:"provides = cmd:foo@=1.0-r0" \
+		-o match:"provides = cmd:link=1.0-r0" \
 		-o not-match:"provides = cmd:dir=1.0-r0" \
 		grep '^provides = ' pkg/.control.testprovides/.PKGINFO
 }
