@@ -590,15 +590,12 @@ subpkg_set() {
 	subpkgsplit=${_splitarch%%:*}
 
 	if [ -z "$subpkgsplit" ]; then
-		if is_bashcomp_pkg "$subpkgname"; then
-			subpkgsplit=bashcomp
-		elif is_zshcomp_pkg "$subpkgname"; then
-			subpkgsplit=zshcomp
-		elif is_fishcomp_pkg "$subpkgname"; then
-			subpkgsplit=fishcomp
-		else
-			subpkgsplit="${subpkgname##*-}"
-		fi
+		case $subpkgname in
+			*-bash-completion) subpkgsplit=bashcomp ;;
+			*-zsh-completion) subpkgsplit=zshcomp ;;
+			*-fish-completion) subpkgsplit=fishcomp ;;
+			*) subpkgsplit="${subpkgname##*-}" ;;
+		esac
 	fi
 
 	subpkgarch=${_splitarch#*:}
@@ -1391,21 +1388,6 @@ is_devhelp_pkg() {
 # returns true if this is the -openrc package
 is_openrc_pkg() {
 	test "${1%-openrc}" != "$1"
-}
-
-# returns true if this is the -bash-completion package
-is_bashcomp_pkg() {
-	test "${1%-bash-completion}" != "$1"
-}
-
-# returns true if this is the -zsh-completion package
-is_zshcomp_pkg() {
-	test "${1%-zsh-completion}" != "$1"
-}
-
-# returns true if this is the -fish-completion package
-is_fishcomp_pkg() {
-	test "${1%-fish-completion}" != "$1"
 }
 
 # check that noarch is set if needed
