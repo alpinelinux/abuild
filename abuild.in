@@ -1491,14 +1491,6 @@ trace_apk_deps() {
 		autodeps="$autodeps pkgconfig"
 	fi
 
-	# special case for libpthread: we need depend on libgcc
-	if [ "$CLIBC" = "uclibc" ] && [ -f "$dir"/.needs-so ] \
-			&& grep -q -w '^libpthread.so.*' "$dir"/.needs-so \
-			&& ! grep -q -w "^depend = libgcc" "$dir"/.PKGINFO; then
-		autodeps="$autodeps libgcc"
-		msg "  added libgcc (due to libpthread)"
-	fi
-
 	[ -f "$dir"/.needs-so ] && for i in $(cat "$dir"/.needs-so); do
 		# first check if its provided by same apkbuild
 		grep -q -w "^$sonameprefix$i" "$dir"/.provides-so 2>/dev/null && continue
@@ -2304,11 +2296,6 @@ check_arch() {
 	return $ret
 }
 
-# return true if libc is not masked in options
-check_libc() {
-	! options_has "!libc_$CLIBC"
-}
-
 # check if package is up to date
 apk_up2date() {
 	local i s
@@ -2359,7 +2346,6 @@ abuildindex_up2date() {
 
 up2date() {
 	check_arch || return 0
-	check_libc || return 0
 	apk_up2date && abuildindex_up2date
 }
 
@@ -2787,12 +2773,9 @@ uninstalldeps() { undeps; }
 index() { update_abuildrepo_index; }
 
 all() {
-	if ! [ -n "$force" ]; then
-		if ! check_arch; then
-			echo "Package not available for the target architecture ($CARCH). Aborting."
-			return 0
-		fi
-		check_libc || return 0
+	if ! [ -n "$force" ] && ! check_arch; then
+		echo "Package not available for the target architecture ($CARCH). Aborting."
+		return 0
 	fi
 	if up2date && [ -z "$force" ]; then
 		msg "Package is up to date"
@@ -2855,7 +2838,7 @@ usage() {
 		 -c  Enable colored output
 		 -d  Disable dependency checking
 		 -D  Set APKINDEX description (default: \$repo \$(git describe))
-		 -f  Force specified cmd (skip checks: apk up to date, arch, libc)
+		 -f  Force specified cmd (skip checks: apk up to date, arch)
 		 -F  Force run as root
 		 -h  Show this help
 		 -k  Keep built packages, even if APKBUILD or sources are newer

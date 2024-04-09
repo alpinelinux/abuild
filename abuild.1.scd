@@ -28,7 +28,7 @@ other related operations.
 	Set APKINDEX description (default: *$repo $(git describe)*)
 
 *-f*
-	Force specified cmd (skip checks: apk up to date, arch, libc)
+	Force specified cmd (skip checks: apk up to date, arch)
 
 *-F*
 	Force run as root
