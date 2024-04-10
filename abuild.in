@@ -2511,19 +2511,15 @@ rootbld() {
 
 	[ $CBUILD = $CHOST ] || die "rootbld: set CBUILD=$CHOST to build for $CHOST"
 
+	local cachedir=/etc/apk/cache
 	if ! [ $CBUILD_ARCH = "$($APK --print-arch)" ]; then
 		# cross-building, so check for binfmt registration
 		local qarch="$(rootbld_qemu_arch)"
 		if ! [ -f "/proc/sys/fs/binfmt_misc/qemu-$qarch" ]; then
 			warning "rootbld: binfmt registration missing for $qarch binaries"
 		fi
-		# TODO: it's not safe to mix a cache dir between architectures,
-		# so we have to use something other than /etc/apk/cache
-		# to get a cache when cross-qemu-building.
-		#local cachedir=""
-	else
-		# not cross-building in qemu, so use host cache
-		local cachedir="/etc/apk/cache"
+		# Old versions of apk have cache conflicts
+		$APK info -eq 'cmd:apk>=2.14.1' || cachedir=""
 	fi
 
 	logcmd "chroot building building $repo/$pkgname-$pkgver-r$pkgrel"
