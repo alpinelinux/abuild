@@ -73,8 +73,8 @@ fixes #${fixes#\#}
 		fi
 		msg "$message"
 
-		sed -i -e "s/^pkgver=.*/pkgver=$ver/" \
-			-e "s/^pkgrel=.*/pkgrel=0/" \
+		sed -i -e "s/^pkgver=[^ ]*/pkgver=$ver/" \
+			-e "s/^pkgrel=[^ ]*/pkgrel=0/" \
 			APKBUILD
 
 		$ABUILD $abuild_opts checksum all
