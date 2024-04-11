@@ -688,6 +688,7 @@ abuild_amove_body() {
 			\$pkgname-etc:_etc
 			\$pkgname-bin:_bin
 			\$pkgname-sbin:_sbin
+			\$pkgname-root:_root
 			\$pkgname-var:_var
 			\$pkgname-usr:_usr
 			\$pkgname-space:_space"
@@ -702,25 +703,34 @@ abuild_amove_body() {
 				"\$pkgdir"/etc/\$pkgname.conf \
 				"\$pkgdir"/bin/hello \
 				"\$pkgdir"/sbin/shello \
+				"\$pkgdir"/root \
 				"\$pkgdir"/sbin/space' ' \
 				"\$pkgdir"/var/lib/\$pkgname/testfile \
 				"\$pkgdir"/usr/share/a \
 				"\$pkgdir"/usr/share/b
+			ln -s dangling "\$pkgdir"/symlink
 		}
 		_file() {
 			amove etc/file
 		}
 		_etc() {
 			# leading and trailing /
-			amove /etc/
+			amove ///etc/
 		}
 		_bin() {
 			# trailing /
-			amove bin/
+			amove bin///
 		}
 		_sbin() {
-			# no /
+			# no leading and trailing /
 			amove sbin/shello
+		}
+		_root() {
+			# no /
+			amove root
+
+			# symlink without existing target
+			amove symlink
 		}
 		_var() {
 			# leading /
@@ -729,6 +739,8 @@ abuild_amove_body() {
 		_usr() {
 			# glob *
 			amove usr/share/*
+			amove no-glob-match/* && return 1
+			return 0
 		}
 		_space() {
 			# with space
@@ -742,12 +754,14 @@ abuild_amove_body() {
 			test-amove-etc/etc/test-amove.conf \
 			test-amove-bin/bin/hello \
 			test-amove-sbin/sbin/shello \
+			test-amove-root/root \
+			test-amove-root/symlink \
 			test-amove-var/var/lib/test-amove/testfile \
 			test-amove-usr/usr/share/a \
 			test-amove-usr/usr/share/b \
 			test-amove-space/sbin/space' ' \
 			; do \
-		test -f pkg/"$i" || atf_fail "$i failed"
+		[ -L pkg/"$i" ] || [ -e pkg/"$i" ] || atf_fail "$i failed"
 	done
 }
 

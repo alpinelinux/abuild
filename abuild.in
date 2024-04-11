@@ -74,28 +74,28 @@ error() {
 amove() {
 	[ -n "$subpkgdir" ] || return 1
 
-	# store directory
-	d="$(pwd -L)"
-
+	local olddir="$(pwd -L)"
 	cd "$pkgdir"
-	local pattern f IFS=""
+
+	local ret=0 IFS="" pattern f d
 	for pattern; do
-		for f in ${pattern#/}; do # let shell expand the pattern
-			# strip trailing /
-			f=${f%/}
-			if [ "${f%/*}" != "$f" ]; then
-				mkdir -p "$subpkgdir/${f%/*}"
-				mv -v "$pkgdir/$f" "$subpkgdir/${f%/*}"
-			else
-				mkdir -p "$subpkgdir"
-				mv -v "$pkgdir/$f" "$subpkgdir/"
-			fi
-			# cleanup
-			rmdir -p "$f" 2>/dev/null || rmdir -p "${f%/*}" 2>/dev/null || true
+		for f in ${pattern#"${pattern%%[!/]*}"}; do # let shell expand the pattern
+			[ -L "$f" ] || [ -e "$f" ] || {
+				ret=1
+				continue
+			}
+			# strip all trailing /
+			f=${f%"${f##*[!/]}"}
+			d=${f%/*}
+			[ "$d" = "$f" ] && d=.
+			mkdir -p "$subpkgdir/$d"
+			mv -v "$f" "$subpkgdir/$d"
+			rmdir -p "$d" 2>/dev/null || :
 		done
 	done
 
-	cd "$d"
+	cd "$olddir"
+	return $ret
 }
 
 cross_creating() {
