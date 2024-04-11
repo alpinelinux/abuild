@@ -600,7 +600,7 @@ subpkg_set() {
 	subpkgarch=${_splitarch#*:}
 	if [ "$subpkgarch" = "$_splitarch" -o -z "$subpkgarch" ]; then
 		case "$subpkgname" in
-		*-doc | *-openrc | *-lang | *sh-completion | *-pyc | *-nftrules) subpkgarch="noarch" ;;
+		*-doc | *-openrc | *-lang | *sh-completion | *-pyc | *-nftrules | *-systemd) subpkgarch="noarch" ;;
 		*) subpkgarch="$pkgarch" ;;
 		esac
 	elif [ "$subpkgarch" = "all" ]; then
@@ -835,6 +835,11 @@ postcheck() {
 	if [ -e "$dir"/etc/init.d -o -e "$dir"/etc/conf.d ] \
 			&& ! is_openrc_pkg "$name"; then
 		warning "Found OpenRC directory (/etc/conf.d or /etc/init.d) but name doesn't end with -openrc"
+	fi
+	# look for /usr/lib/systemd
+	if [ -e "$dir"/usr/lib/systemd ] \
+			&& ! is_systemd_pkg "$name"; then
+		warning "Found systemd directory (/usr/lib/systemd) but it's not in a systemd package"
 	fi
 	# look for /usr/share/doc
 	if [ -e "$dir"/usr/share/doc ] \
@@ -1413,6 +1418,11 @@ is_devhelp_pkg() {
 # returns true if this is the -openrc package
 is_openrc_pkg() {
 	test "${1%-openrc}" != "$1"
+}
+
+# returns true if this is the -systemd package
+is_systemd_pkg() {
+	test "${1%-systemd}" != "$1" || test "systemd" = "$1"
 }
 
 # check that noarch is set if needed
@@ -2153,6 +2163,19 @@ default_openrc() {
 
 openrc() {
 	default_openrc
+}
+
+# predefined splitfunc systemd
+default_systemd() {
+	depends="$depends_systemd"
+	pkgdesc="$pkgdesc (systemd files)"
+	install_if="systemd ${subpkgname%-systemd}=$pkgver-r$pkgrel"
+
+	amove usr/lib/systemd || :
+}
+
+systemd() {
+	default_systemd
 }
 
 default_devhelp() {

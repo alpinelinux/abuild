@@ -370,6 +370,9 @@ variables.
 *depends_static*
 	Specifies the run-time dependencies of the _-static_ subpackage.
 
+*depends_systemd*
+	Specifies the run-time dependencies of the _-systemd_ subpackage.
+
 *giturl*
 	Specifies the URL of the Git repository to use with `abuild
 	snapshot`. If the default branch of the repository is not desired,
