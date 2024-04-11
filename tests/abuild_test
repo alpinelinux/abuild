@@ -87,7 +87,7 @@ abuild_simple_pkg_without_deps_body() {
 	init_keys
 	cp -r "$testrepo"/pkg1 .
 	cd pkg1
-	atf_check -s exit:0 \
+	atf_check -s exit:0 -o ignore \
 		-e not-match:"WARNING" \
 		-e not-match:"fatal" \
 		abuild
@@ -503,7 +503,7 @@ abuild_large_doc_subpackage_body() {
 	init_keys
 	cp -ra "$testrepo"/large-doc-subpkg .
 	cd large-doc-subpkg
-	atf_check -s exit:0 \
+	atf_check -s exit:0 -o ignore \
 		-e match:"-doc subpackage is unusually large" \
 		abuild all
 }
@@ -512,7 +512,7 @@ abuild_bigdocs_body() {
 	init_keys
 	cp -ra "$testrepo"/large-doc-subpkg .
 	cd large-doc-subpkg
-	options=bigdocs atf_check -s exit:0 \
+	options=bigdocs atf_check -s exit:0 -o ignore \
 		-e not-match:"-doc subpackage is unusually large" \
 		abuild all
 }
@@ -739,8 +739,7 @@ abuild_amove_body() {
 		_usr() {
 			# glob *
 			amove usr/share/*
-			amove no-glob-match/* && return 1
-			return 0
+			! amove no-glob-match/*
 		}
 		_space() {
 			# with space

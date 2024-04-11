@@ -963,11 +963,7 @@ default_lang() {
 	install_if="$pkgname=$pkgver-r$pkgrel lang"
 	depends="$depends_lang"
 
-	local dir
-	for dir in ${langdir:-/usr/share/locale}; do
-		mkdir -p "$subpkgdir"/${dir%/*}
-		mv "$pkgdir"/"$dir" "$subpkgdir"/"$dir" || return 1
-	done
+	amove ${langdir:-/usr/share/locale}
 }
 
 lang() {
@@ -984,10 +980,7 @@ default_lang_subpkg() {
 
 	local dir
 	for dir in ${langdir:-/usr/share/locale}; do
-		mkdir -p "$subpkgdir"/$dir
-		mv "$pkgdir"/$dir/$lang* \
-		"$subpkgdir"/$dir/ \
-		|| return 1
+		amove "$dir/$lang*"
 	done
 }
 
@@ -1947,10 +1940,7 @@ default_doc() {
 
 	local i
 	for i in doc man info html sgml licenses gtk-doc ri help; do
-		if [ -d "$pkgdir/usr/share/$i" ]; then
-			mkdir -p "$subpkgdir/usr/share"
-			mv "$pkgdir/usr/share/$i" "$subpkgdir/usr/share/"
-		fi
+		amove usr/share/"$i" || :
 	done
 
 	# compress man pages
@@ -1987,9 +1977,6 @@ default_doc() {
 	done
 
 	rm -f "$subpkgdir/usr/share/info/dir"
-
-	# remove if empty, ignore error (not empty)
-	rmdir "$pkgdir/usr/share" "$pkgdir/usr" 2>/dev/null || :
 }
 
 doc() {
@@ -2050,18 +2037,12 @@ default_dev() {
 			$(find $libdirs -name '*.[cho]' \
 				-o -name '*.prl' 2>/dev/null); do
 		if [ -e "$pkgdir/$i" ] || [ -L "$pkgdir/$i" ]; then
-			d="$subpkgdir/${i%/*}" # dirname $i
-			mkdir -p "$d"
-			mv "$pkgdir/$i" "$d"
-			rmdir "$pkgdir/${i%/*}" 2>/dev/null || :
+			amove "$i"
 		fi
 	done
 	# move *.so links needed when linking the apps to -dev packages
 	for i in lib/*.so usr/lib/*.so; do
-		if [ -L "$i" ]; then
-			mkdir -p "$subpkgdir"/"${i%/*}"
-			mv "$i" "$subpkgdir/$i" || return 1
-		fi
+		[ -L "$i" ] && amove "$i"
 	done
 	return 0
 }
@@ -2092,10 +2073,8 @@ default_static() {
 	[ -d lib/ ] && libdirs="lib/ $libdirs"
 
 	# move *.a static library
-	for i in $(find $libdir -name '*.a'); do
-		mkdir -p "$subpkgdir"/"${i%/*}"
-		mv "$i" "$subpkgdir/$i" || return 1
-	done
+	amove $(find $libdir -name '*.a')
+
 	return 0
 }
 
@@ -2107,14 +2086,8 @@ static() {
 default_libs() {
 	depends="$depends_libs"
 	pkgdesc="$pkgdesc (libraries)"
-	local dir= file=
-	for dir in lib usr/lib; do
-		for file in "$pkgdir"/$dir/lib*.so.[0-9]*; do
-			[ -f "$file" ] || continue
-			mkdir -p "$subpkgdir"/$dir
-			mv "$file" "$subpkgdir"/$dir/
-		done
-	done
+
+	amove 'lib/lib*.so.[0-9]*' 'usr/lib/lib*.so.[0-9]*'
 }
 
 libs() {
@@ -2126,14 +2099,8 @@ default_openrc() {
 	depends="$depends_openrc"
 	pkgdesc="$pkgdesc (OpenRC init scripts)"
 	install_if="openrc ${subpkgname%-openrc}=$pkgver-r$pkgrel"
-	local dir file
-	for dir in conf.d init.d; do
-		if [ -d "$pkgdir/etc/$dir" ]; then
-			mkdir -p "$subpkgdir"/etc
-			mv "$pkgdir/etc/$dir" "$subpkgdir"/etc/
-		fi
-	done
-	return 0
+
+	amove etc/conf.d etc/init.d || :
 }
 
 openrc() {
@@ -2144,6 +2111,7 @@ default_devhelp() {
 	depends=""
 	pkgdesc="$pkgname - devhelp files"
 	install_if="$pkgname=$pkgver-r$pkgrel devhelp"
+
 	amove usr/share/devhelp
 }
 
@@ -2182,15 +2150,12 @@ default_fishcomp() {
 	install_if="$pkgname=$pkgver-r$pkgrel fish"
 
 	cd "$pkgdir" || return 0
+	amove usr/share/fish/vendor_completions.d || :
 
-	if [ -d usr/share/fish/vendor_completions.d ]; then
-		amove usr/share/fish/vendor_completions.d
-	fi
-
-	if [ -d usr/share/fish/completions ]; then
+	amove usr/share/fish/completions &&
 		warning "fish completions for programs should be in /usr/share/fish/vendor_completions.d"
-		amove usr/share/fish/completions
-	fi
+
+	return 0
 }
 
 fishcomp() {
