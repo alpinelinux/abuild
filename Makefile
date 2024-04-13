@@ -129,30 +129,20 @@ Kyuafile: tests/Kyuafile
 check: $(SCRIPTS) $(USR_BIN_FILES) functions.sh tests/Kyuafile Kyuafile tests/testdata/abuild.key.pub
 	kyua --variable parallelism=$(shell nproc) test || (kyua report --verbose && exit 1)
 
-install: $(USR_BIN_FILES) $(SAMPLES) $(MAN_PAGES) default.conf abuild.conf functions.sh
-	install -d $(DESTDIR)/$(bindir) $(DESTDIR)/$(sysconfdir) \
-		$(DESTDIR)/$(sharedir) $(DESTDIR)/$(mandir)/man1 \
-		$(DESTDIR)/$(mandir)/man5
-	for i in $(USR_BIN_FILES); do\
-		install -m 755 $$i $(DESTDIR)/$(bindir)/$$i;\
-	done
-	chmod 4555 $(DESTDIR)/$(prefix)/bin/abuild-sudo
+install: $(USR_BIN_FILES) $(SAMPLES) $(MAN_PAGES) $(AUTOTOOLS_TOOLCHAIN_FILES) default.conf abuild.conf functions.sh
+	install -D -m 755 -t $(DESTDIR)/$(bindir)/ $(USR_BIN_FILES);\
+	chmod 4555 $(DESTDIR)/$(bindir)/abuild-sudo
 	for i in adduser addgroup apk; do \
 		ln -fs abuild-sudo $(DESTDIR)/$(bindir)/abuild-$$i; \
 	done
-	for i in $(MAN_1_PAGES); do\
-		install -m 644 $$i $(DESTDIR)/$(mandir)/man1/$$i;\
-	done
-	for i in $(MAN_5_PAGES); do\
-		install -m 644 $$i $(DESTDIR)/$(mandir)/man5/$$i;\
-	done
+	install -D -m 644 -t $(DESTDIR)/$(mandir)/man1/ $(MAN_1_PAGES);\
+	install -D -m 644 -t $(DESTDIR)/$(mandir)/man5/ $(MAN_5_PAGES);\
 	if [ -n "$(DESTDIR)" ] || [ ! -f "/$(sysconfdir)"/abuild.conf ]; then\
-		install -t $(DESTDIR)/$(sysconfdir)/ abuild.conf; \
+		install -D -m 644 -t $(DESTDIR)/$(sysconfdir)/ abuild.conf; \
 	fi
 
-	install -t $(DESTDIR)/$(prefix)/share/abuild/ $(SAMPLES)
-	install -t $(DESTDIR)/$(prefix)/share/abuild/ $(AUTOTOOLS_TOOLCHAIN_FILES)
-	install -t $(DESTDIR)/$(sharedir)/ functions.sh default.conf
+	install -D -t $(DESTDIR)/$(sharedir)/ $(AUTOTOOLS_TOOLCHAIN_FILES)
+	install -D -m 644 -t $(DESTDIR)/$(sharedir)/ functions.sh default.conf $(SAMPLES)
 
 depends depend:
 	sudo apk --no-cache -U --virtual .abuild-depends add openssl-dev zlib-dev
