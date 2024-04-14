@@ -1196,7 +1196,7 @@ create_mock_apk() {
 			echo 'aarch64'
 			exit 0
 		fi
-		echo apk "\$@" >&2
+		printf 'apk %s\n' "\$*" >&2
 	EOF
 	chmod +x bin/apk
 	ln -s apk bin/abuild-apk
@@ -1257,4 +1257,8 @@ abuild_deps_body() {
 		-e not-match:'apk add.*--arch armhf.*builddep' \
 		abuild deps
 
+	# Check shell_escape
+	atf_check \
+		-e match:"apk add .*--repository It's \\\\b'\"\"'  \"escaped\"/.*" \
+		abuild -P "It's \b'\"\"'  \"escaped\"" deps
 }

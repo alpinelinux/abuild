@@ -38,7 +38,7 @@ doc_threshold=$((2 * 1024 * 1024)) # 2 MiB
 umask 022
 
 shell_escape() {
-	echo \'${1/\'/\'\\\'\'}\'
+	printf '%s\n' "'${1//\'/\'\\\'\'}'"
 }
 
 # run optional log command for remote logging
@@ -2356,10 +2356,10 @@ apk_add_makedeps() {
 
 	local repo_args="--repository $(shell_escape "$REPODEST/$repo")"
 	[ -s "$repo_template" ] && repo_args=$(while read r; do
-		echo --repository "$(shell_escape "$REPODEST/${r##*/}")"
+		printf %s\\n "--repository $(shell_escape "$REPODEST/${r##*/}")"
 	done) < "$repo_template"
 
-	eval $SUDO_APK add $apk_opt_wait $repo_args \
+	eval "$SUDO_APK" add "$apk_opt_wait" "$repo_args" \
 		--virtual .${prefix}depends-$pkgname "\$@" || return
 }
 
