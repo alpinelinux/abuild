@@ -339,7 +339,7 @@ sanitycheck() {
 
 sumcheck() {
 	local algo="$1" sums="$2"
-	local dummy f endreturnval originalparams origin file
+	local f endreturnval origin file
 
 	# get number of checksums
 	set -- $sums
@@ -352,7 +352,7 @@ sumcheck() {
 	fetch || return 1
 	msg "Checking ${algo}sums..."
 	cd "$srcdir" || return 1
-	IFS=$'\n'
+	local IFS=$'\n'
 	endreturnval=0
 	for src in $sums; do
 		origin=$1; shift
@@ -369,7 +369,6 @@ sumcheck() {
 			mv "$file" "$file.$csum"
 		fi
 	done
-	unset IFS
 	return $endreturnval
 }
 
@@ -1112,7 +1111,6 @@ prepare_metafiles() {
 	local dir=${subpkgdir:-$pkgdir}
 	local pkg="$name-$pkgver-r$pkgrel.apk"
 	local pkginfo="$controldir"/.PKGINFO
-	local sub
 
 	[ ! -d "$dir" ] && die "Missing $dir"
 	cd "$dir"
@@ -1576,15 +1574,14 @@ find_scanelf_paths() {
 		paths="$paths:$(echo "${datadir}${ldpath}" | sed "s|:|:$datadir|g")"
 	fi
 	# search in all rpaths
+	local IFS=:
 	for rpaths in "$pkgbasedir"/.control.*/.rpaths; do
 		[ -f "$rpaths" ] || continue
 		while read i; do
 			local dir="${datadir}${i}"
-			IFS=:
 			if [ -d "$dir" ] && ! list_has "$dir" $paths; then
 				paths="$paths:${dir}"
 			fi
-			unset IFS
 		done < "$rpaths"
 	done
 	echo "$paths"
@@ -1599,7 +1596,7 @@ scan_shared_objects() {
 	fi
 
 	# allow spaces in paths
-	IFS=:
+	local IFS=:
 	set -- $(find_scanelf_paths "$datadir")
 	unset IFS
 
@@ -1616,6 +1613,7 @@ scan_shared_objects() {
 	fi
 	msg "Scanning shared objects"
 	# lets tell all the .so files this package provides in .provides-so
+	local etype soname file
 	scanelf --nobanner --soname $opt "$@" | while read etype soname file; do
 		# if soname field is missing, soname will be the filepath
 		sover=0
@@ -1675,8 +1673,8 @@ normalize_target_path() {
 	local path=$1
 	[ "${path:0:1}" = / ] || path=$(dirname "$2")/$path
 
-	local oifs="$IFS" pathstr= i=
-	IFS='/'
+	local pathstr= i=
+	local IFS='/'
 	set -- $path
 	for i; do
 		case "$i" in
@@ -1902,7 +1900,6 @@ update_abuildrepo_index() {
 	local oldpwd="$PWD"
 	for i in $allarch; do
 		cd "$REPODEST/$repo/$i"
-		local index=$i/APKINDEX.tar.gz
 
 		msg "Updating the $repo/$i repository index..."
 		local oldindex=
@@ -2590,7 +2587,6 @@ rootbld() {
 }
 
 stripbin() {
-	local bin
 	if options_has "!strip" || [ "${subpkgarch:-$pkgarch}" = "noarch" ]; then
 		return 0
 	fi
@@ -2928,8 +2924,10 @@ if [ -n "$DEBUG" ] || subpackage_types_has "dbg"; then
 fi
 
 if [ -n "$subpkgname" ]; then
-	# If we are handling a sub package then reset subpackages and install
+	# TODO remove once last usage is removed
+	# https://gitlab.alpinelinux.org/alpine/aports/-/merge_requests/64406
 	origsubpackages="$subpackages"
+	# If we are handling a sub package then reset subpackages and install
 	subpackages=
 else
 	allpackages="$pkgname $subpackages"
