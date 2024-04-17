@@ -52,7 +52,7 @@ other related operations.
 	Quiet
 
 *-r*
-	Install missing dependencies from system repository (using sudo)
+	Install missing dependencies from system repository
 
 *-s*
 	Set source package destination directory
