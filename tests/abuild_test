@@ -1038,14 +1038,33 @@ abuild_setcap_binary_with_option_body() {
 
 abuild_command_provides_body() {
 	init_keys
-	cp -ra "$testrepo"/bin-in-path .
-	cd bin-in-path
+	mkdir testprovides
+	cd testprovides
+	cat >APKBUILD<<-EOF
+		# Maintainer: Natanael Copa <ncopa@alpinelinux.org>
+		pkgname=testprovides
+		pkgver=1.0
+		pkgrel=0
+		pkgdesc="Dummy test package that installs a file and directory in path"
+		url="https://gitlab.alpinelinux.org/alpine/aports"
+		arch="noarch"
+		license="MIT"
+		prepare() { mkdir -p "\$builddir"; }
+		build() { true; }
+		check() { true; }
+		package() {
+			mkdir -p "\$pkgdir/usr/bin"
+			printf "%s\n" '#!/bin/sh' >"\$pkgdir/usr/bin/foo"
+			chmod +x "\$pkgdir/usr/bin/foo"
+			mkdir -p "\$pkgdir/usr/bin/dir/"
+		}
+	EOF
 	abuild rootpkg
 
 	atf_check \
 		-o match:"provides = cmd:foo=1.0-r0" \
 		-o not-match:"provides = cmd:dir=1.0-r0" \
-		grep '^provides = ' pkg/.control.bin-in-path/.PKGINFO
+		grep '^provides = ' pkg/.control.testprovides/.PKGINFO
 }
 
 abuild_gocache_dir_body() {
