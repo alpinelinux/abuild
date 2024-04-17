@@ -1299,6 +1299,13 @@ prepare_command_provides() {
 		if ! [ -x "$i" ] || ! [ -f "$i" ]; then
 			continue
 		fi
+		# exclude any provides: lines for commands that has '@' because '@'
+		# is used as seperator between command name and repository. This
+		# avoids potential conflicts
+		# ref: https://gitlab.alpinelinux.org/alpine/abuild/-/issues/10074
+		case "$i" in
+			*@*) continue;;
+		esac
 		local f=${i##*/}
 		echo $f >> "$controldir"/.provides-command
 	done
