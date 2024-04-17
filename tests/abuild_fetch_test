@@ -141,7 +141,7 @@ abuild_fetch_locking_body() {
 		pid1=\$!
 
 		# give enough time for abuild-fetch to call curl
-		sleep 0.2
+		sleep 0.5
 
 		# the first stamp should not exist, second instance should block the retry
 		if [ -e stamp3 ]; then
