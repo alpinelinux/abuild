@@ -2627,6 +2627,7 @@ rootbld() {
 		--setenv REPODEST "$REPODEST" \
 		--setenv ABUILD_USERDIR "$ABUILD_USERDIR" \
 		${ABUILD_BOOTSTRAP:+--setenv ABUILD_BOOTSTRAP "$ABUILD_BOOTSTRAP"} \
+		${APORTS_BOOTSTRAP:+--setenv APORTS_BOOTSTRAP "$APORTS_BOOTSTRAP"} \
 		--setenv SOURCE_DATE_EPOCH "$SOURCE_DATE_EPOCH" \
 		--setenv ABUILD_LAST_COMMIT "$ABUILD_LAST_COMMIT" \
 		--setenv PATH ${USE_CCACHE:+/usr/lib/ccache/bin:}/bin:/usr/bin:/sbin:/usr/sbin \
