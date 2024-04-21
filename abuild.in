@@ -782,7 +782,7 @@ postcheck() {
 	msg "Running postcheck for $name"
 	# checking for FHS compat
 	if ! options_has "!fhs"; then
-		for i in srv usr/local opt var/run tmp var/tmp var/lock var/empty home sys proc mnt dev; do
+		for i in srv usr/local opt tmp var/tmp var/lock var/empty home sys proc mnt dev; do
 			for j in "$dir"/"$i"/* "$dir"/"$i"/.[!.]* "$dir"/"$i"/..?*; do
 				if [ -L "$j" ] || [ -e "$j" ]; then
 					error "Packages must not put anything under /$i"
