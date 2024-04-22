@@ -28,7 +28,6 @@ fi
 : ${APK:="apk"}
 : ${ADDUSER:="abuild-adduser"}
 : ${ADDGROUP:="abuild-addgroup"}
-: ${SETFATTR:="setfattr"}
 
 apk_opt_wait="--wait 30"
 doc_threshold=$((2 * 1024 * 1024)) # 2 MiB
@@ -2600,6 +2599,8 @@ stripbin() {
 	esac
 
 	msg "Stripping binaries"
+
+	mkdir "$pkgbasedir/.strip-tmp"
 	scanelf --recursive --nobanner --osabi --etype "ET_DYN,ET_EXEC" . \
 		| while read type osabi filename; do
 
@@ -2607,12 +2608,13 @@ stripbin() {
 		[ -e "$filename" ] || continue
 
 		[ "$osabi" != "STANDALONE" ] || continue
-		local XATTR=$(getfattr --match="" --dump "${filename}")
-		"${stripcmd}" "${filename}"
-		if [ -n "$XATTR" ]; then
-			echo "$XATTR" | "$SETFATTR" --restore=-
-		fi
+		local tmp="$pkgbasedir/.strip-tmp/${filename##*/}"
+		"${stripcmd}" -o "$tmp" "${filename}"
+		# only replace content to preserve attributes
+		cat "$tmp" > "$filename"
+		rm "$tmp"
 	done
+	rmdir "$pkgbasedir/.strip-tmp"
 }
 
 # simply list target apks

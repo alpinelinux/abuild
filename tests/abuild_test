@@ -10,7 +10,6 @@ init_tests \
 	abuild_invalid_filename \
 	abuild_usr_lib64 \
 	abuild_dbg_subpackage \
-	abuild_SETFATTR_in_dbg \
 	abuild_reproducible \
 	abuild_checksum_generation \
 	abuild_checksum_duplicates \
@@ -236,16 +235,6 @@ abuild_dbg_subpackage_body() {
 	if [ -e usr/lib/debug/usr/bin/hello.debug ] && [ -e usr/lib/debug/usr/bin/hello-hard.debug ]; then
 		atf_fail "only one of hello.debug and hello-hard.debug should exist"
 	fi
-}
-
-abuild_SETFATTR_in_dbg_body() {
-	init_keys
-	cp -ra "$testrepo"/dbgpkg .
-	cd dbgpkg
-	SETFATTR=true atf_check -s exit:0 \
-		-o match:"hello world" \
-		-e match:"Build complete" \
-		abuild
 }
 
 abuild_reproducible_body() {
