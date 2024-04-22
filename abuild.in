@@ -117,7 +117,7 @@ set_source_date() {
 	fi
 	# set time stamp for reproducible builds
 	if [ -z "$ABUILD_LAST_COMMIT" ]; then
-		export ABUILD_LAST_COMMIT="$(git_last_commit)$(git_dirty)"
+		ABUILD_LAST_COMMIT="$(git_last_commit)$(git_dirty)"
 	fi
 	if [ -z "$SOURCE_DATE_EPOCH" ] && [ "${ABUILD_LAST_COMMIT%-dirty}" = "$ABUILD_LAST_COMMIT" ]; then
 		SOURCE_DATE_EPOCH=$(git_last_commit_epoch $ABUILD_LAST_COMMIT)
@@ -125,7 +125,7 @@ set_source_date() {
 	if [ -z "$SOURCE_DATE_EPOCH" ]; then
 		SOURCE_DATE_EPOCH=$(stat -c "%Y" "$APKBUILD")
 	fi
-	export SOURCE_DATE_EPOCH
+	export SOURCE_DATE_EPOCH ABUILD_LAST_COMMIT
 }
 
 default_cleanup_srcdir() {
@@ -339,7 +339,7 @@ sanitycheck() {
 
 sumcheck() {
 	local algo="$1" sums="$2"
-	local f endreturnval origin file
+	local f endreturnval origin csum file
 
 	# get number of checksums
 	set -- $sums
@@ -360,8 +360,8 @@ sumcheck() {
 			endreturnval=1
 			is_remote $origin || continue
 
-			local csum="${src:0:8}"
-			local file="$SRCDEST/$(filename_from_uri $origin)"
+			csum="${src:0:8}"
+			file="$SRCDEST/$(filename_from_uri $origin)"
 
 			echo "Because the remote file above failed the ${algo}sum check it will be renamed."
 			echo "Rebuilding will cause it to re-download which in some cases may fix the problem."
@@ -500,11 +500,11 @@ initdcheck() {
 
 # unpack the sources
 default_unpack() {
-	local u
+	local u gunzip
 	verify || return 1
 	initdcheck || return 1
 	mkdir -p "$srcdir"
-	local gunzip=$(command -v pigz || echo gunzip)
+	gunzip=$(command -v pigz || echo gunzip)
 	[ $gunzip = "/usr/bin/pigz" ] && gunzip="$gunzip -d"
 	for u in $source; do
 		local s
@@ -853,8 +853,8 @@ postcheck() {
 	# look for pycache
 	# wildcard should always get the system python dir, and this is faster than
 	# trying to calculate the python version.
-	local pycache="$(find "$dir"/usr/lib/python* \( -type d -a -name "__pycache__" \) 2>/dev/null )"
-	if [ -n "$pycache" ] && [ "${name%-pyc}" = "$name" ]; then
+	i="$(find "$dir"/usr/lib/python* \( -type d -a -name "__pycache__" \) 2>/dev/null || :)"
+	if [ -n "$i" ] && [ "${name%-pyc}" = "$name" ]; then
 		warning "Found __pycache__ but package name doesn't end with -pyc"
 	fi
 
@@ -892,14 +892,14 @@ postcheck() {
 	fi
 	# test capabilities on executables
 	# see: https://gitlab.alpinelinux.org/alpine/tsc/-/issues/45
-	getcap -r "$dir" | (local r=true; while read -r line; do
+	getcap -r "$dir" | (local r=true execothers; while read -r line; do
 		local filename="${line% *}"
 		if ! options_has "setcap"; then
 			error "Found binary with extra capabilities: $filename"
 			r=false
 		fi
 
-		local execothers="$(find "$filename" -perm -o+x)"
+		execothers="$(find "$filename" -perm -o+x)"
 		if [ -n "$execothers" ]; then
 			warning "Found setcap binary executable by others: $filename"
 		fi
@@ -907,7 +907,8 @@ postcheck() {
 
 	# test for textrels
 	if ! options_has "textrels"; then
-		local res="$(scanelf --recursive --textrel --quiet "$dir")"
+		local res
+		res="$(scanelf --recursive --textrel --quiet "$dir")"
 		if [ -n "$res" ]; then
 			error "Found textrels:"
 			echo "$res"
@@ -975,7 +976,7 @@ lang() {
 
 # echo '-dirty' if git is not clean
 git_dirty() {
-	[ $($git status -s -- "$startdir" | wc -l) -ne 0 ] && echo "-dirty"
+	[ $($git status -s -- "$startdir" | wc -l) -eq 0 ] || echo "-dirty"
 }
 
 # echo last commit hash id
@@ -1027,9 +1028,10 @@ check_license() {
 }
 
 check_secfixes_comment() {
-	local c=$(sed -E -n -e '/^# secfixes:/,/(^[^#]|^$)/p' "$APKBUILD" | grep '^#')
-	local invalid=$(echo "$c" \
-		| grep -v -E '(^# secfixes:|^#  +- [A-Z0-9-]+|^#   [0-9]+.*:$|^#$)')
+	local c invalid
+	c=$(sed -E -n -e '/^# secfixes:/,/(^[^#]|^$)/p' "$APKBUILD" | grep '^#')
+	invalid=$(echo "$c" \
+		| { grep -v -E '(^# secfixes:|^#  +- [A-Z0-9-]+|^#   [0-9]+.*:$|^#$)' || [ $? -eq 1 ]; })
 	if [ -z "$invalid" ]; then
 		return 0
 	fi
@@ -1252,7 +1254,7 @@ prepare_symlinks() {
 }
 
 prepare_pkgconfig_provides() {
-	local dir="${subpkgdir:-$pkgdir}"
+	local dir="${subpkgdir:-$pkgdir}" v
 	options_has "!tracedeps" && return 0
 	cd "$dir" || return 1
 	for i in usr/lib/pkgconfig/*.pc usr/share/pkgconfig/*.pc; do
@@ -1260,7 +1262,7 @@ prepare_pkgconfig_provides() {
 			continue
 		fi
 		local f=${i##*/}
-		local v=$(PKG_CONFIG_PATH="$dir"/usr/lib/pkgconfig:"$dir"/usr/share/pkgconfig \
+		v=$(PKG_CONFIG_PATH="$dir"/usr/lib/pkgconfig:"$dir"/usr/share/pkgconfig \
 			PKG_CONFIG_MAXIMUM_TRAVERSE_DEPTH=1 pkg-config \
 			--modversion ${f%.pc} | sed -E -e 's/-(alpha|beta|rc|pre)/_\1/')
 		v=${v#v}
@@ -1422,7 +1424,8 @@ real_so_path() {
 
 # search rpaths and /usr/lib /lib for given so files
 find_so_files() {
-	local rpaths=$(cat "$1")
+	local rpaths
+	rpaths=$(cat "$1")
 	shift
 	while [ $# -gt 0 ]; do
 		real_so_path "$1" /usr/lib /lib $rpaths || return 1
@@ -1485,7 +1488,8 @@ trace_apk_deps() {
 
 	# find all packages that holds the so files
 	if [ -f "$dir"/.rpaths ]; then
-		local so_files=$(find_so_files "$dir"/.rpaths $missing) \
+		local so_files
+		so_files=$(find_so_files "$dir"/.rpaths $missing) \
 			|| return 1
 		deppkgs=$($APK $apkroot info --quiet --who-owns $so_files) || return 1
 	fi
@@ -1509,6 +1513,7 @@ trace_apk_deps() {
 	done
 
 	# pkg-config depends
+	local provider owner
 	for i in $(sort -u "$dir"/.needs-pc 2>/dev/null); do
 		# first check if its provided by same apkbuild
 		grep -q -w "^$pcprefix$i" "$dir"/.provides-pc 2>/dev/null && continue
@@ -1517,7 +1522,7 @@ trace_apk_deps() {
 			autodeps="$autodeps pc:$pcprefix$i"
 		elif subpkg_provides_pc "$i" \
 				|| $APK $apkroot info --quiet --installed "pc:$i"; then
-			local provider=$($APK $apkroot search --quiet "pc:$i")
+			provider=$($APK $apkroot search --quiet "pc:$i")
 			if list_has "$provider" $depends_dev; then
 				warning "$provider should be removed from depends_dev"
 			fi
@@ -1527,7 +1532,7 @@ trace_apk_deps() {
 			for d in share lib; do
 				local pcfile=/usr/$d/pkgconfig/"${i%%[<>=]*}".pc
 				if [ -e "$pcfile" ]; then
-					local owner=$($APK $apkroot info --quiet --who-owns $pcfile)
+					owner=$($APK $apkroot info --quiet --who-owns $pcfile)
 					warning "${owner:-package providing $pcfile} needs to be rebuilt"
 				fi
 			done
@@ -1582,7 +1587,7 @@ find_scanelf_paths() {
 
 scan_shared_objects() {
 	local name="$1" controldir="$2" datadir="$3"
-	local opt= i=
+	local opt= i= dupes=
 
 	if [ "${subpkgarch:-$pkgarch}" = "noarch" ]; then
 		return 0
@@ -1643,7 +1648,7 @@ scan_shared_objects() {
 		| sort -u > "$controldir"/.provides-so
 
 	# verify that we dont have any duplicates
-	local dupes="$(cut -d' ' -f1 "$controldir"/.provides-so | uniq -d)"
+	dupes="$(cut -d' ' -f1 "$controldir"/.provides-so | uniq -d)"
 	if [ -n "$dupes" ]; then
 		die  "provides multiple versions of same shared object: $dupes"
 	fi
@@ -1756,8 +1761,8 @@ human_size() {
 }
 
 create_apks() {
-	local file= dir= name= ver= apk= datadir= size= i=
-	local gzip=$(command -v pigz || echo gzip)
+	local file= dir= name= ver= apk= datadir= size= i= gzip=
+	gzip=$(command -v pigz || echo gzip)
 	if ! options_has "keepdirs"; then
 		rmdir "$pkgdir"/usr/lib \
 			"$pkgdir"/usr/bin \
@@ -1788,15 +1793,16 @@ create_apks() {
 		printf '%s %s:0\n' "$i" "$i"
 	done > "$pkgbasedir"/.group-map
 
+	local name ver size subpkgarch sha256
 	for file in "$pkgbasedir"/.control.*/.PKGINFO; do
 		local dir="${file%/.PKGINFO}"
-		local name=$(pkginfo_val pkgname "$file")
-		local ver=$(pkginfo_val pkgver "$file")
-		local size=$(pkginfo_val size "$file")
+		name=$(pkginfo_val pkgname "$file")
+		ver=$(pkginfo_val pkgver "$file")
+		size=$(pkginfo_val size "$file")
 		local apk=$name-$ver.apk
 		local datadir="$pkgbasedir"/$name
 		local subpkgname=$name
-		local subpkgarch=$(pkginfo_val arch "$file")
+		subpkgarch=$(pkginfo_val arch "$file")
 
 		# See https://gitlab.alpinelinux.org/alpine/tsc/-/issues/16
 		if ! options_has "bigdocs" && is_doc_pkg "$name" && [ "$size" -gt "$doc_threshold" ]; then
@@ -1831,7 +1837,7 @@ create_apks() {
 
 		msg "Create checksum..."
 		# append the hash for data.tar.gz
-		local sha256=$(sha256sum "$dir"/data.tar.gz | cut -f1 -d' ')
+		sha256=$(sha256sum "$dir"/data.tar.gz | cut -f1 -d' ')
 		echo "datahash = $sha256" >> "$dir"/.PKGINFO
 		touch -h -d "@$SOURCE_DATE_EPOCH" "$dir"/.PKGINFO
 
@@ -1853,7 +1859,7 @@ create_apks() {
 }
 
 build_abuildrepo() {
-	local part _check=check
+	local part _check=check _starttime _endtime _difftime
 	if options_has "checkroot"; then
 		_check=check_fakeroot
 	fi
@@ -1864,7 +1870,7 @@ build_abuildrepo() {
 		# check early if we have abuild key
 		abuild-sign --installed
 		logcmd "building $repo/$pkgname-$pkgver-r$pkgrel"
-		local _starttime=$(date -u +%s)
+		_starttime=$(date -u +%s)
 		msg "Building $repo/$pkgname $pkgver-r$pkgrel (using $program $program_version) started $(date -R)"
 
 		# make sure SOURCE_DATE_EPOCH is set
@@ -1874,8 +1880,8 @@ build_abuildrepo() {
 				$_check rootpkg; do
 			runpart $part
 		done
-		local _endtime=$(date -u +%s)
-		local _difftime=$((_endtime - _starttime))
+		_endtime=$(date -u +%s)
+		_difftime=$((_endtime - _starttime))
 		msg "Build complete at $(date -R) elapsed time $((_difftime/3600))h $((_difftime/60%60))m $((_difftime%60))s"
 		cleanup $CLEANUP
 	fi
@@ -1933,7 +1939,8 @@ check() {
 
 # predefined splitfunc doc
 default_doc() {
-	local gzip=$(command -v pigz || echo gzip)
+	local gzip
+	gzip=$(command -v pigz || echo gzip)
 	depends="$depends_doc"
 	pkgdesc="$pkgdesc (documentation)"
 	install_if="docs $pkgname=$pkgver-r$pkgrel"
@@ -1995,9 +2002,9 @@ default_dbg() {
 		if [ "$type" != ET_DYN ]; then
 			continue
 		fi
-		local dst=$subpkgdir/usr/lib/debug/${src#"$pkgbasedir"/*/}.debug
+		local ino dst=$subpkgdir/usr/lib/debug/${src#"$pkgbasedir"/*/}.debug
 		mkdir -p "${dst%/*}"
-		local ino=$(stat -c %i "$src")
+		ino=$(stat -c %i "$src")
 		if ! [ -e "$pkgbasedir/.dbg-tmp/$ino" ]; then
 			local tmp=$pkgbasedir/.dbg-tmp/${src##*/}
 			${CROSS_COMPILE}objcopy --only-keep-debug "$src" "$dst"
@@ -2292,11 +2299,11 @@ apk_up2date() {
 }
 
 abuildindex_up2date() {
-	local i
+	local i dir
 
 	for i in $allpackages; do
 		subpkg_set "$i"
-		local dir="$REPODEST/$repo/$(arch2dir "$subpkgarch")"
+		dir="$REPODEST/$repo/$(arch2dir "$subpkgarch")"
 		local idx="$dir"/APKINDEX.tar.gz
 		local file="$dir"/$subpkgname-$pkgver-r$pkgrel.apk
 
@@ -2362,10 +2369,10 @@ get_missing_deps() {
 }
 
 apk_add_makedeps() {
-	local prefix=$1
+	local prefix=$1 repo_args
 	shift
 
-	local repo_args="--repository $(shell_escape "$REPODEST/$repo")"
+	repo_args="--repository $(shell_escape "$REPODEST/$repo")"
 	[ -s "$repo_template" ] && repo_args=$(while read r; do
 		printf %s\\n "--repository $(shell_escape "$REPODEST/${r##*/}")"
 	done) < "$repo_template"
@@ -2415,7 +2422,7 @@ builddeps() {
 
 # replace the sha512sums in the APKBUILD
 checksum() {
-	local s files
+	local s files name
 	[ -z "$source" ] && [ -n "${sha256sums}${sha512sums}" ] \
 		&& msg "Removing checksums from $APKBUILD"
 	sed -E -i \
@@ -2429,7 +2436,7 @@ checksum() {
 	[ -z "$source" ] && return 0
 	fetch
 	for s in $source; do
-		local name="$(filename_from_uri $s)"
+		name="$(filename_from_uri $s)"
 		case " $files " in
 		*" $name "*) die "duplicate found in \$source: $name";;
 		esac
@@ -2478,10 +2485,10 @@ rootbld() {
 
 	[ $CBUILD = $CHOST ] || die "rootbld: set CBUILD=$CHOST to build for $CHOST"
 
-	local cachedir=/etc/apk/cache
+	local qarch cachedir=/etc/apk/cache
 	if ! [ $CBUILD_ARCH = "$($APK --print-arch)" ]; then
 		# cross-building, so check for binfmt registration
-		local qarch="$(rootbld_qemu_arch)"
+		qarch="$(rootbld_qemu_arch)"
 		if ! [ -f "/proc/sys/fs/binfmt_misc/qemu-$qarch" ]; then
 			warning "rootbld: binfmt registration missing for $qarch binaries"
 		fi
@@ -2759,7 +2766,8 @@ snapshot() {
 	# check if we setup vars correctly
 	[ -z "$disturl" ] && warning "Missing disturl in APKBUILD, auto uploading disabled."
 	[ -z "$giturl" ] && die "Missing repository url in APKBUILD!"
-	local _date=$(date +%Y%m%d)
+	local _date
+	_date=$(date +%Y%m%d)
 	local _format="tar.gz"
 	# remove any repositories left in srcdir
 	"$abuild_path" $forceroot clean

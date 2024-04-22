@@ -18,8 +18,8 @@ fi
 gzip=$(command -v pigz || echo gzip)
 
 do_sign() {
-	local f i keyname repo
-	local openssl=$(command -v openssl || echo libressl)
+	local f i keyname repo openssl
+	openssl=$(command -v openssl || echo libressl)
 
 	# we are actually only interested in the name, not the file itself
 	keyname=${pubkey##*/}

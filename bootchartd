@@ -132,7 +132,7 @@ finalize()
 		fi
 
 		# Get CPU count
-		local cpucount=$(grep -c '^processor' /proc/cpuinfo)
+		cpucount=$(grep -c '^processor' /proc/cpuinfo || [ $? -eq 1 ])
 		if [ $cpucount -gt 1 -a -n "$(grep 'sibling.*2' /proc/cpuinfo)" ]; then
 			# Hyper-Threading enabled
 			cpucount=$(( $cpucount / 2 ))
