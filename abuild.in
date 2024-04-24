@@ -265,30 +265,28 @@ default_sanitycheck() {
 
 		[ -e "$startdir"/$f ] || die "trigger script $f is missing"
 	done
-	if [ -n "$source" ]; then
-		for i in $source; do
-			if install_has "$i"; then
-				warning "You should not have \$install in source"
-				continue
-			fi
-			case "$i" in
-				*::*) i=${i%%::*};;
-				https://*) makedepends_has wget && warning "wget no longer need to be in makedepends when source has https://" ;;
-			esac
-			list_has ${i##*/} $md5sums $sha256sums $sha512sums \
-				|| die "${i##*/} is missing in checksums"
+	for i in $source; do
+		if install_has "$i"; then
+			warning "You should not have \$install in source"
+			continue
+		fi
+		case "$i" in
+			*::*) i=${i%%::*};;
+			https://*) makedepends_has wget && warning "wget no longer need to be in makedepends when source has https://" ;;
+		esac
+		list_has ${i##*/} $md5sums $sha256sums $sha512sums \
+			|| die "${i##*/} is missing in checksums"
 
-			# verify that our source does not have git tag version
-			# name as tarball (typically github)
-			if is_remote "$i" && [ "${i#*::}" = "$i" ]; then
-				case ${i##*/} in
-				v$pkgver.tar.*|$pkgver.tar.*)
-					die "source ${i##*/} needs to be renamed to avoid possible collisions"
-					;;
-				esac
-			fi
-		done
-	fi
+		# verify that our source does not have git tag version
+		# name as tarball (typically github)
+		if is_remote "$i" && [ "${i#*::}" = "$i" ]; then
+			case ${i##*/} in
+			v$pkgver.tar.*|$pkgver.tar.*)
+				die "source ${i##*/} needs to be renamed to avoid possible collisions"
+				;;
+			esac
+		fi
+	done
 
 	# verify that things listed in checksum also is listed in source
 	local algo=
@@ -1559,7 +1557,6 @@ trace_apk_deps() {
 		sed 's/^/provides = /' "$dir"/.provides-py | sort -u \
 			>> "$dir"/.PKGINFO
 	fi
-	[ -z "$autodeps" ] && return 0
 	for i in $autodeps; do
 		echo "depend = $i"
 	done | sort -u >> "$dir"/.PKGINFO
