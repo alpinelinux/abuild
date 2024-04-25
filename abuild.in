@@ -2625,6 +2625,7 @@ rootbld() {
 		--setenv CARCH "$CARCH" \
 		--setenv HOME "$HOME" \
 		--setenv REPODEST "$REPODEST" \
+		--setenv SRCDEST "$SRCDEST" \
 		--setenv ABUILD_USERDIR "$ABUILD_USERDIR" \
 		${ABUILD_BOOTSTRAP:+--setenv ABUILD_BOOTSTRAP "$ABUILD_BOOTSTRAP"} \
 		${APORTS_BOOTSTRAP:+--setenv APORTS_BOOTSTRAP "$APORTS_BOOTSTRAP"} \
