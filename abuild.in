@@ -99,11 +99,11 @@ amove() {
 }
 
 cross_creating() {
-	test "$CHOST" != "$CTARGET" -a -n "$CBUILDROOT"
+	test "$CHOST" != "$CTARGET"
 }
 
 cross_compiling() {
-	test "$CBUILD" != "$CHOST" -a -n "$CBUILDROOT"
+	test "$CBUILD" != "$CHOST"
 }
 
 want_check() {
