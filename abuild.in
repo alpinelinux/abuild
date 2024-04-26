@@ -1351,6 +1351,10 @@ dir_has_arch_binaries() {
 	# look for static *.a
 	[ -n "$(find "$dir" -type f -name '*.a' | head -n 1)" ] && return 0
 
+	# look for precompiled lua files (luac: 0x1b Lua; luajit: 0x1b LJ)
+	find "$dir" -type f \( -name '*.lua' -o -name '*.luac' \) -exec od -N 4 -A n -t x4 -- {} \; |
+		grep -q -E -e '(6175|4a)4c1b$' && return 0
+
 	return 1
 }
 
