@@ -2179,6 +2179,7 @@ is_function() {
 
 do_fakeroot() {
 	if [ -n "$FAKEROOT" ]; then
+		msg "Entering fakeroot..."
 		$FAKEROOT -- "$@"
 	else
 		"$@"
@@ -2188,7 +2189,6 @@ do_fakeroot() {
 # wrap check() with fakeroot
 check_fakeroot() {
 	cd "$startdir"
-	[ -n "$FAKEROOT" ] && msg "Entering fakeroot..."
 	do_fakeroot "$abuild_path" $forceroot $color_opt $keep_build $verbose check
 }
 
@@ -2196,7 +2196,6 @@ check_fakeroot() {
 rootpkg() {
 	cd "$startdir"
 	rm -rf "$pkgdir"
-	[ -n "$FAKEROOT" ] && msg "Entering fakeroot..."
 
 	do_fakeroot "$abuild_path" $forceroot $color_opt $keep_build $verbose \
 		set_source_date \
