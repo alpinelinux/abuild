@@ -1926,7 +1926,6 @@ update_abuildrepo_index() {
 		local index=$i/APKINDEX.tar.gz
 
 		msg "Updating the $repo/$i repository index..."
-		local sign=".SIGN.RSA.${SIGN_PUBLIC_KEY##*/}"
 		local oldindex=
 		if [ -f APKINDEX.tar.gz ]; then
 			oldindex="--index APKINDEX.tar.gz"
