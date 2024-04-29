@@ -9,7 +9,10 @@ init_tests \
 	abuild_sign_installed_missing_pub \
 	abuild_sign_installed_missing_priv \
 	abuild_sign_installed \
-	abuild_sign_owner
+	abuild_sign_owner_type_invalid \
+	abuild_sign_owner_type_default \
+	abuild_sign_owner_type_rsa \
+	abuild_sign_owner_type_rsa256
 
 export ABUILD_SHAREDIR="$(atf_get_srcdir)/.."
 
@@ -63,7 +66,14 @@ abuild_sign_installed_body() {
 		abuild-sign --installed
 }
 
-abuild_sign_owner_body() {
+abuild_sign_owner_type_invalid_body() {
+	init_keys
+	atf_check -s exit:1 \
+		-e match:"abuild-sign: supported types are RSA and RSA256" \
+		abuild-sign -t DSA foo.tar.gz
+}
+
+abuild_sign_owner_type_default_body() {
 	init_keys
 	echo foo > .PKGINFO
 	tar -zcf foo.tar.gz .PKGINFO || atf_fail "Failed to create unsigned test archive"
@@ -73,6 +83,34 @@ abuild_sign_owner_body() {
 		abuild-sign foo.tar.gz
 
 	atf_check -s exit:0 \
-		-o match:"0/0.*\.SIGN\.RSA" \
+		-o match:"0/0.*\.SIGN\.RSA\." \
+		tar -ztvf foo.tar.gz
+}
+
+abuild_sign_owner_type_rsa_body() {
+	init_keys
+	echo foo > .PKGINFO
+	tar -zcf foo.tar.gz .PKGINFO || atf_fail "Failed to create unsigned test archive"
+
+	atf_check -s exit:0 \
+		-e match:"Signed" \
+		abuild-sign -t RSA foo.tar.gz
+
+	atf_check -s exit:0 \
+		-o match:"0/0.*\.SIGN\.RSA\." \
+		tar -ztvf foo.tar.gz
+}
+
+abuild_sign_owner_type_rsa256_body() {
+	init_keys
+	echo foo > .PKGINFO
+	tar -zcf foo.tar.gz .PKGINFO || atf_fail "Failed to create unsigned test archive"
+
+	atf_check -s exit:0 \
+		-e match:"Signed" \
+		abuild-sign -t RSA256 foo.tar.gz
+
+	atf_check -s exit:0 \
+		-o match:"0/0.*\.SIGN\.RSA256\." \
 		tar -ztvf foo.tar.gz
 }

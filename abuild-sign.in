@@ -31,8 +31,8 @@ do_sign() {
 		trap 'die "failed to sign $i"' EXIT
 		set -e
 		cd "$repo"
-		sig=".SIGN.RSA.$keyname"
-		$openssl dgst -sha1 -sign "$privkey" -out "$sig" "$i"
+		sig=".SIGN.$type.$keyname"
+		$openssl dgst $dgstargs -sign "$privkey" -out "$sig" "$i"
 
 		if [ -n "$SOURCE_DATE_EPOCH" ]; then
 			touch -h -d "@$SOURCE_DATE_EPOCH" "$sig"
@@ -61,6 +61,7 @@ usage() {
 		  -k, --private KEY  The private key to use for signing
 		  -p, --public KEY   The name of public key. apk add will look for
 		                     /etc/apk/keys/KEY
+		  -t, --type TYPE    The signature type RSA or RSA256
 		  -q, --quiet
 		  -h, --help         Show this help
 
@@ -72,7 +73,7 @@ privkey="$PACKAGER_PRIVKEY"
 pubkey=
 quiet=
 
-args=$(getopt -o ek:p:qh --long installed,private:,public:,quiet,help -n "$program" -- "$@")
+args=$(getopt -o ek:p:t:qh --long installed,private:,public:,type:,quiet,help -n "$program" -- "$@")
 if [ $? -ne 0 ]; then
 	usage >&2
 	exit 2
@@ -83,6 +84,7 @@ while true; do
 		-e|--installed) check_installed=true;;
 		-k|--private) privkey=$2; shift;;
 		-p|--public) pubkey=$2; shift;;
+		-t|--type) type=$2; shift;;
 		-q|--quiet) quiet=1;; # suppresses msg
 		-h|--help) usage; exit;;
 		--) shift; break;;
@@ -112,6 +114,18 @@ if [ -z "$pubkey" ]; then
 	pubkey=${PACKAGER_PUBKEY:-"${privkey}.pub"}
 fi
 
+if [ -z "$type" ]; then
+	type=RSA
+fi
+
+case $type in
+	RSA) dgstargs="-sha1";;
+	RSA256) dgstargs="-sha256";;
+	*)
+		echo "$program: supported types are RSA and RSA256" >&2
+		exit 1
+		;;
+esac
 if $check_installed; then
 	if ! [ -e "$privkey" ]; then
 		echo "$program: $privkey: File not found" >&2
