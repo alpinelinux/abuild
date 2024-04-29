@@ -15,6 +15,7 @@ init_tests \
 	abuild_keygen_kernel \
 
 export ABUILD_SHAREDIR="$SRCDIR"/..
+export ABUILD_USERDIR="$HOME"/.abuild
 export GIT=false
 export FAKEKEY="$SRCDIR/testdata/abuild.key"
 export FAKEKEYPUB="$SRCDIR/testdata/abuild.key.pub"
