@@ -31,7 +31,7 @@ do_sign() {
 		trap 'die "failed to sign $i"' EXIT
 		set -e
 		cd "$repo"
-		sig=".SIGN.$type.$keyname"
+		sig=".SIGN.$sigtype.$keyname"
 		$openssl dgst $dgstargs -sign "$privkey" -out "$sig" "$i"
 
 		if [ -n "$SOURCE_DATE_EPOCH" ]; then
@@ -84,7 +84,7 @@ while true; do
 		-e|--installed) check_installed=true;;
 		-k|--private) privkey=$2; shift;;
 		-p|--public) pubkey=$2; shift;;
-		-t|--type) type=$2; shift;;
+		-t|--type) sigtype=$2; shift;;
 		-q|--quiet) quiet=1;; # suppresses msg
 		-h|--help) usage; exit;;
 		--) shift; break;;
@@ -114,11 +114,11 @@ if [ -z "$pubkey" ]; then
 	pubkey=${PACKAGER_PUBKEY:-"${privkey}.pub"}
 fi
 
-if [ -z "$type" ]; then
-	type=RSA
+if [ -z "$sigtype" ]; then
+	sigtype=RSA
 fi
 
-case $type in
+case $sigtype in
 	RSA) dgstargs="-sha1";;
 	RSA256) dgstargs="-sha256";;
 	*)
