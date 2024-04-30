@@ -1073,6 +1073,7 @@ prepare_metafiles() {
 	local dir=${subpkgdir:-$pkgdir}
 	local pkg="$name-$pkgver-r$pkgrel.apk"
 	local pkginfo="$controldir"/.PKGINFO
+	local i size
 
 	[ ! -d "$dir" ] && die "Missing $dir"
 	cd "$dir"
@@ -1085,15 +1086,27 @@ prepare_metafiles() {
 		sync;;
 	esac
 
-	local size=$(du -sk | awk '{print $1 * 1024}')
+	size=$(
+		set -o pipefail
+		{ echo 0; find . -type f -exec stat -c '%d:%i %s' -- {} + |
+		awk '!x[$1]++ {print $2}'; } | paste -sd+ | bc | tr -d '\\\n'
+	)
 	# If package contains only empty files (or only install scripts), the size
 	# might be 0. But due to apk-tools 2 considering packages with size = 0
 	# virtual, nothing is extracted (and no scripts are ran). That will be
 	# solved in apk-tools 3. As a workaround we can set the size to 1 if any
 	# files are present or install scripts are defined.
-	if [ "$size" -eq 0 ]; then
-		if [ -n "$install" ] || [ -n "$(find . ! -name .)" ]; then
+	if [ "$size" = 0 ]; then
+		if [ -n "$(find . ! -name .)" ]; then
 			size=1
+		else
+			for i in $install $trigger; do
+				local j=${i%=*}
+				[ "${j%.*}" = "$name" ] && {
+					size=1
+					break
+				}
+			done
 		fi
 	fi
 
@@ -1119,7 +1132,7 @@ prepare_metafiles() {
 		arch = ${subpkgarch:-$pkgarch}
 		origin = $pkgname
 	EOF
-	local i deps
+	local deps
 	deps="$depends"
 	if [ "$pkgname" != "busybox" ] && ! depends_has busybox && ! depends_has /bin/sh; then
 		for i in $install $triggers; do

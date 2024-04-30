@@ -31,8 +31,7 @@ init_tests \
 	abuild_multiline_license \
 	abuild_license_spdx \
 	abuild_git_ceiling \
-	abuild_package_size_zero \
-	abuild_package_size_nonzero \
+	abuild_package_size \
 	abuild_keepdirs \
 	abuild_amove \
 	abuild_doc \
@@ -571,75 +570,114 @@ abuild_git_ceiling_body() {
 		abuild
 }
 
-create_fake_du() {
-	mkdir -p bin
-	cat > bin/du <<-EOF
-		#!/bin/sh
-		echo 0
-	EOF
-	chmod +x bin/du
-	PATH="$PWD/bin:$PATH"
-}
-
-abuild_package_size_zero_body() {
+abuild_package_size_body() {
 	init_keys
 	mkdir -p test-size
-	create_fake_du
 
 	cd test-size
 	cat > APKBUILD <<-EOF
 		# Maintainer: Test User 123 <123@example.com>
 
 		# test package
-	 	pkgname="test-size"
+		pkgname="test-size"
 		pkgver="1.0"
 		pkgrel=0
 		pkgdesc='Dummy test package that has no files'
 		url='https://gitlab.alpinelinux.org/alpine/aports'
 		arch='noarch'
 		license='MIT'
-		install="\$pkgname.post-install"
+		install="\$pkgname-empty-script.post-install"
+		trigger="\$pkgname-empty-trigger.trigger=/"
+		subpackages="
+			\$pkgname-empty-noscript:_empty
+			\$pkgname-empty-script:_empty
+			\$pkgname-empty-trigger:_empty
+			\$pkgname-dirs:_dirs
+			\$pkgname-files:_files
+			\$pkgname-many:_many
+			\$pkgname-holes:_holes
+			\$pkgname-hardlink:_hardlink
+			\$pkgname-symlink:_symlink
+		"
+
+		# Test if multi line bc output is handle properly
+		export BC_LINE_LENGTH=1
 
 		package() {
 			mkdir -p "\$pkgdir"
 		}
+
+		_empty() {
+			mkdir -p "\$subpkgdir"
+		}
+
+		_dirs() {
+			mkdir -p "\$subpkgdir/a/ /v/e/r/y/ /d/e/e/p/ /d/i/r"
+			mkdir -p "\$subpkgdir"/b "\$subpkgdir"/c
+		}
+
+		_files() {
+			mkdir -p "\$subpkgdir"
+			cd "\$subpkgdir"
+			printf 'test\\n' > test
+			touch empty
+			mkdir -p dir
+			printf 'more\\n' > dir/more
+			printf 'size leak!\\n' > secret
+			chmod a-rwx secret
+			printf 'quoting and stuff\\n' > dir/"\\\$can't \\"touch \\\\this"
+		}
+
+		_many() {
+			mkdir -p "\$subpkgdir"
+			for i in \$(seq 10000); do
+				printf '\\n' > "\$subpkgdir/\$i"
+			done
+		}
+
+		_holes() {
+			mkdir -p "\$subpkgdir"
+			dd if=/dev/zero bs=1 seek=65534 count=1 of="\$subpkgdir"/holes
+		}
+
+		_hardlink() {
+			mkdir -p "\$subpkgdir"
+			cd "\$subpkgdir"
+			printf 'test\\n' > test
+			ln test link
+			ln test link2
+		}
+
+		_symlink() {
+			mkdir -p "\$subpkgdir"
+			ln -s / "\$subpkgdir"/link
+		}
 	EOF
-	cat > test-size.post-install <<-EOF
+	cat > test-size-empty-script.post-install <<-EOF
+		#!/bin/sh
+		echo 1
+	EOF
+	cat > test-size-empty-trigger.trigger <<-EOF
 		#!/bin/sh
 		echo 1
 	EOF
 	abuild rootpkg
-	# should be set to 1
-	atf_check -o match:'^size = 1$' \
-		cat pkg/.control.test-size/.PKGINFO
-}
-
-abuild_package_size_nonzero_body() {
-	init_keys
-	mkdir -p test-size
-
-	cd test-size
-	cat > APKBUILD <<-EOF
-		# Maintainer: Test User 123 <123@example.com>
-
-		# test package
-	 	pkgname="test-size"
-		pkgver="1.0"
-		pkgrel=0
-		pkgdesc='Dummy test package that has files'
-		url='https://gitlab.alpinelinux.org/alpine/aports'
-		arch='noarch'
-		license='MIT'
-
-		package() {
-			mkdir -p "\$pkgdir"
-			printf "%s" "very important data" > "\$pkgdir"/testfile
-		}
-	EOF
-	abuild rootpkg
-	# should not be set to 1
-	atf_check -o not-match:'^size = 1$' \
-		cat pkg/.control.test-size/.PKGINFO
+	local i size
+	for i in \
+		empty-noscript:0 \
+		empty-script:1 \
+		empty-trigger:1 \
+		dirs:1 \
+		files:39 \
+		many:10000 \
+		holes:65535 \
+		hardlink:5 \
+		symlink:1 \
+		; do \
+		size=$(awk -F ' = ' '$1 == "size" {print $2}' pkg/.control.test-size-${i%:*}/.PKGINFO)
+		[ "$size" -eq "${i#*:}" ] ||
+			atf_fail "$i failed: got $size"
+	done
 }
 
 abuild_keepdirs_body() {
