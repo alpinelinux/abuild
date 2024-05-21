@@ -81,11 +81,22 @@ int fork_exec(char *argv[], int showerr)
 
 static int acquire_lock(const char *lockfile)
 {
-	int lockfd = open(lockfile, O_WRONLY|O_CREAT, 0660);
-	if (lockfd < 0)
-		err(1, "%s", lockfile);
+	int lockfd, i, r;
 
-	if (lockf(lockfd, F_LOCK, 0) == -1)
+	/* try to work around an ESTALE error which occurs on NFS */
+	for (i = 0; i < 10; i++, sleep(1)) {
+		lockfd = open(lockfile, O_WRONLY|O_CREAT, 0660);
+		if (lockfd < 0)
+			err(1, "%s", lockfile);
+
+		r = lockf(lockfd, F_LOCK, 0);
+		if (r == 0 || errno != ESTALE)
+			break;
+
+		close(lockfd);
+	}
+
+	if (r != 0)
 		err(1, "failed to acquire lock: %s", lockfile);
 
 	return lockfd;
