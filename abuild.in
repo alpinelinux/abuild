@@ -2173,6 +2173,19 @@ pyc() {
 	default_pyc
 }
 
+default_nftrules() {
+	pkgdesc="$pkgdesc (nftables ruleset)"
+	install_if="nftables-rulesets ${subpkgname%-nftrules}=$pkgver-r$pkgrel"
+
+	if [ -d "$pkgdir"/etc/nftables.d ]; then
+		amove 'etc/nftables.d/*.nft'
+	fi
+}
+
+nftrules() {
+	default_nftrules
+}
+
 is_function() {
 	type "$1" 2>&1 | head -n 1 | grep -E -q "is a (shell )?function"
 }
