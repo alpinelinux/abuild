@@ -118,7 +118,8 @@ __EOF__
 
 build_empty() {
 	cat >>APKBUILD<<__EOF__
-	# Replace with proper build command(s)
+	# Replace with proper build command(s).
+	# Remove if there is no build command.
 	:
 __EOF__
 }
@@ -152,7 +153,8 @@ __EOF__
 
 check_empty() {
 	cat >>APKBUILD<<__EOF__
-	# Replace with proper check command(s)
+	# Replace with proper check command(s).
+	# Remove and add !check option if there is no check command.
 	:
 __EOF__
 }
