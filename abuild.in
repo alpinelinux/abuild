@@ -2994,8 +2994,13 @@ fi
 # for recursive action
 export REPODEST SRCDEST
 
+if [ -z "$pkgarch" ]; then
+	pkgarch=$CARCH
+	list_has noarch $arch && pkgarch=noarch
+fi
+
 # add dbg subpackage if its enabled globally
-if [ -n "$DEFAULT_DBG" ] && ! subpackage_types_has "dbg" && ! options_has "!dbg" && [ "$arch" != "noarch" ]; then
+if [ -n "$DEFAULT_DBG" ] && ! subpackage_types_has "dbg" && ! options_has "!dbg" && [ "$pkgarch" != "noarch" ]; then
         subpackages="$pkgname-dbg $subpackages"
 fi
 
@@ -3025,10 +3030,6 @@ else
 fi
 apkbuild_arch="$arch"
 pkgdir="$pkgbasedir/$pkgname"
-if [ -z "$pkgarch" ]; then
-	pkgarch=$CARCH
-	list_has noarch $arch && pkgarch=noarch
-fi
 controldir="$pkgbasedir"/.control.${subpkgname:-$pkgname}
 
 sumalgo=sha512
