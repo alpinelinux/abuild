@@ -50,4 +50,4 @@ check() {
 	# make check
 }
 
-md5sums="" #generate with 'abuild checksum'
+sha512sums="" #generate with 'abuild checksum'

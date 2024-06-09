@@ -272,7 +272,7 @@ default_sanitycheck() {
 			*::*) i=${i%%::*};;
 			https://*) makedepends_has wget && warning "wget no longer need to be in makedepends when source has https://" ;;
 		esac
-		list_has ${i##*/} $md5sums $sha256sums $sha512sums \
+		list_has ${i##*/} $sha256sums $sha512sums \
 			|| die "${i##*/} is missing in checksums"
 
 		# verify that our source does not have git tag version
@@ -288,7 +288,7 @@ default_sanitycheck() {
 
 	# verify that things listed in checksum also is listed in source
 	local algo=
-	for algo in md5 sha256 sha512; do
+	for algo in sha256 sha512; do
 		eval set -- \$${algo}sums
 		while [ $# -gt 1 ]; do
 			local file="$2"
@@ -368,16 +368,10 @@ sumcheck() {
 	return $endreturnval
 }
 
-# for compatibility
-md5check() {
-	warning "'md5check' is deprecated. Use 'verify' instead"
-	sumcheck md5 "$md5sums"
-}
-
 # verify checksums
 verify() {
 	local verified=false algo=
-	for algo in sha512 sha256 sha1 md5; do
+	for algo in sha512 sha256; do
 		local sums=
 		eval sums=\"\$${algo}sums\"
 		if [ -z "$sums" ] || [ -z "$source" ]; then
@@ -2392,17 +2386,17 @@ builddeps() {
 	deps || return 1
 }
 
-# replace the md5sums in the APKBUILD
+# replace the sha512sums in the APKBUILD
 checksum() {
 	local s files
-	[ -z "$source" ] && [ -n "${md5sums}${sha256sums}${sha512sums}" ] \
+	[ -z "$source" ] && [ -n "${sha256sums}${sha512sums}" ] \
 		&& msg "Removing checksums from $APKBUILD"
 	sed -E -i \
-		-e '/^(md5|sha[0-9]+)sums=".*"$/d' \
-		-e '/^(md5|sha[0-9]+)sums="/,/"$/d' \
+		-e '/^sha[0-9]+sums=".*"$/d' \
+		-e '/^sha[0-9]+sums="/,/"$/d' \
 		\
-		-e "/^(md5|sha[0-9]+)sums='.*'\$/d" \
-		-e "/^(md5|sha[0-9]+)sums='/,/'\$/d" \
+		-e "/^sha[0-9]+sums='.*'\$/d" \
+		-e "/^sha[0-9]+sums='/,/'\$/d" \
 		"$APKBUILD"
 
 	[ -z "$source" ] && return 0
@@ -2416,7 +2410,6 @@ checksum() {
 	done
 
 	msg "Updating the sha512sums in $APKBUILD..."
-	md5sums=
 	sha256sums=
 	sha512sums="$(cd "$srcdir" && sha512sum $files)" \
 		|| die "sha512sum failed"
@@ -2679,10 +2672,6 @@ depends_has() {
 
 makedepends_has() {
 	deplist_has "$1" $makedepends
-}
-
-md5sums_has() {
-	list_has "$1" $md5sums
 }
 
 install_has() {

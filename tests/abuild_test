@@ -261,12 +261,12 @@ abuild_reproducible_body() {
 	pkgs=$(abuild listpkg)
 
 	abuild || atf_fail "first build failed"
-	checksums=$(cd "$REPODEST"/testrepo/$arch && md5sum $pkgs)
+	checksums=$(cd "$REPODEST"/testrepo/$arch && sha512sum $pkgs)
 	echo "$checksums"
 
 	rm -r "$REPODEST"/testrepo
 	abuild || atf_fail "rebuild failed"
-	checksums2=$(cd "$REPODEST"/testrepo/$arch && md5sum $pkgs)
+	checksums2=$(cd "$REPODEST"/testrepo/$arch && sha512sum $pkgs)
 	echo "$checksums2"
 
 	if [ "$checksums" != "$checksums2" ]; then
