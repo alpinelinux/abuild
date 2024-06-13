@@ -596,7 +596,7 @@ subpkg_set() {
 	subpkgarch=${_splitarch#*:}
 	if [ "$subpkgarch" = "$_splitarch" -o -z "$subpkgarch" ]; then
 		case "$subpkgname" in
-		*-doc | *-openrc | *-lang | *-lang-* | *sh-completion | *-pyc) subpkgarch="noarch" ;;
+		*-doc | *-openrc | *-lang | *sh-completion | *-pyc) subpkgarch="noarch" ;;
 		*) subpkgarch="$pkgarch" ;;
 		esac
 	fi
@@ -963,34 +963,6 @@ default_lang() {
 
 lang() {
 	default_lang
-}
-
-default_lang_subpkg() {
-	if [ -z "$lang" ]; then
-		error "lang is not set"
-		return 1
-	fi
-	pkgdesc="$pkgname language pack for $lang"
-	install_if="$pkgname=$pkgver-r$pkgrel lang-$lang"
-
-	local dir
-	for dir in ${langdir:-/usr/share/locale}; do
-		amove "$dir/$lang*"
-	done
-}
-
-lang_subpkg() {
-	default_lang_subpkg
-}
-
-prepare_language_packs() {
-	local lang
-	for lang in $linguas; do
-		lang="$lang" \
-		subpkgname="$pkgname-lang-$lang" \
-		subpkgdir="$pkgbasedir"/$subpkgname \
-			"$abuild_path" $forceroot lang_subpkg prepare_package || return 1
-	done
 }
 
 # echo '-dirty' if git is not clean
@@ -2223,7 +2195,6 @@ rootpkg() {
 		set_source_date \
 		package \
 		prepare_subpackages \
-		prepare_language_packs \
 		prepare_package \
 		create_apks
 }
@@ -2954,9 +2925,6 @@ if [ -n "$subpkgname" ]; then
 	subpackages=
 else
 	allpackages="$pkgname $subpackages"
-	for i in $linguas; do
-		allpackages="$allpackages $pkgname-lang-$i::noarch"
-	done
 fi
 apkbuild_arch="$arch"
 pkgdir="$pkgbasedir/$pkgname"
