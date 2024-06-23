@@ -209,7 +209,7 @@ abuild -rc
 # SEE ALSO
 
 SPDX license reference (on the Web at <https://spdx.org/licenses/>),
-newapkbuild(1), apk(8), APKBUILD(5).
+newapkbuild(1), apk(8), APKBUILD(5), abuild.conf(5).
 
 # AUTHORS
 

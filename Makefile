@@ -12,7 +12,7 @@ SCRIPTS		:= abuild abuild-keygen abuild-sign newapkbuild \
 		   apkbuild-gem-resolver
 USR_BIN_FILES	:= $(SCRIPTS) abuild-tar abuild-gzsplit abuild-sudo abuild-fetch abuild-rmtemp
 MAN_1_PAGES	:= newapkbuild.1 abuild.1 abump.1
-MAN_5_PAGES	:= APKBUILD.5
+MAN_5_PAGES	:= APKBUILD.5 abuild.conf.5
 SAMPLES		:= sample.APKBUILD sample.initd sample.confd \
 		sample.pre-install sample.post-install
 MAN_PAGES	:= $(MAN_1_PAGES) $(MAN_5_PAGES)
