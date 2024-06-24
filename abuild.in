@@ -2567,6 +2567,7 @@ rootbld() {
 	local bwrap_opts=""
 	options_has "net" || bwrap_opts="$bwrap_opts --unshare-net"
 	bwrap --new-session --unshare-ipc --unshare-uts $bwrap_opts \
+		--unshare-pid --die-with-parent \
 		--ro-bind "$BUILD_ROOT" / \
 		--proc /proc \
 		--dev-bind /dev /dev \
