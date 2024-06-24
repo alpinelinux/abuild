@@ -1763,7 +1763,7 @@ human_size() {
 }
 
 create_apks() {
-	local file= dir= name= ver= apk= datadir= size=
+	local file= dir= name= ver= apk= datadir= size= i=
 	local gzip=$(command -v pigz || echo gzip)
 	if ! options_has "keepdirs"; then
 		rmdir "$pkgdir"/usr/lib \
@@ -1787,6 +1787,13 @@ create_apks() {
 			scan_pkgconfig_depends "$file"
 		done
 	fi
+
+	for i in root $pkgusers; do
+		printf '%s %s:0\n' "$i" "$i"
+	done > "$pkgbasedir"/.owner-map
+	for i in root $pkggroups; do
+		printf '%s %s:0\n' "$i" "$i"
+	done > "$pkgbasedir"/.group-map
 
 	for file in "$pkgbasedir"/.control.*/.PKGINFO; do
 		local dir="${file%/.PKGINFO}"
@@ -1824,6 +1831,8 @@ create_apks() {
 			--format=posix \
 			--pax-option=exthdr.name=%d/PaxHeaders/%f,atime:=0,ctime:=0 \
 			--mtime="@${SOURCE_DATE_EPOCH}" \
+			--owner-map="$pkgbasedir"/.owner-map \
+			--group-map="$pkgbasedir"/.group-map \
 			--no-recursion --null -T - \
 			-f - -c | abuild-tar --hash | $gzip -n -9 >"$dir"/data.tar.gz
 
