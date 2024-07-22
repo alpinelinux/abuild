@@ -1272,6 +1272,7 @@ prepare_pkgconfig_provides() {
 		local v=$(PKG_CONFIG_PATH="$dir"/usr/lib/pkgconfig:"$dir"/usr/share/pkgconfig \
 			PKG_CONFIG_MAXIMUM_TRAVERSE_DEPTH=1 pkg-config \
 			--modversion ${f%.pc} | sed -E -e 's/-(alpha|beta|rc|pre)/_\1/')
+		v=${v#v}
 		$APK version --check --quiet $v || die "$i: pkgconf version $v is invalid"
 		echo "$pcprefix${f%.pc}=${v:-0}" >> "$controldir"/.provides-pc
 	done
