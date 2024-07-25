@@ -84,7 +84,7 @@ build_meson() {
 
 	cat >>APKBUILD<<__EOF__
 	abuild-meson \\
-		. output
+		output .
 	meson compile -C output
 __EOF__
 }
