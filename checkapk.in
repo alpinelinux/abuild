@@ -98,16 +98,15 @@ for i in $pkgname $subpackages; do
 		die "the built package ($_pkgname) is already in the repo"
 	fi
 
-	# For our local repo (newsize) apk info might return multiple packages, e.g. if different
-	# version of the package where built previously. However, for a repo only one of pkgname=pkgver-rpkgrel can exist.
-	# Filter out this specific pkgver with grep, as it can have only one match, then take the second line:
+	# apk info could return multiple lines if multiple packages share a provide
+	# (e.g. dnsmasq); filter with the exact package name and take the second line:
 	#  7zip-23.01-r0 installed size:
 	#  1668 KiB
 	newsize="$(apk info --repositories-file /dev/null --repository "$REPODEST"/$repo --size $_pkgname | \
 		grep -F "$pkg" -A1 | \
 		tail -n1)"
 	oldsize="$(apk info --repositories-file "$tmpdir"/repositories --size "$_pkgname" | \
-		grep -F "$_pkgname" -A1 | \
+		grep -F "$oldpkg" -A1 | \
 		tail -n1)"
 
 	if [ "$oldsize" = "$newsize" ]; then
