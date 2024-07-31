@@ -23,6 +23,9 @@ arch_to_hostspec() {
 	riscv32)	echo "riscv32-alpine-linux-musl" ;;
 	riscv64)	echo "riscv64-alpine-linux-musl" ;;
 	s390x)		echo "s390x-alpine-linux-musl" ;;
+	sh2eb)		echo "sh2eb-alpine-linux-muslfdpic" ;;
+	sh3)		echo "sh3-alpine-linux-musl" ;;
+	sh4)		echo "sh4-alpine-linux-musl" ;;
 	x86)		echo "i586-alpine-linux-musl" ;;
 	x86_64)		echo "x86_64-alpine-linux-musl" ;;
 	*)		echo "unknown" ;;
@@ -49,6 +52,9 @@ hostspec_to_arch() {
 	riscv32-*-*-*)		echo "riscv32" ;;
 	riscv64-*-*-*)		echo "riscv64" ;;
 	s390x-*-*-*)		echo "s390x" ;;
+	sh2eb-*-*-*)		echo "sh2eb" ;;
+	sh3-*-*-*)		echo "sh3" ;;
+	sh4-*-*-*)		echo "sh4" ;;
 	x86_64-*-*-*)		echo "x86_64" ;;
 	*)			echo "unknown" ;;
 	esac
