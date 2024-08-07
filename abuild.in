@@ -28,8 +28,6 @@ fi
 : ${APK:="apk"}
 : ${ADDUSER:="abuild-adduser"}
 : ${ADDGROUP:="abuild-addgroup"}
-: ${CC:="gcc"}
-: ${CXX:="g++"}
 : ${SETFATTR:="setfattr"}
 
 apk_opt_wait="--wait 30"
