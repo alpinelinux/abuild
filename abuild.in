@@ -2527,9 +2527,8 @@ rootbld() {
 		"$BUILD_ROOT/$ABUILD_USERDIR" "$BUILD_ROOT/$aportsgit" \
 		"$BUILD_ROOT/$SRCDEST" "$BUILD_ROOT/$REPODEST" \
 		"$BUILD_ROOT/tmp/pkg" "$BUILD_ROOT/tmp/src" \
-		"$BUILD_ROOT/usr/bin" "$pkgbasedir" "$REPODEST" \
-		"$BUILD_ROOT/$HOME/.ccache" \
-		"$srcdir"
+		"$BUILD_ROOT/tmp/tmp" "$BUILD_ROOT/usr/bin"
+		"$REPODEST" "$BUILD_ROOT/$HOME/.ccache"
 
 	cp /etc/abuild.conf /etc/group /etc/passwd "$BUILD_ROOT/etc"
 
@@ -2586,12 +2585,13 @@ rootbld() {
 		${USE_CCACHE:+ --bind "$HOME/.ccache" "$HOME/.ccache"} \
 		--bind "$SRCDEST" "$SRCDEST" \
 		--bind "$BUILD_ROOT/tmp" /tmp \
-		--bind "$BUILD_ROOT/tmp/src" "$srcdir" \
-		--bind "$BUILD_ROOT/tmp/pkg" "$pkgbasedir" \
 		--bind "$REPODEST" "$REPODEST" \
 		--hostname "build-$buildhost-$CARCH" \
 		--chdir "$startdir" \
 		--clearenv \
+		--setenv srcdir /tmp/src \
+		--setenv pkgbasedir /tmp/pkg \
+		--setenv tmpdir /tmp/tmp \
 		--setenv CARCH "$CARCH" \
 		--setenv HOME "$HOME" \
 		--setenv REPODEST "$REPODEST" \
