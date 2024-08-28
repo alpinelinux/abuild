@@ -48,7 +48,8 @@ init_tests \
 	abuild_gocache_dir \
 	abuild_cargo_home_dir \
 	abuild_fish_comp_split \
-	abuild_deps
+	abuild_deps \
+	abuild_usr_merge
 
 export ABUILD_SHAREDIR=$(atf_get_srcdir)/..
 export ABUILD_CONF=/dev/null
@@ -722,16 +723,16 @@ abuild_amove_body() {
 
 		package() {
 			mkdir -p "\$pkgdir"/etc \
-				"\$pkgdir"/bin \
-				"\$pkgdir"/sbin \
+				"\$pkgdir"/usr/bin \
+				"\$pkgdir"/usr/sbin \
 				"\$pkgdir"/var/lib/\$pkgname \
 				"\$pkgdir"/usr/share
 			touch "\$pkgdir"/etc/file \
 				"\$pkgdir"/etc/\$pkgname.conf \
-				"\$pkgdir"/bin/hello \
-				"\$pkgdir"/sbin/shello \
+				"\$pkgdir"/usr/bin/hello \
+				"\$pkgdir"/usr/sbin/shello \
 				"\$pkgdir"/root \
-				"\$pkgdir"/sbin/space' ' \
+				"\$pkgdir"/usr/sbin/space' ' \
 				"\$pkgdir"/var/lib/\$pkgname/testfile \
 				"\$pkgdir"/usr/share/a \
 				"\$pkgdir"/usr/share/b
@@ -746,11 +747,11 @@ abuild_amove_body() {
 		}
 		_bin() {
 			# trailing /
-			amove bin///
+			amove usr/bin///
 		}
 		_sbin() {
 			# no leading and trailing /
-			amove sbin/shello
+			amove usr/sbin/shello
 		}
 		_root() {
 			# no /
@@ -770,7 +771,7 @@ abuild_amove_body() {
 		}
 		_space() {
 			# with space
-			amove sbin/space' '
+			amove usr/sbin/space' '
 		}
 
 	EOF
@@ -778,14 +779,14 @@ abuild_amove_body() {
 	for i in \
 			test-amove-file/etc/file \
 			test-amove-etc/etc/test-amove.conf \
-			test-amove-bin/bin/hello \
-			test-amove-sbin/sbin/shello \
+			test-amove-bin/usr/bin/hello \
+			test-amove-sbin/usr/sbin/shello \
 			test-amove-root/root \
 			test-amove-root/symlink \
 			test-amove-var/var/lib/test-amove/testfile \
 			test-amove-usr/usr/share/a \
 			test-amove-usr/usr/share/b \
-			test-amove-space/sbin/space' ' \
+			test-amove-space/usr/sbin/space' ' \
 			; do \
 		[ -L pkg/"$i" ] || [ -e pkg/"$i" ] || atf_fail "$i failed"
 	done
@@ -1098,7 +1099,7 @@ abuild_command_provides_body() {
 			chmod +x "\$pkgdir/usr/bin/foo"
 			cp -a "\$pkgdir/usr/bin/foo" "\$pkgdir/usr/bin/foo@"
 			mkdir -p "\$pkgdir/usr/bin/dir/"
-			ln -s /bin/not-on-the-host-system-but-in-a-dependency "\$pkgdir/usr/bin/link"
+			ln -s /usr/bin/not-on-the-host-system-but-in-a-dependency "\$pkgdir/usr/bin/link"
 		}
 	EOF
 	abuild rootpkg
@@ -1216,8 +1217,8 @@ abuild_fish_comp_split_body() {
 }
 
 create_mock_apk() {
-	mkdir -p bin
-	cat > bin/apk <<-EOF
+	mkdir -p usr/bin
+	cat > usr/bin/apk <<-EOF
 		#!/bin/sh
 		if [ "\$1" = "--print-arch" ]; then
 			echo 'aarch64'
@@ -1225,9 +1226,9 @@ create_mock_apk() {
 		fi
 		printf 'apk %s\n' "\$*" >&2
 	EOF
-	chmod +x bin/apk
-	ln -s apk bin/abuild-apk
-	PATH="$PWD/bin:$PATH"
+	chmod +x usr/bin/apk
+	ln -s apk usr/bin/abuild-apk
+	PATH="$PWD/usr/bin:$PATH"
 }
 
 abuild_deps_body() {
@@ -1289,3 +1290,43 @@ abuild_deps_body() {
 		-e match:"apk add .*--repository It's \\\\b'\"\"'  \"escaped\"/.*" \
 		abuild -P "It's \b'\"\"'  \"escaped\"" deps
 }
+
+abuild_usr_merge_body() {
+	init_keys
+	mkdir usrmergetest
+	cd usrmergetest
+	cat >APKBUILD <<-EOF
+		# Maintainer: Joe User <juser@example.com>
+		pkgname="usrmergetest"
+		pkgver="1.0"
+		pkgrel=0
+		pkgdesc="Dummy test package"
+		url="https://gitlab.alpinelinux.org/alpine/aports"
+		arch="noarch"
+		license="MIT"
+		source=""
+		prepare() {
+			mkdir -p "\$builddir"
+		}
+		build() {
+			mkdir -p \
+				lib \
+				bin \
+				sbin
+		}
+		check() {
+			true
+		}
+
+		package() {
+			mkdir -p "\$pkgdir"
+			cp -r * "\$pkgdir"/
+		}
+	EOF
+	atf_check -s exit:1 \
+		-e match:"WARNING:.*: Packages must not put anything under /lib, use /usr/lib instead" \
+		-e match:"WARNING:.*: Packages must not put anything under /bin, use /usr/bin instead" \
+		-e match:"WARNING:.*: Packages must not put anything under /sbin, use /usr/bin instead" \
+		abuild
+}
+
