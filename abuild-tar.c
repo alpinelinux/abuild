@@ -271,22 +271,6 @@ static int buf_add_ext_header_hexdump(struct buf *b, const char *hdr, const unsi
 	return 0;
 }
 
-static void add_legacy_checksum(struct tar_header *hdr, const EVP_MD *md, const unsigned char *digest)
-{
-	struct {
-		char id[4];
-		uint16_t nid;
-		uint16_t size;
-	} mdinfo;
-
-	memcpy(mdinfo.id, "APK2", 4);
-	mdinfo.nid = EVP_MD_nid(md);
-	mdinfo.size = EVP_MD_size(md);
-	memcpy(&hdr->linkname[3], &mdinfo, sizeof(mdinfo));
-	memcpy(&hdr->linkname[3+sizeof(mdinfo)], digest, mdinfo.size);
-	tarhdr_checksum(hdr);
-}
-
 static int do_it(const EVP_MD *md, int cut)
 {
 	char checksumhdr[32];
@@ -323,7 +307,6 @@ static int do_it(const EVP_MD *md, int cut)
 
 			if (hdr.typeflag != '2') {
 				EVP_Digest(data.ptr, size, digest, NULL, md, NULL);
-				add_legacy_checksum(&hdr, md, digest);
 			} else {
 				name_len = strnlen(hdr.linkname, sizeof(hdr.linkname));
 				EVP_Digest(hdr.linkname, name_len, digest, NULL, md, NULL);
