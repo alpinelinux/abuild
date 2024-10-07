@@ -91,7 +91,7 @@ __EOF__
 
 build_perl() {
 	cat >>APKBUILD<<__EOF__
-	PERL_MM_USE_DEFAULT=1 perl Makefile.PL INSTALLDIRS=vendor
+	perl Makefile.PL INSTALLDIRS=vendor
 	make
 __EOF__
 }
@@ -133,7 +133,7 @@ __EOF__
 
 check_cmake() {
 	cat >>APKBUILD<<__EOF__
-	ctest --test-dir build --output-on-failure
+	ctest --test-dir build
 __EOF__
 }
 
