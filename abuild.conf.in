@@ -24,3 +24,6 @@
 
 # what to cleanup after a failed build
 #ERROR_CLEANUP="bldroot deps"
+
+# uncomment to prevent using global cache directories for Go and Cargo
+#MOVE_CACHES=1
