@@ -2937,9 +2937,6 @@ if [ -n "$DEBUG" ] || subpackage_types_has "dbg"; then
 fi
 
 if [ -n "$subpkgname" ]; then
-	# TODO remove once last usage is removed
-	# https://gitlab.alpinelinux.org/alpine/aports/-/merge_requests/64406
-	origsubpackages="$subpackages"
 	# If we are handling a sub package then reset subpackages and install
 	subpackages=
 else
