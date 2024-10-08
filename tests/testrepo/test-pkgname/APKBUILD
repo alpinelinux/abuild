@@ -8,6 +8,8 @@ arch="noarch"
 license="MIT"
 provides="${TESTPROVIDES-provided}"
 subpackages="${TESTSUBNAME-$pkgname-sub}:_sub"
+depends="$TESTDEPENDS"
+makedepends="$TESTMAKEDEPENDS"
 
 prepare() {
 	mkdir -p "$builddir"

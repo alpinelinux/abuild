@@ -23,6 +23,7 @@ init_tests \
 	abuild_invalid_subpkgnames \
 	abuild_invalid_subpkg_version \
 	abuild_provide_pkgname \
+	abuild_validate_depends \
 	abuild_subpackage_arch \
 	abuild_large_doc_subpackage \
 	abuild_bigdocs \
@@ -470,6 +471,24 @@ abuild_provide_pkgname_body() {
 		abuild validate
 	TESTNAME=test TESTPROVIDES='test<=1' atf_check -s exit:1 \
 		-e match:"provides must not contain" \
+		abuild validate
+}
+
+abuild_validate_depends_body() {
+	init_keys
+	cp -ra "$testrepo"/test-pkgname .
+	cd test-pkgname
+	TESTDEPENDS="foo" TESTMAKEDEPENDS="bar" \
+		atf_check -s exit:0 \
+		-e match:"Validating" \
+		abuild validate
+	TESTDEPENDS="foo=1.0 bar>=1.0" TESTMAKEDEPENDS="baz<=1.0 x<2.0 z>1 !blah" \
+		atf_check -s exit:0 \
+		-e match:"Validating" \
+		abuild validate
+	TESTDEPENDS="foo~1.0 bar>~1.0 baz<~1"
+		atf_check -s exit:0 \
+		-e match:"Validating" \
 		abuild validate
 }
 
