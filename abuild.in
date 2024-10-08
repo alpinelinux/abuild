@@ -1760,6 +1760,13 @@ human_size() {
 		printf("%.1f %s\n", y, type[i+2]) }'
 }
 
+apk_tar() {
+	tar --format=posix \
+		--pax-option=exthdr.name=%d/PaxHeaders/%f,atime:=0,ctime:=0 \
+		--mtime="@$SOURCE_DATE_EPOCH" \
+		--no-recursion --null -T - -f - -c
+}
+
 create_apks() {
 	local file= dir= name= ver= apk= datadir= size= i= gzip=
 	gzip=$(command -v pigz || echo gzip)
@@ -1825,15 +1832,11 @@ create_apks() {
 		find "$@" -exec touch -h -d "@$SOURCE_DATE_EPOCH" {} +
 
 		# explicitly sort package content
-		find "$@" -print0 | LC_ALL=C sort -z | tar --xattrs \
+		find "$@" -print0 | LC_ALL=C sort -z | apk_tar --xattrs \
 			--xattrs-exclude=security.selinux \
-			--format=posix \
-			--pax-option=exthdr.name=%d/PaxHeaders/%f,atime:=0,ctime:=0 \
-			--mtime="@${SOURCE_DATE_EPOCH}" \
 			--owner-map="$pkgbasedir"/.owner-map \
 			--group-map="$pkgbasedir"/.group-map \
-			--no-recursion --null -T - \
-			-f - -c | abuild-tar --hash | $gzip -n -9 >"$dir"/data.tar.gz
+			| abuild-tar --hash | $gzip -n -9 >"$dir"/data.tar.gz
 
 		msg "Create checksum..."
 		# append the hash for data.tar.gz
@@ -1843,12 +1846,7 @@ create_apks() {
 
 		# control.tar.gz
 		cd "$dir"
-		cat "$dir"/.metafiles | tar \
-			--format=posix \
-			--pax-option=exthdr.name=%d/PaxHeaders/%f,atime:=0,ctime:=0 \
-			--mtime="@${SOURCE_DATE_EPOCH}" \
-			--no-recursion --null -T - \
-			-f - -c | abuild-tar --cut \
+		apk_tar < .metafiles | abuild-tar --cut \
 			| $gzip -n -9 > control.tar.gz
 		abuild-sign -q control.tar.gz || exit 1
 
