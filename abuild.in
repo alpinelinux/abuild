@@ -1823,16 +1823,13 @@ create_apks() {
 		cd "$datadir"
 		# data.tar.gz
 		set -- *
-		if [ "$1" = '*' ]; then
-			touch .dummy
-			set -- .dummy
-		fi
+		if [ "$1" != '*' ]; then
+			# normalize timestamps
+			find "$@" -exec touch -h -d "@$SOURCE_DATE_EPOCH" {} +
 
-		# normalize timestamps
-		find "$@" -exec touch -h -d "@$SOURCE_DATE_EPOCH" {} +
-
-		# explicitly sort package content
-		find "$@" -print0 | LC_ALL=C sort -z | apk_tar --xattrs \
+			# explicitly sort package content
+			find "$@" -print0
+		fi | LC_ALL=C sort -z | apk_tar --xattrs \
 			--xattrs-exclude=security.selinux \
 			--owner-map="$pkgbasedir"/.owner-map \
 			--group-map="$pkgbasedir"/.group-map \
