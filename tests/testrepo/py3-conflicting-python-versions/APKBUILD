@@ -1,4 +1,4 @@
-# Maintainer: Test user <user@example.com>
+maintainer="Test user <user@example.com>"
 pkgname=py3-conflicting-python-versions
 pkgver=1.0.0
 pkgrel=0

@@ -1,4 +1,4 @@
-# Maintainer: Natanael Copa <ncopa@alpinelinux.org>
+maintainer="Natanael Copa <ncopa@alpinelinux.org>"
 
 # test package
 pkgname=setcap

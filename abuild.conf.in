@@ -15,7 +15,7 @@
 #REPODEST=$HOME/packages/
 
 # PACKAGER and MAINTAINER are used by newapkbuild when creating new aports for
-# the APKBUILD's "Contributor:" and "Maintainer:" comments, respectively.
+# the APKBUILD's "Contributor:" comment and "maintainer" field, respectively.
 #PACKAGER="Your Name <your@email.address>"
 #MAINTAINER="$PACKAGER"
 
