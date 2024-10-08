@@ -1304,23 +1304,13 @@ abuild_usr_merge_body() {
 		url="https://gitlab.alpinelinux.org/alpine/aports"
 		arch="noarch"
 		license="MIT"
-		source=""
-		prepare() {
-			mkdir -p "\$builddir"
-		}
-		build() {
-			mkdir -p \
-				lib \
-				bin \
-				sbin
-		}
-		check() {
-			true
-		}
+		options="!check"
 
 		package() {
-			mkdir -p "\$pkgdir"
-			cp -r * "\$pkgdir"/
+			mkdir -p \
+				"\$pkgdir"/lib \
+				"\$pkgdir"/bin \
+				"\$pkgdir"/sbin
 		}
 	EOF
 	atf_check -s exit:1 \
