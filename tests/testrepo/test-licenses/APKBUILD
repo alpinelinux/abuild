@@ -1,6 +1,4 @@
 maintainer="Olliver Schinagl <oliver@schinagl.nl>"
-
-# test package
 pkgname="${TESTNAME-test-licenses}"
 pkgver="1.0"
 pkgrel=0

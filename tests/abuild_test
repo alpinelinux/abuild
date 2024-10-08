@@ -567,8 +567,6 @@ abuild_package_size_body() {
 	cd test-size
 	cat > APKBUILD <<-EOF
 		maintainer="Test User 123 <123@example.com>"
-
-		# test package
 		pkgname="test-size"
 		pkgver="1.0"
 		pkgrel=0
@@ -677,8 +675,6 @@ abuild_keepdirs_body() {
 	cd test-amove
 	cat > APKBUILD <<-EOF
 		maintainer="Test User 123 <123@example.com>"
-
-		# test package
 		pkgname="test-keepdirs"
 		pkgver="1.0"
 		pkgrel=0
@@ -703,8 +699,6 @@ abuild_amove_body() {
 	cd test-amove
 	cat > APKBUILD <<-EOF
 		maintainer="Test User 123 <123@example.com>"
-
-		# test package
 		pkgname="test-amove"
 		pkgver="1.0"
 		pkgrel=0
@@ -799,7 +793,6 @@ abuild_doc_body() {
 	cd foo
 	cat > APKBUILD <<-EOF
 		maintainer="Test User 123 <123@example.com>"
-		# test package
 		pkgname="foo"
 		pkgver="1.0"
 		pkgrel=0
@@ -837,7 +830,6 @@ abuild_dev_body() {
 	cd foo
 	cat > APKBUILD <<-EOF
 		maintainer="Test User 123 <123@example.com>"
-		# test package
 		pkgname="foo"
 		pkgver="1.0"
 		pkgrel=0
@@ -946,7 +938,6 @@ abuild_cleanoldpkg_body() {
 		for v in 0.9 1.0 1.1; do
 			cat > APKBUILD <<-EOF
 				maintainer="Test User 123 <123@example.com>"
-				# test package
 				pkgname="foo"
 				pkgver="$v"
 				pkgrel=0
