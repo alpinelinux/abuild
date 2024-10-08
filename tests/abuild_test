@@ -397,17 +397,17 @@ abuild_valid_pkgnames_body() {
 	cp -ra "$testrepo"/test-pkgname .
 	cd test-pkgname
 	atf_check -s exit:0 \
-		-e match:"Checking sanity" \
-		abuild sanitycheck
+		-e match:"Validating" \
+		abuild validate
 	TESTNAME=foo atf_check -s exit:0 \
-		-e match:"Checking sanity" \
-		abuild sanitycheck
+		-e match:"Validating" \
+		abuild validate
 	TESTSUBNAME=foo atf_check -s exit:0 \
-		-e match:"Checking sanity" \
-		abuild sanitycheck
+		-e match:"Validating" \
+		abuild validate
 	TESTNAME="more_+-2.0-complicated" atf_check -s exit:0 \
-		-e match:"Checking sanity" \
-		abuild sanitycheck
+		-e match:"Validating" \
+		abuild validate
 }
 
 abuild_invalid_pkgnames_body() {
@@ -415,20 +415,20 @@ abuild_invalid_pkgnames_body() {
 	cp -ra "$testrepo"/test-pkgname .
 	cd test-pkgname
 	TESTNAME="" atf_check -s exit:1 \
-		-e match:"Checking sanity" \
-		abuild sanitycheck
+		-e match:"Validating" \
+		abuild validate
 	TESTNAME="-foo" atf_check -s exit:1 \
-		-e match:"Checking sanity" \
-		abuild sanitycheck
+		-e match:"Validating" \
+		abuild validate
 	TESTNAME="foo with spaces" atf_check -s exit:1 \
-		-e match:"Checking sanity" \
-		abuild sanitycheck
+		-e match:"Validating" \
+		abuild validate
 	TESTNAME="width@at" atf_check -s exit:1 \
-		-e match:"Checking sanity" \
-		abuild sanitycheck
+		-e match:"Validating" \
+		abuild validate
 	TESTNAME="width=equal" atf_check -s exit:1 \
-		-e match:"Checking sanity" \
-		abuild sanitycheck
+		-e match:"Validating" \
+		abuild validate
 }
 
 abuild_invalid_subpkgnames_body() {
@@ -436,11 +436,11 @@ abuild_invalid_subpkgnames_body() {
 	cp -ra "$testrepo"/test-pkgname .
 	cd test-pkgname
 	TESTSUBNAME="" atf_check -s exit:1 \
-		-e match:"Checking sanity" \
-		abuild sanitycheck
+		-e match:"Validating" \
+		abuild validate
 	TESTSUBNAME="-foo" atf_check -s exit:1 \
-		-e match:"Checking sanity" \
-		abuild sanitycheck
+		-e match:"Validating" \
+		abuild validate
 }
 
 abuild_invalid_subpkg_version_body() {
@@ -458,19 +458,19 @@ abuild_provide_pkgname_body() {
 	cd test-pkgname
 	TESTNAME=provided atf_check -s exit:1 \
 		-e match:"provides must not contain" \
-		abuild sanitycheck
+		abuild validate
 	TESTNAME=test TESTPROVIDES='test~1' atf_check -s exit:1 \
 		-e match:"provides must not contain" \
-		abuild sanitycheck
+		abuild validate
 	TESTNAME=test TESTPROVIDES='test=1' atf_check -s exit:1 \
 		-e match:"provides must not contain" \
-		abuild sanitycheck
+		abuild validate
 	TESTNAME=test TESTPROVIDES='test>1' atf_check -s exit:1 \
 		-e match:"provides must not contain" \
-		abuild sanitycheck
+		abuild validate
 	TESTNAME=test TESTPROVIDES='test<=1' atf_check -s exit:1 \
 		-e match:"provides must not contain" \
-		abuild sanitycheck
+		abuild validate
 }
 
 abuild_subpackage_arch_body() {
@@ -511,7 +511,7 @@ abuild_pkgver_digit_letter_digit_body() {
 	cd test-pkgname
 	TESTPKGVER=1.0p1 atf_check -s exit:1 \
 		-e match:'ERROR.*version' \
-		abuild sanitycheck
+		abuild validate
 }
 
 abuild_multiline_license_body() {
@@ -527,7 +527,7 @@ abuild_license_spdx_body() {
 	cd test-licenses
 	TESTPKGVER=1.0_p1 atf_check -s exit:0 \
 		-e not-match:'WARNING' \
-		abuild sanitycheck
+		abuild validate
 }
 
 abuild_git_ceiling_body() {

@@ -64,7 +64,7 @@ other related operations.
 
 *all*
 	Runs the entire build process. This is the default when no other command is
-	specified, and is roughly an alias for *sanitycheck builddeps clean fetch
+	specified, and is roughly an alias for *validate builddeps clean fetch
 	unpack prepare mkusers build check rootpkg*.
 
 *build*
@@ -112,8 +112,8 @@ other related operations.
 *rootpkg*
 	Run 'package', the split functions and create apks as fakeroot
 
-*sanitycheck*
-	Basic sanity check of APKBUILD
+*validate*
+	Basic validation of APKBUILD
 
 *snapshot*
 	Create a *$giturl* snapshot and upload to *$disturl*

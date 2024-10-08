@@ -183,10 +183,10 @@ verify_pkgname() {
 	return 0
 }
 
-# check if apkbuild is basically sane
-default_sanitycheck() {
+# check if apkbuild is valid
+default_validate() {
 	local i= j=
-	msg "Checking sanity of $APKBUILD..."
+	msg "Validating $APKBUILD..."
 	[ -z "$pkgver" ] && die "Missing pkgver in APKBUILD"
 	$APK version --check --quiet -- "$pkgver"-r0 || \
 		die "$pkgver is not a valid version"
@@ -328,8 +328,13 @@ default_sanitycheck() {
 	return 0
 }
 
+validate() {
+	default_validate
+}
+
+# for backwards compat
 sanitycheck() {
-	default_sanitycheck
+	warning "'sanitycheck' is renamed. Use 'validate' instead."
 }
 
 sumcheck() {
@@ -1588,7 +1593,7 @@ scan_shared_objects() {
 	set -- $(find_scanelf_paths "$datadir")
 	unset IFS
 
-	# sanity check, verify that each path is prefixed with datadir
+	# validation check, verify that each path is prefixed with datadir
 	for i; do
 		if [ "${i#$datadir}" = "$i" ]; then
 			error "Internal error in scanelf paths"
@@ -1865,7 +1870,7 @@ build_abuildrepo() {
 		# make sure SOURCE_DATE_EPOCH is set
 		set_source_date
 
-		for part in sanitycheck builddeps clean fetch unpack prepare mkusers build \
+		for part in validate builddeps clean fetch unpack prepare mkusers build \
 				$_check rootpkg; do
 			runpart $part
 		done
@@ -2493,7 +2498,7 @@ rootbld() {
 	set_source_date
 
 	# networking business
-	sanitycheck
+	validate
 	clean
 	fetch
 	verify
@@ -2825,7 +2830,7 @@ usage() {
 		  prepare     Apply patches
 		  rootbld     Build package in clean chroot
 		  rootpkg     Run 'package', the split functions and create apks as fakeroot
-		  sanitycheck Basic sanity check of APKBUILD
+		  validate    Basic validation of APKBUILD
 		  snapshot    Create a \$giturl snapshot and upload to \$disturl
 		  sourcecheck Check if remote source package exists upstream
 		  srcpkg      Make a source package
