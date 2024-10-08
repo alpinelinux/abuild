@@ -11,7 +11,7 @@ license='MIT AND
          (GPL-3.0-only OR  
   
  GPL-3.0-or-later AND   
-		 BSD-Clause-4)
+		 BSD-4-Clause)
 '
 
 prepare() {
