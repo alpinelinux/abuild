@@ -804,7 +804,7 @@ postcheck() {
 	# /usr merge
 	if ! options_has "!usrmerge"; then
 		for i in bin sbin lib; do
-			if [ -e "$dir"/$i ]; then
+			if [ -L "$dir"/$i ] || [ -e "$dir"/$i ]; then
 				warning "Packages must not put anything under /$i, use /usr/${i##*s} instead"
 				e=1
 			fi
