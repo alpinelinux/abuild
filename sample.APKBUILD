@@ -1,7 +1,5 @@
 # This is an example APKBUILD file. Use this as a start to creating your own,
 # and remove these comments.
-# NOTE: Please fill out the license field for your package! If it is unknown,
-# then please put 'unknown'.
 
 # Contributor: Your Name <youremail@domain.com>
 maintainer="Your Name <youremail@domain.com>"
@@ -11,22 +9,22 @@ pkgrel=0
 pkgdesc=""
 url=""
 arch="all"
-license="GPL"
+license="unknown"
 depends=
 depends_dev=
 makedepends="$depends_dev"
 install=
 subpackages="$pkgname-dev $pkgname-doc"
-source="https://downloads.sourceforge.net/$pkgname/$pkgname-$pkgver.tar.gz"
+source="https://downloads.sourceforge.net/NAME/NAME-$pkgver.tar.gz"
 
 builddir="$srcdir"/$pkgname-$pkgver
 
 prepare() {
-	cd "$builddir"
+	default_prepare
+	# When needed add additional preparation below. Otherwise remove this function
 }
 
 build() {
-	cd "$builddir"
 	./configure --prefix=/usr \
 		--sysconfdir=/etc \
 		--mandir=/usr/share/man \
@@ -35,7 +33,6 @@ build() {
 }
 
 package() {
-	cd "$builddir"
 	make DESTDIR="$pkgdir" install
 
 	# remove the 2 lines below (and this) if there is no init.d script
@@ -44,9 +41,8 @@ package() {
 }
 
 check() {
-	# uncomment the 2 lines below if there is a testsuite.  we assume the testsuite
+	# uncomment the line below if there is a testsuite.  we assume the testsuite
 	# is run using "make check", which is the default for autotools-based build systems.
-	# cd "$builddir"
 	# make check
 }
 

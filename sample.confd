@@ -1,7 +1,7 @@
 # Configuration for /etc/init.d/<SERVICE>
 
 # User (and group) to run <SERVICE> as.
-#command_user="<USER>"
+#command_user="<USER>[:<GROUP>]"
 
 # Additional arguments for <SERVICE> daemon.
 #command_args=

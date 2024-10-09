@@ -3,10 +3,10 @@
 name="SampleService"
 description="Sample init.d file for Alpine Linux"
 
-: ${command_user:="<USER>"}
+: "${command_user:="<USER>"}"
 
 command="/usr/sbin/<SERVICE>"
-command_args="$command_args"
+: "${command_args:="--default-args"}"
 command_background="yes"
 pidfile="/run/$RC_SVCNAME.pid"
 
