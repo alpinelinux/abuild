@@ -2108,7 +2108,7 @@ default_libs() {
 	depends="$depends_libs"
 	pkgdesc="$pkgdesc (libraries)"
 
-	amove 'lib/lib*.so.[0-9]*' 'usr/lib/lib*.so.[0-9]*'
+	amove 'lib/lib*.so.[0-9]*' 'usr/lib/lib*.so.[0-9]*' || :
 }
 
 libs() {
