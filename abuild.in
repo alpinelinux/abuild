@@ -2366,9 +2366,9 @@ apk_add_makedeps() {
 	shift
 
 	repo_args="--repository $(shell_escape "$REPODEST/$repo")"
-	[ -s "$repo_template" ] && repo_args=$(while read r; do
-		printf %s\\n "--repository $(shell_escape "$REPODEST/${r##*/}")"
-	done) < "$repo_template"
+	[ -s "$repo_template" ] && while read r; do
+		repo_args="$repo_args --repository $(shell_escape "$REPODEST/${r##*/}")"
+	done < "$repo_template"
 
 	eval "$SUDO_APK" add "$apk_opt_wait" "$repo_args" \
 		--virtual .${prefix}depends-$pkgname "\$@" || return
