@@ -14,6 +14,7 @@ init_tests \
 	abuild_checksum_generation \
 	abuild_checksum_duplicates \
 	abuild_subpkg_dep_leak \
+	abuild_subpkg_libs \
 	abuild_py_providers_creation \
 	abuild_py_dependency_scan \
 	abuild_py_dependency_scan_conflict \
@@ -334,6 +335,35 @@ abuild_subpkg_dep_leak_body() {
 	! grep 'depend = tar' pkg/.control.subpkg-dep-leak-subpkg/.PKGINFO \
 		|| atf_fail "subpkg-dep-leak-subpkg should not depend on tar"
 }
+
+abuild_subpkg_libs_body() {
+	init_keys
+	mkdir -p testrepo/pkg
+	cd testrepo/pkg
+	cat > APKBUILD <<-EOF
+		maintainer="Natanael Copa <ncopa@alpinelinux.org>"
+		pkgname="pkg"
+		pkgver=1.0
+		pkgrel=0
+		pkgdesc="Dummy test package"
+		url="https://gitlab.alpinelinux.org/alpine/aports"
+		arch="noarch"
+		license="MIT"
+		subpackages="\$pkgname-libs"
+		options="!check"
+
+		package() {
+			mkdir -p "\$pkgdir"/usr/lib
+			touch "\$pkgdir"/usr/lib/libfoo.so.1
+		}
+	EOF
+	abuild clean unpack prepare build rootpkg || atf_fail "abuild failed"
+	if ! [ -e pkg/pkg-libs/usr/lib/libfoo.so.1 ]; then
+		find pkg
+		atf_fail "libfoo.so.1 was not moved"
+	fi
+}
+
 
 abuild_py_providers_creation_body() {
 	init_keys
