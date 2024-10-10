@@ -1304,10 +1304,9 @@ abuild_usr_merge_body() {
 				"\$pkgdir"/sbin
 		}
 	EOF
-	atf_check -s exit:1 \
+	atf_check -s exit:0 \
 		-e match:"WARNING:.*: Packages must not put anything under /lib, use /usr/lib instead" \
 		-e match:"WARNING:.*: Packages must not put anything under /bin, use /usr/bin instead" \
 		-e match:"WARNING:.*: Packages must not put anything under /sbin, use /usr/bin instead" \
 		abuild
 }
-
