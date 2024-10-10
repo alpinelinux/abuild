@@ -490,6 +490,12 @@ abuild_validate_depends_body() {
 		atf_check -s exit:0 \
 		-e match:"Validating" \
 		abuild validate
+
+	for i in "foo=bar" "foo=~1.0" "foo>1.0_invalid"; do \
+		TESTDEPENDS="$i" atf_check -s exit:1 \
+			-e match:"Validating" \
+			abuild validate
+	done
 }
 
 abuild_subpackage_arch_body() {

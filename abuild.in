@@ -227,6 +227,11 @@ default_validate() {
 		verify_pkgname "${i%%:*}" || die "${i%%:*} is not a valid package name"
 	done
 
+	# check dependencies
+	for i in $depends $makedepends; do
+		check_depver "$i" || return 1
+	done
+
 	for i in $install; do
 		local n=${i%.*}
 		local suff=${i##*.}
@@ -1069,15 +1074,31 @@ check_provides() {
 }
 
 check_depver() {
-	case "$1" in
-		*=*)
-			if ! $APK version --check --quiet "${1#*=}"; then
-				error "Invalid version: ${i#*=}"
-				return 1
-			fi
-			;;
-	esac
-	return 0
+	local name="${1%%[<>=~]*}"
+	if [ "$name" = "$1" ]; then
+		# no version constraint
+		return 0
+	fi
+
+	local ver="${1##*[<>=~]}"
+
+	if ! $APK version --check --quiet "$ver"; then
+		error "Invalid version: $ver in $1"
+		return 1
+	fi
+
+	local sep=${1#$name}
+	sep=${sep%$ver}
+
+	local i
+	for i in "<" ">" "=" "~" ">=" "<=" ">~" "<~"; do
+		if [ "$sep" = "$i" ]; then
+			return 0
+		fi
+	done
+
+	error "Invalid version separator '$sep' in $1"
+	return 1
 }
 
 prepare_metafiles() {
