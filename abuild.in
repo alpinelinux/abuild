@@ -703,6 +703,8 @@ runpart() {
 					export GOCACHE="${GOCACHE:-"$tmpdir/go"}"
 					export GOMODCACHE="${GOCACHE:-"$tmpdir/gomod"}"
 					export GOTMPDIR="${GOTMPDIR:-"$tmpdir"}"
+					# https://github.com/golang/go/issues/32320
+					mkdir -p "$GOTMPDIR"
 					export CARGO_HOME="${CARGO_HOME:-"$tmpdir/cargo"}"
 				fi
 
