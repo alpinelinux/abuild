@@ -2539,7 +2539,7 @@ rootbld() {
 		"$BUILD_ROOT/$ABUILD_USERDIR" "$BUILD_ROOT/$aportsgit" \
 		"$BUILD_ROOT/$SRCDEST" "$BUILD_ROOT/$REPODEST" \
 		"$BUILD_ROOT/tmp/pkg" "$BUILD_ROOT/tmp/src" \
-		"$BUILD_ROOT/tmp/tmp" "$BUILD_ROOT/usr/bin"
+		"$BUILD_ROOT/tmp/tmp" "$BUILD_ROOT/usr/bin" \
 		"$REPODEST" "$BUILD_ROOT/$HOME/.ccache"
 
 	cp /etc/abuild.conf /etc/group /etc/passwd "$BUILD_ROOT/etc"
