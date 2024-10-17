@@ -136,6 +136,10 @@ file.
 *makedepends*
 	Specifies build dependencies for the package.
 
+*maintainer*
+	The name and email of the package maintainer in RFC 2822 format.
+	E.g.: _maintainer="Joe Q. Public <john.q.public@example.com>"_
+
 *pkggroups*
 	Specifies a space-separated list of login groups to create during
 	build-time. Note that you will need to create the login groups
