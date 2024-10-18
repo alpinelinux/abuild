@@ -1,6 +1,4 @@
 # Maintainer: Olliver Schinagl <oliver@schinagl.nl>
-
-# test package
 pkgname="${TESTNAME-test-licenses}"
 pkgver="1.0"
 pkgrel=0
@@ -8,9 +6,9 @@ pkgdesc='Dummy test package that has multi-line licenses'
 url='https://gitlab.alpinelinux.org/alpine/aports'
 arch='noarch'
 license='MIT AND
-         (GPL-3.0-only OR  
-  
- GPL-3.0-or-later AND   
+         (GPL-3.0-only OR
+
+ GPL-3.0-or-later AND
 		 BSD-4-Clause)
 '
 

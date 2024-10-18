@@ -1,6 +1,4 @@
 # Maintainer: Natanael Copa <ncopa@alpinelinux.org>
-
-# test package
 pkgname="pkg-path-with-spaces"
 pkgver="1.0"
 pkgrel=0
