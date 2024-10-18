@@ -1,4 +1,6 @@
 maintainer="Natanael Copa <ncopa@alpinelinux.org>"
+
+# test package
 pkgname="invalid-filename"
 pkgver="1.0"
 pkgrel=0
