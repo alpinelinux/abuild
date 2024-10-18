@@ -98,7 +98,7 @@ abuild_build_fail_body() {
 	init_keys
 	mkdir buildfail
 	cat >buildfail/APKBUILD <<-EOF
-		maintainer="Joe User <juser@example.com>"
+		# Maintainer: Joe User <juser@example.com>
 		pkgname="buildfail"
 		pkgver="1.0"
 		pkgrel=0
@@ -129,7 +129,7 @@ abuild_invalid_filename_body() {
 	mkdir invalid-filename
 	cd invalid-filename
 	cat >APKBUILD <<-EOF
-		maintainer="Joe User <juser@example.com>"
+		# Maintainer: Joe User <juser@example.com>
 		pkgname="invalid-filename"
 		pkgver="1.0"
 		pkgrel=0
@@ -161,7 +161,7 @@ abuild_usr_lib64_body() {
 	mkdir lib64test
 	cd lib64test
 	cat >APKBUILD <<-EOF
-		maintainer="Joe User <juser@example.com>"
+		# Maintainer: Joe User <juser@example.com>
 		pkgname="lib64test"
 		pkgver="1.0"
 		pkgrel=0
@@ -299,7 +299,7 @@ abuild_subpkg_dep_leak_body() {
 	mkdir -p testrepo/subpkg-dep-leak
 	cd testrepo/subpkg-dep-leak
 	cat > APKBUILD <<-EOF
-		maintainer="Natanael Copa <ncopa@alpinelinux.org>"
+		# Maintainer: Natanael Copa <ncopa@alpinelinux.org>
 		pkgname="subpkg-dep-leak"
 		pkgver=1.0
 		pkgrel=0
@@ -398,7 +398,7 @@ abuild_reject_init_with_improper_shebang_body() {
 	mkdir invalid-initd
 	cd invalid-initd
 	cat >APKBUILD<<-EOF
-		maintainer="Natanael Copa <ncopa@alpinelinux.org>"
+		# Maintainer: Natanael Copa <ncopa@alpinelinux.org>
 		pkgname="invalid-initd"
 		pkgver="1.0"
 		pkgrel=0
@@ -591,7 +591,7 @@ abuild_git_ceiling_body() {
 	mkdir git-pkg
 	cd git-pkg
 	cat >APKBUILD<<-EOF
-		maintainer="Joe User <juser@example.com>"
+		# Maintainer: Joe User <juser@example.com>
 		pkgname="git-pkg"
 		pkgver="1.0"
 		pkgrel=0
@@ -621,7 +621,7 @@ abuild_package_size_body() {
 
 	cd test-size
 	cat > APKBUILD <<-EOF
-		maintainer="Test User 123 <123@example.com>"
+		# Maintainer: Test User 123 <123@example.com>
 
 		# test package
 		pkgname="test-size"
@@ -731,7 +731,7 @@ abuild_keepdirs_body() {
 
 	cd test-amove
 	cat > APKBUILD <<-EOF
-		maintainer="Test User 123 <123@example.com>"
+		# Maintainer: Test User 123 <123@example.com>
 
 		# test package
 		pkgname="test-keepdirs"
@@ -757,7 +757,7 @@ abuild_amove_body() {
 
 	cd test-amove
 	cat > APKBUILD <<-EOF
-		maintainer="Test User 123 <123@example.com>"
+		# Maintainer: Test User 123 <123@example.com>
 
 		# test package
 		pkgname="test-amove"
@@ -853,7 +853,7 @@ abuild_doc_body() {
 
 	cd foo
 	cat > APKBUILD <<-EOF
-		maintainer="Test User 123 <123@example.com>"
+		# Maintainer: Test User 123 <123@example.com>
 		# test package
 		pkgname="foo"
 		pkgver="1.0"
@@ -891,7 +891,7 @@ abuild_dev_body() {
 
 	cd foo
 	cat > APKBUILD <<-EOF
-		maintainer="Test User 123 <123@example.com>"
+		# Maintainer: Test User 123 <123@example.com>
 		# test package
 		pkgname="foo"
 		pkgver="1.0"
@@ -930,7 +930,7 @@ abuild_devhelp_warn_body() {
 
 	cd foo
 	cat > APKBUILD <<-EOF
-		maintainer="Test User 123 <123@example.com>"
+		# Maintainer: Test User 123 <123@example.com>
 		pkgname="foo"
 		pkgver="1.0"
 		pkgrel=0
@@ -953,7 +953,7 @@ abuild_devhelp_body() {
 
 	cd foo
 	cat > APKBUILD <<-EOF
-		maintainer="Test User 123 <123@example.com>"
+		# Maintainer: Test User 123 <123@example.com>
 		pkgname="foo"
 		pkgver="1.0"
 		pkgrel=0
@@ -981,14 +981,14 @@ abuild_check_maintainer_body() {
 			"Trailing Space <n@example.com> " \
 			"Foo<u@example.com>" \
 			'"Quotes <u@example.com>"'; do
-		printf "maintainer='%s'\npkgname=foo\n" "${m//"'"/"'\\''"}" > APKBUILD
+		printf "# Maintainer: %s\n%s\n" "$m" "pkgname=foo" > APKBUILD
 		atf_check -s not-exit:0 \
 			-e match:"ERROR:" \
 			abuild check_maintainer
 	done
 
 	for m in "Test User <123@example.com>" "Foo O'Brian <n@example.com>" "Łukasz Something <s@example.com>"; do
-		printf "maintainer='%s'\npkgname=foo\n" "${m//"'"/"'\\''"}" > APKBUILD
+		printf "# Maintainer: %s\n%s\n" "$m" "pkgname=foo" > APKBUILD
 		atf_check abuild check_maintainer
 	done
 }
@@ -1000,7 +1000,7 @@ abuild_cleanoldpkg_body() {
 	for arch in aarch64 x86_64; do
 		for v in 0.9 1.0 1.1; do
 			cat > APKBUILD <<-EOF
-				maintainer="Test User 123 <123@example.com>"
+				# Maintainer: Test User 123 <123@example.com>
 				# test package
 				pkgname="foo"
 				pkgver="$v"
@@ -1063,7 +1063,7 @@ abuild_pyc_warn_body() {
 	mkdir -p pycachetest
 	cd pycachetest
 	cat >APKBUILD <<-EOF
-		maintainer="Joe User <juser@example.com>"
+		# Maintainer: Joe User <juser@example.com>
 		pkgname="pycachetest"
 		pkgver="1.0"
 		pkgrel=0
@@ -1088,7 +1088,7 @@ abuild_pyc_body() {
 	mkdir -p foo
 	cd foo
 	cat >APKBUILD <<-EOF
-		maintainer="Joe User <juser@example.com>"
+		# Maintainer: Joe User <juser@example.com>
 		pkgname="foo"
 		pkgver="1.0"
 		pkgrel=0
@@ -1137,7 +1137,7 @@ abuild_command_provides_body() {
 	mkdir testprovides
 	cd testprovides
 	cat >APKBUILD<<-EOF
-		maintainer="Natanael Copa <ncopa@alpinelinux.org>"
+		# Maintainer: Natanael Copa <ncopa@alpinelinux.org>
 		pkgname=testprovides
 		pkgver=1.0
 		pkgrel=0
@@ -1172,7 +1172,7 @@ abuild_gocache_dir_body() {
 	mkdir gocache-dir
 	cd gocache-dir
 	cat >APKBUILD<<-EOF
-		maintainer="Joe User <juser@example.com>"
+		# Maintainer: Joe User <juser@example.com>
 		pkgname="gocache-dir"
 		pkgver="1.0"
 		pkgrel=0
@@ -1203,7 +1203,7 @@ abuild_cargo_home_dir_body() {
 	mkdir cargo-home-dir
 	cd cargo-home-dir
 	cat >APKBUILD<<-EOF
-		maintainer="Joe User <juser@example.com>"
+		# Maintainer: Joe User <juser@example.com>
 		pkgname="cargo-home-dir"
 		pkgver="1.0"
 		pkgrel=0
@@ -1234,7 +1234,7 @@ abuild_fish_comp_split_body() {
 	mkdir fish-split-dir
 	cd fish-split-dir
 	cat >APKBUILD<<-EOF
-		maintainer="Joe User <juser@example.com>"
+		# Maintainer: Joe User <juser@example.com>
 		pkgname="fish-split-dir"
 		pkgver="1.0"
 		pkgrel=0
@@ -1291,7 +1291,7 @@ abuild_deps_body() {
 	mkdir testdeps
 	cd testdeps
 	cat >APKBUILD <<-EOF
-		maintainer="Joe User <juser@example.com>"
+		# Maintainer: Joe User <juser@example.com>
 		pkgname="testdeps"
 		pkgver="1.0"
 		pkgrel=0
@@ -1351,7 +1351,7 @@ abuild_usr_merge_body() {
 	mkdir usrmergetest
 	cd usrmergetest
 	cat >APKBUILD <<-EOF
-		maintainer="Joe User <juser@example.com>"
+		# Maintainer: Joe User <juser@example.com>
 		pkgname="usrmergetest"
 		pkgver="1.0"
 		pkgrel=0

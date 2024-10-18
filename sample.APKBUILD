@@ -2,7 +2,7 @@
 # and remove these comments.
 
 # Contributor: Your Name <youremail@domain.com>
-maintainer="Your Name <youremail@domain.com>"
+# Maintainer: Your Name <youremail@domain.com>
 pkgname=NAME
 pkgver=VERSION
 pkgrel=0

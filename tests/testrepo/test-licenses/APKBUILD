@@ -1,4 +1,4 @@
-maintainer="Olliver Schinagl <oliver@schinagl.nl>"
+# Maintainer: Olliver Schinagl <oliver@schinagl.nl>
 
 # test package
 pkgname="${TESTNAME-test-licenses}"

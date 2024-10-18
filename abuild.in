@@ -311,8 +311,8 @@ default_validate() {
 	[ -n "$conflicts" ] && die "APKBUILD contains \$conflicts. Explicit conflicts should be added as '!pkgname' to depends"
 
 	check_maintainer || die "Provide a valid RFC822 maintainer address"
-	grep -q '^# *Maintainer:' "$APKBUILD" \
-		&& warning "Setting the maintainer with a comment is deprecated. Use maintainer=\"$maintainer\" instead"
+	[ $(grep '^# *Maintainer:' "$APKBUILD" | wc -l) -gt 1 ] \
+		&& die "More than one maintainer"
 	check_license || warning "Please use valid SPDX license identifiers found at: https://spdx.org/licenses"
 
 	check_depends_dev || warning "depends_dev found but no development subpackage found"
@@ -996,7 +996,9 @@ git_last_commit_epoch() {
 }
 
 get_maintainer() {
-	: "${maintainer:=$(awk -F': ' '/# *Maintainer/ {print $2}' "$APKBUILD")}"
+	if [ -z "$maintainer" ]; then
+		maintainer=$(awk -F': ' '/# *Maintainer/ {print $2}' "$APKBUILD")
+	fi
 }
 
 check_maintainer() {

@@ -40,7 +40,7 @@ abump_simple_bump_body() {
 	cd main/foo
 	echo "first" > foo-1.0.txt
 	cat > APKBUILD <<-EOF
-		maintainer="Test user <user@example.com>"
+		# Maintainer: Test user <user@example.com>
 		pkgname="foo"
 		pkgver=1.0
 		pkgrel=0
@@ -84,7 +84,7 @@ abump_isolates_apkbuild_body() {
 	cd main/bar
 	echo "first" > bar-1.0.txt
 	cat > APKBUILD <<-"EOF"
-		maintainer="Test user <user@example.com>"
+		# Maintainer: Test user <user@example.com>
 		pkgname="bar"
 		pkgver=1.0
 		pkgrel=0
