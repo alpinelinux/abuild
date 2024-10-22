@@ -2157,7 +2157,7 @@ devhelp() {
 default_bashcomp() {
 	depends=""
 	pkgdesc="Bash completions for $pkgname"
-	install_if="$pkgname=$pkgver-r$pkgrel bash-completion"
+	install_if="${subpkgname%-bash-completion}=$pkgver-r$pkgrel bash-completion"
 
 	cd "$pkgdir" || return 0
 	amove usr/share/bash-completion/completions
@@ -2170,7 +2170,7 @@ bashcomp() {
 default_zshcomp() {
 	depends=""
 	pkgdesc="Zsh completions for $pkgname"
-	install_if="$pkgname=$pkgver-r$pkgrel zsh"
+	install_if="${subpkgname%-zsh-completion}=$pkgver-r$pkgrel zsh"
 
 	amove usr/share/zsh/site-functions
 }
@@ -2182,7 +2182,7 @@ zshcomp() {
 default_fishcomp() {
 	depends=""
 	pkgdesc="Fish completions for $pkgname"
-	install_if="$pkgname=$pkgver-r$pkgrel fish"
+	install_if="${subpkgname%-fish-completion}=$pkgver-r$pkgrel fish"
 
 	cd "$pkgdir" || return 0
 	amove usr/share/fish/vendor_completions.d || :

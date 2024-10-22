@@ -1296,17 +1296,20 @@ abuild_fish_comp_split_body() {
 		abuild prepare build rootpkg
 
 	# now add the correct subpackage
-	echo 'subpackages="$pkgname-fish-completion"' >> APKBUILD
+	echo 'subpackages="$pkgname-subpkg-fish-completion"' >> APKBUILD
 	abuild clean prepare build rootpkg
 
-	if ! [ -d pkg/fish-split-dir-fish-completion/usr/share/fish/completions ]; then
+	if ! [ -d pkg/fish-split-dir-subpkg-fish-completion/usr/share/fish/completions ]; then
 		echo "missing old dir"
 		exit 1
 	fi
-	if ! [ -d pkg/fish-split-dir-fish-completion/usr/share/fish/vendor_completions.d ]; then
+	if ! [ -d pkg/fish-split-dir-subpkg-fish-completion/usr/share/fish/vendor_completions.d ]; then
 		echo "missing new dir"
 		exit 1
 	fi
+	atf_check \
+		-o match:"install_if = fish-split-dir-subpkg=1.0-r0 fish" \
+		grep '^install_if = ' pkg/.control.fish-split-dir-subpkg-fish-completion/.PKGINFO
 }
 
 create_mock_apk() {
