@@ -224,7 +224,16 @@ default_validate() {
 
 	# check pkgname and subpkgnames
 	for i in "$pkgname" $subpackages; do
-		verify_pkgname "${i%%:*}" || die "${i%%:*} is not a valid package name"
+		i="${i%%:*}"
+		verify_pkgname "$i" || die "$i is not a valid package name"
+		local found=
+		for j in "$pkgname" $subpackages; do
+			j="${j%%:*}"
+			msg "$j = $i"
+			[ "$j" = "$i" ] || continue
+			[ -n "$found" ] && die "duplicate (sub-)package named $i"
+			found=1
+		done
 	done
 
 	# check dependencies

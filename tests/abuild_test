@@ -23,6 +23,7 @@ init_tests \
 	abuild_valid_pkgnames \
 	abuild_invalid_pkgnames \
 	abuild_invalid_subpkgnames \
+	abuild_duplicate_subpkgname \
 	abuild_invalid_subpkg_version \
 	abuild_provide_pkgname \
 	abuild_validate_depends \
@@ -517,6 +518,18 @@ abuild_invalid_subpkgnames_body() {
 		-e match:"Validating" \
 		abuild validate
 	TESTSUBNAME="-foo" atf_check -s exit:1 \
+		-e match:"Validating" \
+		abuild validate
+}
+
+abuild_duplicate_subpkgname_body() {
+	init_keys
+	cp -ra "$testrepo"/test-pkgname .
+	cd test-pkgname
+	TESTNAME="test-name" TESTSUBNAME="test-name" atf_check -s exit:1 \
+		-e match:"Validating" \
+		abuild validate
+	TESTSUBNAME="foo bar foo" atf_check -s exit:1 \
 		-e match:"Validating" \
 		abuild validate
 }
