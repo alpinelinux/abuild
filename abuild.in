@@ -1786,7 +1786,7 @@ apk_tar() {
 	tar --format=posix \
 		--pax-option=exthdr.name=%d/PaxHeaders/%f,atime:=0,ctime:=0 \
 		--mtime="@$SOURCE_DATE_EPOCH" \
-		--no-recursion --null -T - -f - -c
+		--no-recursion --null -T - -f - -c "$@"
 }
 
 create_apks() {
