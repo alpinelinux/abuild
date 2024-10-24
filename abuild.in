@@ -1244,15 +1244,25 @@ prepare_metafiles() {
 }
 
 prepare_trace_rpaths() {
-	local dir=${subpkgdir:-$pkgdir}
 	local etype= soname= file= sover=
 	[ "${subpkgarch:-$pkgarch}" = "noarch" ] && return 0
 	options_has "!tracedeps" && return 0
 	# lets tell all the places we should look for .so files - all rpaths
-	scanelf --quiet --recursive --rpath "$dir" \
-		| sed -e 's/[[:space:]].*//' -e 's/:/\n/' | sort -u \
-		>"$controldir"/.rpaths
+	(
+		cd "${subpkgdir:-$pkgdir}"
+		scanelf --quiet --recursive --rpath .
+	) | awk -F '[:[:space:]]+' '{
+		sub(/^\./, "", $NF);
+		sub("/[^/]*$", "", $NF);
+		for (i = 1; i < NF; i++) {
+			# $ORIGIN means relative to the binary
+			gsub("\\$ORIGIN", $NF, $i);
+			gsub("\\${ORIGIN}", $NF, $i);
+			printf("%s\n", $i);
+		}
+	}' | sort -u >"$controldir"/.rpaths
 	if grep -q -x '/usr/lib' "$controldir"/.rpaths; then
+		# FIXME silence warning when $ORIGIN was used
 		warning "Redundant /usr/lib in rpath found"
 	fi
 	if grep '^/home/' "$controldir"/.rpaths; then

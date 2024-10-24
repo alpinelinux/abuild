@@ -18,6 +18,7 @@ init_tests \
 	abuild_py_providers_creation \
 	abuild_py_dependency_scan \
 	abuild_py_dependency_scan_conflict \
+	abuild_rpaths \
 	abuild_reject_init_with_improper_shebang \
 	abuild_valid_pkgnames \
 	abuild_invalid_pkgnames \
@@ -392,6 +393,52 @@ abuild_py_dependency_scan_conflict_body() {
 	atf_check -s exit:1 \
 		-e match:"ERROR.*package contains python3 modules for conflicting python3 versions" \
 		abuild rootpkg
+}
+
+abuild_rpaths_body() {
+	init_keys
+
+	mkdir -p bin
+	cat > bin/scanelf <<-EOF
+		#!/bin/sh
+		for i; do
+			[ "\$i" = --rpath ] || continue
+			echo "\$ABUILD_RPATH" /usr/lib/pkg/base.so
+			break
+		done
+	EOF
+	chmod +x bin/scanelf
+	PATH="$PWD/bin:$PATH"
+
+	mkdir -p testrepo/pkg
+	cd testrepo/pkg
+	cat > APKBUILD <<-EOF
+		maintainer="Natanael Copa <ncopa@alpinelinux.org>"
+		pkgname="pkg"
+		pkgver=1.0
+		pkgrel=0
+		pkgdesc="Dummy test package"
+		url="https://gitlab.alpinelinux.org/alpine/aports"
+		arch="all"
+		license="MIT"
+		options="!check !strip !textrels !archcheck"
+
+		package() {
+			mkdir -p "\$pkgdir"/usr/lib
+			touch "\$pkgdir"/usr/lib/libfoo.so.1
+		}
+	EOF
+	ABUILD_RPATH='/usr/lib/foo' abuild rootpkg || atf_fail "abuild failed"
+	atf_check -s exit:0 \
+		-o match:"/usr/lib/foo" \
+		cat pkg/.control.pkg/.rpaths
+	ABUILD_RPATH='$ORIGIN/bar:${ORIGIN}/../baf' pkgbasedir=$PWD/pkg abuild rootpkg || atf_fail "abuild failed"
+	atf_check -s exit:0 \
+		-o match:"/usr/lib/pkg/bar" \
+		-o match:"/usr/lib/pkg/../baf" \
+		cat pkg/.control.pkg/.rpaths
+	ABUILD_RPATH='/home/builder' atf_check -s exit:1 -o ignore \
+		-e match:"ERROR:.*: Has /home/... in rpath" abuild rootpkg
 }
 
 abuild_reject_init_with_improper_shebang_body() {
