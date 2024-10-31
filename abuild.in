@@ -542,15 +542,11 @@ default_unpack() {
 				tar -C "$srcdir" --lzip -xf "$s" || return 1;;
 			*.tar.lzma)
 				msg "Unpacking $s..."
-				unlzma -T 0 -c "$s" | tar -C "$srcdir" -x  \
+				unlzma -c "$s" | tar -C "$srcdir" -x  \
 					|| return 1;;
 			*.tar.xz)
 				msg "Unpacking $s..."
-				local threads_opt
-				if [ $(readlink -f $(command -v unxz)) != "/bin/busybox" ]; then
-					threads_opt="--threads=0"
-				fi
-				unxz $threads_opt -c "$s" | tar -C "$srcdir" -x || return 1;;
+				unxz -c "$s" | tar -C "$srcdir" -x || return 1;;
 			*.tar.zst)
 				msg "Unpacking $s..."
 				tar -C "$srcdir" --zstd -xf "$s" || return 1;;
