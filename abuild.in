@@ -1986,7 +1986,7 @@ default_doc() {
 	# compress man pages
 	local mandir="$subpkgdir"/usr/share/man
 	[ -d "$mandir" ] && find "$mandir" -type l \
-		-a \( -name \*.[0-8n] -o -name \*.[0-8][a-z]* \) \
+		-a \( -name \*.[0-9n] -o -name \*.[0-9n][a-z]* \) \
 		-a \! \( -name '*.gz' -o -name '*.bz2' -o -name '*.xz' \) \
 		| while read symlink; do
 
@@ -1994,7 +1994,7 @@ default_doc() {
 		rm -f "$symlink"
 	done
 	[ -d "$mandir" ] && find "$mandir" -type f \
-		-a \( -name \*.[0-8n] -o -name \*.[0-8][a-z]* \) \
+		-a \( -name \*.[0-9n] -o -name \*.[0-9n][a-z]* \) \
 		-a \! \( -name '*.gz' -o -name '*.bz2' -o -name '*.xz' \) \
 		-exec stat -c "%i %n" \{\} \+ | sort | while read inode name; do
 
@@ -2003,7 +2003,7 @@ default_doc() {
 
 		local islink=0
 		find "$mandir" -type f -links +1 \
-			-a \( -name \*.[0-8n] -o -name \*.[0-8][a-z]* \) \
+			-a \( -name \*.[0-9n] -o -name \*.[0-9n][a-z]* \) \
 			-a \! \( -name '*.gz' -o -name '*.bz2' -o -name '*.xz' \) \
 			-exec stat -c "%i %n" \{\} \+ | while read linode lname; do
 			if [ "$linode" = "$inode" -a "$lname" != "$name" ]; then
