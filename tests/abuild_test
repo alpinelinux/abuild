@@ -1196,9 +1196,8 @@ abuild_command_provides_body() {
 		url="https://gitlab.alpinelinux.org/alpine/aports"
 		arch="noarch"
 		license="MIT"
-		prepare() { mkdir -p "\$builddir"; }
-		build() { true; }
-		check() { true; }
+		subpackages="noprovides"
+		options="noprovides:!tracedeps"
 		package() {
 			mkdir -p "\$pkgdir/usr/bin"
 			printf "%s\n" '#!/bin/sh' >"\$pkgdir/usr/bin/foo"
@@ -1206,6 +1205,12 @@ abuild_command_provides_body() {
 			cp -a "\$pkgdir/usr/bin/foo" "\$pkgdir/usr/bin/foo@"
 			mkdir -p "\$pkgdir/usr/bin/dir/"
 			ln -s /usr/bin/not-on-the-host-system-but-in-a-dependency "\$pkgdir/usr/bin/link"
+		}
+
+		noprovides() {
+			mkdir -p "\$subpkgdir/usr/bin"
+			printf "%s\n" '#!/bin/sh' >"\$subpkgdir/usr/bin/foo"
+			chmod +x "\$subpkgdir/usr/bin/foo"
 		}
 	EOF
 	abuild rootpkg
@@ -1216,6 +1221,10 @@ abuild_command_provides_body() {
 		-o match:"provides = cmd:link=1.0-r0" \
 		-o not-match:"provides = cmd:dir=1.0-r0" \
 		grep '^provides = ' pkg/.control.testprovides/.PKGINFO
+
+	atf_check -s exit:1 \
+		-o not-match:"provides" \
+		grep '^provides = ' pkg/.control.noprovides/.PKGINFO
 }
 
 abuild_gocache_dir_body() {

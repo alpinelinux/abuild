@@ -1845,7 +1845,7 @@ create_apks() {
 		size=$(pkginfo_val size "$file")
 		local apk=$name-$ver.apk
 		local datadir="$pkgbasedir"/$name
-		local subpkgname=$name
+		subpkgname=$name
 		subpkgarch=$(pkginfo_val arch "$file")
 
 		# See https://gitlab.alpinelinux.org/alpine/tsc/-/issues/16
@@ -2734,6 +2734,8 @@ deplist_has() {
 }
 
 options_has() {
+	[ -n "${subpkgname:-pkgname}" ] &&
+	list_has "${subpkgname:-pkgname}:$1" $options ||
 	list_has "$1" $options
 }
 
