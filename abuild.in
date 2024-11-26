@@ -2214,8 +2214,8 @@ default_nftrules() {
 	pkgdesc="$pkgdesc (nftables ruleset)"
 	install_if="nftables-rulesets ${subpkgname%-nftrules}=$pkgver-r$pkgrel"
 
-	if [ -d "$pkgdir"/etc/nftables.d ]; then
-		amove 'etc/nftables.d/*.nft'
+	if [ -d "$pkgdir"/usr/share/nftables.avail ]; then
+		amove 'usr/share/nftables.avail/*.nft'
 	fi
 }
 
