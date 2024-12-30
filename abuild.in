@@ -1550,6 +1550,12 @@ trace_apk_deps() {
 		autodeps="$autodeps $i"
 	done
 
+	# debuginfo conflict dependencies
+	local ver=$pkgver-r$pkgrel
+	for i in $(sort -u "$dir"/.debug-target-pkgs 2>/dev/null); do
+		autodeps="$autodeps !$i<$ver !$i>$ver"
+	done
+
 	# pkg-config depends
 	local provider owner
 	for i in $(sort -u "$dir"/.needs-pc 2>/dev/null); do
@@ -1761,6 +1767,22 @@ scan_python3_dependency() {
 	done
 }
 
+# find the packages containing the binaries corresponding to the debug files
+scan_debuginfo_targets() {
+	local root=$3/usr/lib/debug
+	[ -d "$root" ] || return 0
+
+	find "$root" -name "*.debug" | while read path; do
+		path=${path#$root}
+		path=${path%.debug}
+		for pkgdir in "$pkgbasedir"/*; do
+			if [ -x "$pkgdir$path" ]; then
+				echo "${pkgdir#$pkgbasedir/}"
+			fi
+		done
+	done > "$dir"/.debug-target-pkgs
+}
+
 #find pkg-config dependencies
 scan_pkgconfig_depends() {
 	local provides_pc="$1" controldir= name= datadir=
@@ -1812,6 +1834,7 @@ create_apks() {
 			scan_shared_objects "$name" "$dir" "$datadir"
 			scan_symlink_targets "$name" "$dir" "$datadir"
 			scan_python3_dependency "$name" "$dir" "$datadir"
+			scan_debuginfo_targets "$name" "$dir" "$datadir"
 		done
 		for file in "$pkgbasedir"/.control.*/.provides-pc; do
 			scan_pkgconfig_depends "$file"
