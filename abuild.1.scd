@@ -6,7 +6,7 @@ abuild(1)
 
 # SYNOPSIS
 
-*abuild* [options] [-P _REPODEST_] [-s _SRCDEST_] [-D _DESCRIPTION_] [cmd] ...
+*abuild* [options] [-C DIR] [-P _REPODEST_] [-s _SRCDEST_] [-D _DESCRIPTION_] [cmd] ...
 
 # DESCRIPTION
 
@@ -20,6 +20,9 @@ other related operations.
 
 *-c*
 	Enable colored output
+
+*-C DIR*
+	Change directory to DIR before running any commands
 
 *-d*
 	Disable dependency checking

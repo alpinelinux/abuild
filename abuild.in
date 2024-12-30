@@ -2834,11 +2834,12 @@ snapshot() {
 
 usage() {
 	cat <<-EOF
-		usage: $program [options] [-P REPODEST] [-s SRCDEST] [-D DESCRIPTION] [cmd] ...
+		usage: $program [options] [-C DIR] [-P REPODEST] [-s SRCDEST] [-D DESC] [cmd] ...
 		       $program [-c] -n PKGNAME[-PKGVER]
 		Options:
 		 -A  Print CARCH and exit
 		 -c  Enable colored output
+		 -C  Change directory before running any commands
 		 -d  Disable dependency checking
 		 -D  Set APKINDEX description (default: \$repo \$(git describe))
 		 -f  Force specified cmd (skip checks: apk up to date, arch)
@@ -2887,11 +2888,12 @@ usage() {
 
 APKBUILD="${APKBUILD:-./APKBUILD}"
 unset color_opt force forceroot install_deps keep keep_build nodeps quiet verbose
-while getopts ":AcdD:fFhkKmnP:qrRs:uvV" opt; do
+while getopts ":AcC:dD:fFhkKmnP:qrRs:uvV" opt; do
 	case $opt in
 		'A') echo "$CARCH"; exit 0;;
 		'c') enable_colors
 		     color_opt="-c";;
+		'C') chdir "$OPTARG";;
 		'd') nodeps="-d";;
 		'D') DESCRIPTION=$OPTARG;;
 		'f') force="-f";;
