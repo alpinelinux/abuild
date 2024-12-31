@@ -229,7 +229,6 @@ default_validate() {
 		local found=
 		for j in "$pkgname" $subpackages; do
 			j="${j%%:*}"
-			msg "$j = $i"
 			[ "$j" = "$i" ] || continue
 			[ -n "$found" ] && die "duplicate (sub-)package named $i"
 			found=1
