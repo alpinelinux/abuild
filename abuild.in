@@ -1812,6 +1812,7 @@ create_apks() {
 			"$pkgdir"/usr/share \
 			"$pkgdir"/usr \
 			"$pkgdir"/etc/ \
+			"$pkgdir"/lib/ \
 			2>/dev/null || :
 	fi
 	if ! options_has "!tracedeps"; then
