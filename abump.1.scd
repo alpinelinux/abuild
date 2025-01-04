@@ -6,15 +6,15 @@ abump(1)
 
 # SYNOPSIS
 
-*abump* [-s _CVE-1_,...] [-f _ISSUE_] [-k|--keep] _PKGNAME-1.2.3_
+*abump* [-s _CVE-1_,...] [-f _ISSUE_] [-b|--branch] [-k|--keep] _PKGNAME-1.2.3_
 
 # DESCRIPTION
 
 *abump* updates the *pkgver* in an APKBUILD file, updates its checksums,
 rebuilds it, and finally creates a new commit commit with the changes resulting.
 
-*abump* operates looks for the specified package in nested directories inside
-the current working, assuming a layout like that of the aports repository.
+*abump* looks for the specified package in nested directories inside the current
+working directory, assuming a layout like that of the aports repository.
 
 # OPTIONS
 
@@ -24,6 +24,9 @@ the current working, assuming a layout like that of the aports repository.
 *-f, --fixes ISSUE*
 	Include *Fixes #ISSUE* in the commit message. This will close the upstream
 	issue when the commit is merged into the aports master branch.
+
+*-b, --branch*
+	Create a git branch from HEAD before normal operation.
 
 *-k, --keep*
 	Keep existing packages.

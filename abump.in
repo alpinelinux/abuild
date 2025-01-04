@@ -97,10 +97,11 @@ fixes #${fixes#\#}
 usage() {
 	cat <<-__EOF__
 		$program $program_version - bump pkgver in APKBUILDs
-		Usage: $program [-s CVE-1,CVE-2,...] [-f ISSUE] [-k|--keep] PKGNAME-1.2.3 ...
+		Usage: $program [-s CVE-1,CVE-2,...] [-f ISSUE] [-b|--branch] [-k|--keep] PKGNAME-1.2.3 ...
 		Options:
 		  -s, --security CVE1,CVE-2,...  Security update
 		  -f, --fixes ISSUE              Fixes ISSUE
+		  -b, --branch                   Create a git branch from HEAD before normal operation
 		  -k, --keep                     Run abuild with -k to keep existing packages
 		  -q, --quiet
 		  -h, --help                     Show this help
@@ -111,8 +112,9 @@ usage() {
 keep=
 cvelist=
 fixes=
+branch=
 
-args=$(getopt -o f:s:kqh --long fixes:,security:,keep,quiet,help \
+args=$(getopt -o f:s:bkqh --long fixes:,security:,branch,keep,quiet,help \
 	-n "$program" -- "$@")
 if [ $? -ne 0 ]; then
 	usage >&2
@@ -123,6 +125,7 @@ while true; do
 	case $1 in
 		-s|--security) cvelist=" ($2)"; shift;;
 		-f|--fixes) fixes="$2"; shift;;
+		-b|--branch) branch=1;;
 		-k|--keep) keep="-k";;
 		-q|--quiet) quiet=1;; # suppresses msg
 		-h|--help) usage; exit 0;;
@@ -138,6 +141,9 @@ fi
 
 [ -n "$APORTSDIR" ] || error "can't locate \$APORTSDIR"
 git rev-parse 2>/dev/null || die "not in a git tree"
+if [ "$branch" = 1 ]; then
+	git checkout -b "bump-$1"
+fi
 
 abuild_opts="${ABUILD_OPTS- -r} $keep"
 
