@@ -1131,7 +1131,7 @@ prepare_metafiles() {
 	size=$(
 		set -o pipefail
 		{ echo 0; find . -type f -exec stat -c '%d:%i %s' -- {} + |
-		awk '!x[$1]++ {print $2}'; } | paste -sd+ | bc | tr -d '\\\n'
+		awk '!x[$1]++ {print $2}'; } | paste -sd+ - | bc | tr -d '\\\n'
 	)
 	# If package contains only empty files (or only install scripts), the size
 	# might be 0. But due to apk-tools 2 considering packages with size = 0
