@@ -1281,7 +1281,7 @@ prepare_symlinks() {
 	local dir="${subpkgdir:-$pkgdir}"
 	options_has "!tracedeps" && return 0
 	cd "$dir" || return 1
-	find -type l | while read symlink; do
+	find . -type l | while read symlink; do
 		target=$(readlink "$symlink")
 		if ! [ -e "$dir$(normalize_target_path "$target" "$symlink")" ]; then
 			echo "$symlink $target" >> "$controldir"/.symlinks
