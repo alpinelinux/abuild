@@ -93,7 +93,7 @@ abuild_simple_pkg_without_deps_body() {
 	atf_check -s exit:0 -o ignore \
 		-e not-match:"WARNING" \
 		-e not-match:"fatal" \
-		abuild
+		abuild -d
 }
 
 abuild_build_fail_body() {
@@ -123,7 +123,7 @@ abuild_build_fail_body() {
 	cd buildfail
 	atf_check -s exit:1 \
 		-e match:"ERROR: buildfail: build failed" \
-		abuild
+		abuild -d
 }
 
 abuild_invalid_filename_body() {
@@ -155,7 +155,7 @@ abuild_invalid_filename_body() {
 	EOF
 	atf_check -s exit:1 \
 		-e match:"ERROR:.*: Found filenames with newline" \
-		abuild
+		abuild -d
 }
 
 abuild_usr_lib64_body() {
@@ -189,11 +189,11 @@ abuild_usr_lib64_body() {
 	EOF
 	atf_check -s exit:1 \
 		-e match:"ERROR:.*: Packages must not put anything under /usr/lib64" \
-		abuild
+		abuild -d
 
 	options=lib64 atf_check -s exit:0 \
 		-e match:"Build complete" \
-		abuild
+		abuild -d
 }
 
 abuild_dbg_subpackage_body() {
@@ -203,7 +203,7 @@ abuild_dbg_subpackage_body() {
 	atf_check -s exit:0 \
 		-o match:"hello world" \
 		-e match:"Build complete" \
-		abuild
+		abuild -d
 	cd ../..
 
 	arch=$(abuild -A)
@@ -253,12 +253,12 @@ abuild_reproducible_body() {
 	arch=$(abuild -A)
 	pkgs=$(abuild listpkg)
 
-	abuild || atf_fail "first build failed"
+	abuild -d || atf_fail "first build failed"
 	checksums=$(cd "$REPODEST"/testrepo/$arch && sha512sum $pkgs)
 	echo "$checksums"
 
 	rm -r "$REPODEST"/testrepo
-	abuild || atf_fail "rebuild failed"
+	abuild -d || atf_fail "rebuild failed"
 	checksums2=$(cd "$REPODEST"/testrepo/$arch && sha512sum $pkgs)
 	echo "$checksums2"
 
@@ -540,7 +540,7 @@ abuild_invalid_subpkg_version_body() {
 	cd test-pkgname
 	TESTDEPVER="1.0-0" atf_check -s exit:1 \
 		-e match:"Invalid version" \
-		abuild all
+		abuild -d all
 }
 
 abuild_provide_pkgname_body() {
@@ -595,7 +595,7 @@ abuild_subpackage_arch_body() {
 	arch="$(abuild -A)"
 
 	for i in noarch all "$arch"; do
-		TESTSUBARCH="$i" abuild all
+		TESTSUBARCH="$i" abuild -d all
 
 		[ -f "$REPODEST/testrepo/$arch/test-pkgname-$i-1.0-r0.apk" ] || \
 			atf_fail "Failed to place $i arch subpackage correctly"
@@ -609,7 +609,7 @@ abuild_large_doc_subpackage_body() {
 	cd large-doc-subpkg
 	atf_check -s exit:0 -o ignore \
 		-e match:"-doc subpackage is unusually large" \
-		abuild all
+		abuild -d all
 }
 
 abuild_bigdocs_body() {
@@ -618,7 +618,7 @@ abuild_bigdocs_body() {
 	cd large-doc-subpkg
 	options=bigdocs atf_check -s exit:0 -o ignore \
 		-e not-match:"-doc subpackage is unusually large" \
-		abuild all
+		abuild -d all
 }
 
 abuild_pkgver_digit_letter_digit_body() {
@@ -672,7 +672,7 @@ abuild_git_ceiling_body() {
 	atf_check -s exit:1 \
 		-e match:"not a git repository" \
 		-e match:"ERROR: git-pkg: build failed" \
-		abuild
+		abuild -d
 }
 
 abuild_package_size_body() {
@@ -1105,7 +1105,7 @@ abuild_path_with_spaces_body() {
 	atf_check -s exit:0 \
 		-o match:"hello world" \
 		-e match:"Build complete" \
-		abuild
+		abuild -d
 }
 
 abuild_pyc_warn_body() {
@@ -1170,7 +1170,7 @@ abuild_setcap_binary_body() {
 	atf_check -s exit:1 \
 		-e match:"Found binary with extra capabilities" \
 		-e match:"Found setcap binary executable by others" \
-		abuild all
+		abuild -d all
 }
 
 abuild_setcap_binary_with_option_body() {
@@ -1180,7 +1180,7 @@ abuild_setcap_binary_with_option_body() {
 	options=setcap atf_check -s exit:0 \
 		-e not-match:"Found binary with extra capabilities" \
 		-e match:"Found setcap binary executable by others" \
-		abuild all
+		abuild -d all
 }
 
 abuild_command_provides_body() {
@@ -1435,5 +1435,5 @@ abuild_usr_merge_body() {
 		-e match:"WARNING:.*: Packages must not put anything under /lib, use /usr/lib instead" \
 		-e match:"WARNING:.*: Packages must not put anything under /bin, use /usr/bin instead" \
 		-e match:"WARNING:.*: Packages must not put anything under /sbin, use /usr/bin instead" \
-		abuild
+		abuild -d
 }

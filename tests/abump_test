@@ -55,11 +55,12 @@ abump_simple_bump_body() {
 		}
 	EOF
 	abuild checksum
-	abuild
+	abuild -d
 	git add APKBUILD foo-1.0.txt
 	git commit -m "test commit"
 
 	echo "second" > foo-1.1.txt
+	export ABUILD_OPTS="-d"
 	atf_check \
 		-o match:"foo-1.1.txt: OK" \
 		-e match:"upgrade to 1.1" \
@@ -103,11 +104,12 @@ abump_isolates_apkbuild_body() {
 		}
 	EOF
 	abuild checksum
-	abuild
+	abuild -d
 	git add APKBUILD bar-1.0.txt
 	git commit -m "test commit"
 
 	echo "second" > bar-1.1.txt
+	export ABUILD_OPTS="-d"
 	atf_check \
 		-o match:"BUILDFLAGS: repo=main" \
 		-e ignore \
