@@ -21,6 +21,6 @@ check() {
 
 package() {
 	mkdir -p "$pkgdir"
-	cp -r * "$pkgdir"/
+	cp -R * "$pkgdir"/
 }
 

@@ -65,7 +65,7 @@ testrepo=$(atf_get_srcdir)/testrepo
 
 # copy keys
 init_keys() {
-	cp -ra "$(atf_get_srcdir)"/testdata/.abuild "$PWD"
+	cp -Ra "$(atf_get_srcdir)"/testdata/.abuild "$PWD"
 }
 
 abuild_help_body() {
@@ -88,7 +88,7 @@ abuild_version_body() {
 
 abuild_simple_pkg_without_deps_body() {
 	init_keys
-	cp -r "$testrepo"/pkg1 .
+	cp -R "$testrepo"/pkg1 .
 	cd pkg1
 	atf_check -s exit:0 -o ignore \
 		-e not-match:"WARNING" \
@@ -150,7 +150,7 @@ abuild_invalid_filename_body() {
 		}
 		package() {
 			mkdir -p "\$pkgdir"
-			cp -r * "\$pkgdir"/
+			cp -R * "\$pkgdir"/
 		}
 	EOF
 	atf_check -s exit:1 \
@@ -184,7 +184,7 @@ abuild_usr_lib64_body() {
 
 		package() {
 			mkdir -p "\$pkgdir"
-			cp -r * "\$pkgdir"/
+			cp -R * "\$pkgdir"/
 		}
 	EOF
 	atf_check -s exit:1 \
@@ -198,7 +198,7 @@ abuild_usr_lib64_body() {
 
 abuild_dbg_subpackage_body() {
 	init_keys
-	cp -ra "$testrepo" .
+	cp -Ra "$testrepo" .
 	cd testrepo/dbgpkg
 	atf_check -s exit:0 \
 		-o match:"hello world" \
@@ -244,7 +244,7 @@ abuild_dbg_subpackage_body() {
 
 abuild_reproducible_body() {
 	init_keys
-	cp -ra "$testrepo" .
+	cp -Ra "$testrepo" .
 	cd testrepo/pkg1
 
 	# set timestamp of APKBUILD to 1 min older than current time
@@ -369,7 +369,7 @@ abuild_subpkg_libs_body() {
 
 abuild_py_providers_creation_body() {
 	init_keys
-	cp -ra "$testrepo" .
+	cp -Ra "$testrepo" .
 	cd testrepo/py3\ foo\ and\ bar
 	abuild rootpkg || atf_fail "abuild failed"
 	atf_check -s exit:0 \
@@ -379,7 +379,7 @@ abuild_py_providers_creation_body() {
 
 abuild_py_dependency_scan_body() {
 	init_keys
-	cp -ra "$testrepo" .
+	cp -Ra "$testrepo" .
 	cd testrepo/py3\ foo\ and\ bar
 	abuild rootpkg || atf_fail "abuild failed"
 	atf_check -s exit:0 \
@@ -389,7 +389,7 @@ abuild_py_dependency_scan_body() {
 
 abuild_py_dependency_scan_conflict_body() {
 	init_keys
-	cp -ra "$testrepo" .
+	cp -Ra "$testrepo" .
 	cd testrepo/py3-conflicting-python-versions
 	atf_check -s exit:1 \
 		-e match:"ERROR.*package contains python3 modules for conflicting python3 versions" \
@@ -473,7 +473,7 @@ abuild_reject_init_with_improper_shebang_body() {
 }
 
 abuild_valid_pkgnames_body() {
-	cp -ra "$testrepo"/test-pkgname .
+	cp -Ra "$testrepo"/test-pkgname .
 	cd test-pkgname
 	atf_check -s exit:0 \
 		-e match:"Validating" \
@@ -491,7 +491,7 @@ abuild_valid_pkgnames_body() {
 
 abuild_invalid_pkgnames_body() {
 	init_keys
-	cp -ra "$testrepo"/test-pkgname .
+	cp -Ra "$testrepo"/test-pkgname .
 	cd test-pkgname
 	TESTNAME="" atf_check -s exit:1 \
 		-e match:"Validating" \
@@ -512,7 +512,7 @@ abuild_invalid_pkgnames_body() {
 
 abuild_invalid_subpkgnames_body() {
 	init_keys
-	cp -ra "$testrepo"/test-pkgname .
+	cp -Ra "$testrepo"/test-pkgname .
 	cd test-pkgname
 	TESTSUBNAME="" atf_check -s exit:1 \
 		-e match:"Validating" \
@@ -524,7 +524,7 @@ abuild_invalid_subpkgnames_body() {
 
 abuild_duplicate_subpkgname_body() {
 	init_keys
-	cp -ra "$testrepo"/test-pkgname .
+	cp -Ra "$testrepo"/test-pkgname .
 	cd test-pkgname
 	TESTNAME="test-name" TESTSUBNAME="test-name" atf_check -s exit:1 \
 		-e match:"Validating" \
@@ -536,7 +536,7 @@ abuild_duplicate_subpkgname_body() {
 
 abuild_invalid_subpkg_version_body() {
 	init_keys
-	cp -ra "$testrepo"/test-pkgname .
+	cp -Ra "$testrepo"/test-pkgname .
 	cd test-pkgname
 	TESTDEPVER="1.0-0" atf_check -s exit:1 \
 		-e match:"Invalid version" \
@@ -545,7 +545,7 @@ abuild_invalid_subpkg_version_body() {
 
 abuild_provide_pkgname_body() {
 	init_keys
-	cp -ra "$testrepo"/test-pkgname .
+	cp -Ra "$testrepo"/test-pkgname .
 	cd test-pkgname
 	TESTNAME=provided atf_check -s exit:1 \
 		-e match:"provides must not contain" \
@@ -566,7 +566,7 @@ abuild_provide_pkgname_body() {
 
 abuild_validate_depends_body() {
 	init_keys
-	cp -ra "$testrepo"/test-pkgname .
+	cp -Ra "$testrepo"/test-pkgname .
 	cd test-pkgname
 	TESTDEPENDS="foo" TESTMAKEDEPENDS="bar" \
 		atf_check -s exit:0 \
@@ -590,7 +590,7 @@ abuild_validate_depends_body() {
 
 abuild_subpackage_arch_body() {
 	init_keys
-	cp -ra "$testrepo" .
+	cp -Ra "$testrepo" .
 	cd testrepo/subpackage-arch
 	arch="$(abuild -A)"
 
@@ -605,7 +605,7 @@ abuild_subpackage_arch_body() {
 
 abuild_large_doc_subpackage_body() {
 	init_keys
-	cp -ra "$testrepo"/large-doc-subpkg .
+	cp -Ra "$testrepo"/large-doc-subpkg .
 	cd large-doc-subpkg
 	atf_check -s exit:0 -o ignore \
 		-e match:"-doc subpackage is unusually large" \
@@ -614,7 +614,7 @@ abuild_large_doc_subpackage_body() {
 
 abuild_bigdocs_body() {
 	init_keys
-	cp -ra "$testrepo"/large-doc-subpkg .
+	cp -Ra "$testrepo"/large-doc-subpkg .
 	cd large-doc-subpkg
 	options=bigdocs atf_check -s exit:0 -o ignore \
 		-e not-match:"-doc subpackage is unusually large" \
@@ -622,7 +622,7 @@ abuild_bigdocs_body() {
 }
 
 abuild_pkgver_digit_letter_digit_body() {
-	cp -ra "$testrepo"/test-pkgname .
+	cp -Ra "$testrepo"/test-pkgname .
 	cd test-pkgname
 	TESTPKGVER=1.0p1 atf_check -s exit:1 \
 		-e match:'ERROR.*version' \
@@ -630,7 +630,7 @@ abuild_pkgver_digit_letter_digit_body() {
 }
 
 abuild_multiline_license_body() {
-	cp -ra "$testrepo"/test-licenses .
+	cp -Ra "$testrepo"/test-licenses .
 	cd test-licenses
 	abuild rootpkg
 	atf_check -o match:'^license = MIT AND \(GPL-3.0-only OR GPL-3.0-or-later AND BSD-4-Clause\)$' \
@@ -638,7 +638,7 @@ abuild_multiline_license_body() {
 }
 
 abuild_license_spdx_body() {
-	cp -ra "$testrepo"/test-licenses .
+	cp -Ra "$testrepo"/test-licenses .
 	cd test-licenses
 	TESTPKGVER=1.0_p1 atf_check -s exit:0 \
 		-e not-match:'WARNING' \
@@ -1100,7 +1100,7 @@ abuild_cleanoldpkg_body() {
 
 abuild_path_with_spaces_body() {
 	init_keys
-	cp -ra "$testrepo" .
+	cp -Ra "$testrepo" .
 	cd testrepo/pkg\ path\ with\ spaces
 	atf_check -s exit:0 \
 		-o match:"hello world" \
@@ -1165,7 +1165,7 @@ abuild_pyc_body() {
 
 abuild_setcap_binary_body() {
 	init_keys
-	cp -ra "$testrepo"/setcap .
+	cp -Ra "$testrepo"/setcap .
 	cd setcap
 	atf_check -s exit:1 \
 		-e match:"Found binary with extra capabilities" \
@@ -1175,7 +1175,7 @@ abuild_setcap_binary_body() {
 
 abuild_setcap_binary_with_option_body() {
 	init_keys
-	cp -ra "$testrepo"/setcap .
+	cp -Ra "$testrepo"/setcap .
 	cd setcap
 	options=setcap atf_check -s exit:0 \
 		-e not-match:"Found binary with extra capabilities" \

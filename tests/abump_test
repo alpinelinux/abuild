@@ -34,7 +34,7 @@ abump_missing_args_body() {
 }
 
 abump_simple_bump_body() {
-	cp -r "$(atf_get_srcdir)"/testdata/.abuild .
+	cp -R "$(atf_get_srcdir)"/testdata/.abuild .
 	git init
 	mkdir -p main/foo
 	cd main/foo
@@ -78,7 +78,7 @@ abump_simple_bump_body() {
 }
 
 abump_isolates_apkbuild_body() {
-	cp -r "$(atf_get_srcdir)"/testdata/.abuild .
+	cp -R "$(atf_get_srcdir)"/testdata/.abuild .
 	git init
 	mkdir -p main/bar
 	cd main/bar
