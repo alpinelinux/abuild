@@ -57,8 +57,8 @@ abuild_keygen_append_body() {
 		-o empty \
 		-e match:"(Generating|writing) RSA" \
 		abuild-keygen --append -n
-		grep '^PACKAGER_PRIVKEY=.*user@example.com' "$HOME"/.abuild/abuild.conf \
-			|| atf_fail 'PACKAGER_PRIVKEY not set in abuild.conf'
+	grep '^PACKAGER_PRIVKEY=.*user@example.com' "$HOME"/.abuild/abuild.conf \
+		|| atf_fail 'PACKAGER_PRIVKEY not set in abuild.conf'
 }
 
 abuild_keygen_install_without_sudo_body() {
