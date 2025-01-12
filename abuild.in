@@ -882,8 +882,7 @@ postcheck() {
 		echo "$i"
 	fi
 	# check so we dont have any suid root binaries that are not PIE
-	i=$(find "$dir" -type f -perm /6000 \
-		| xargs scanelf --nobanner --etype ET_EXEC \
+	i=$(find "$dir" -type f -perm /6000 -exec scanelf --nobanner --etype ET_EXEC {} + \
 		| sed -e 's/ET_EXEC /\t/')
 	if [ -n "$i" ]; then
 		warning "Found non-PIE files that have SUID:"
@@ -1342,9 +1341,8 @@ prepare_py_provides() {
 	py_providers="$(find 'usr/lib/python'*/site-packages \
 		-mindepth 1 -maxdepth 1 \
 		-type f -iname '*.py' -o -type d \
-		-print0 \
-		2>/dev/null | xargs -0 -I '{}' sh -c '
-		d="{}"
+		-exec sh -c '
+		d="$1"
 
 		# Check if we were given a directory then check if there
 		# is a file called __init__.py inside, this is required
@@ -1366,7 +1364,7 @@ prepare_py_provides() {
 		d="${d%%.py*}"
 
 		echo "py$pyver:${d##*/}"
-	')"
+	' sh {} \; 2>/dev/null)"
 	local i; for i in $py_providers; do
 		echo "$i=$pkgver-r$pkgrel" >> "$controldir"/.provides-py
 	done
