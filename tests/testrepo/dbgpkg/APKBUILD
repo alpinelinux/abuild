@@ -16,7 +16,7 @@ prepare() {
 }
 
 build() {
-	${CC:-gcc} -o hello hello.c
+	$CC -o hello hello.c
 }
 
 check() {
