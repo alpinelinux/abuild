@@ -1501,10 +1501,9 @@ trace_apk_deps() {
 	local i= found= autodeps= deppkgs= missing=
 	local apkroot=
 
-	case "$parch" in
-	$CBUILD_ARCH) ;;
-	$CARCH | $CTARGET_ARCH) apkroot="--root $CBUILDROOT --arch $CTARGET_ARCH" ;;
-	esac
+	if [ "$CBUILD" != "$CHOST" ] || [ "$CBUILD_ARCH" != "$(arch2dir "$parch")" ]; then
+		apkroot="--root $CBUILDROOT --arch $CTARGET_ARCH"
+	fi
 
 	msg "Tracing dependencies..."
 	# add pkgconfig if usr/lib/pkgconfig is found
