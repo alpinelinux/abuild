@@ -606,12 +606,14 @@ subpkg_set() {
 		*-doc | *-openrc | *-lang | *sh-completion | *-pyc) subpkgarch="noarch" ;;
 		*) subpkgarch="$pkgarch" ;;
 		esac
+	elif [ "$subpkgarch" = "all" ]; then
+		subpkgarch=$CARCH
 	fi
 }
 
 arch2dir() {
 	local arch="$1"
-	[ "$arch" = "noarch" -o "$arch" = "all" ] && arch="$CARCH"
+	[ "$arch" = "noarch" ] && arch="$CARCH"
 	printf '%s\n' "$arch"
 }
 
@@ -1162,6 +1164,11 @@ prepare_metafiles() {
 	if [ -n "$FAKEROOTKEY" ]; then
 		echo "# using $($FAKEROOT -v)" >> "$pkginfo"
 	fi
+
+	if [ "${subpkgarch:-$pkgarch}" = "all" ]; then
+		die 'Internal error! ${subpkgarch:-$pkgarch} should never be "all"'
+	fi
+
 	cat >> "$pkginfo" <<-EOF
 		pkgname = $name
 		pkgver = $pkgver-r$pkgrel
@@ -1928,7 +1935,7 @@ update_abuildrepo_index() {
 		# thinks they are for $CARCH and apk-tools will fetch them from
 		# correct URL path. Remainder of the script uses $(arch2dir "$subpkgarch")
 		# when expanding to the target repository path.
-		[ "$subpkgarch" = "noarch" -o "$subpkgarch" = "all" ] && subpkgarch="$CARCH"
+		[ "$subpkgarch" = "noarch" ] && subpkgarch="$CARCH"
 		list_has "$subpkgarch" "$allarch" || allarch="$allarch $subpkgarch"
 	done
 	subpkg_unset
