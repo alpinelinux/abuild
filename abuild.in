@@ -2117,7 +2117,7 @@ default_static() {
 	[ -d lib/ ] && libdirs="lib/ $libdirs"
 
 	# move *.a static library
-	amove $(find $libdir -name '*.a')
+	amove $(find $libdirs -name '*.a')
 
 	return 0
 }
