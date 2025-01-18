@@ -2033,7 +2033,7 @@ default_dbg() {
 	pkgdesc="$pkgdesc (debug symbols)"
 
 	# assume $pkgbasedir is all one filesystem
-	mkdir "$pkgbasedir/.dbg-tmp"
+	mkdir -p "$pkgbasedir/.dbg-tmp"
 	# note: the subpkgdir doesn't exist when the glob is evaluated
 	scanelf -Ry "$pkgbasedir"/* | while read type src; do
 		if [ "$type" != ET_DYN ]; then
@@ -2660,7 +2660,7 @@ stripbin() {
 
 	msg "Stripping binaries"
 
-	mkdir "$pkgbasedir/.strip-tmp"
+	mkdir -p "$pkgbasedir/.strip-tmp"
 	scanelf --recursive --nobanner --osabi --etype "ET_DYN,ET_EXEC" . \
 		| while read type osabi filename; do
 
