@@ -44,7 +44,7 @@ my $template = <<'EOF';
 pkgname=[% pkgname %]
 pkgver=[% pkgver %]
 pkgrel=[% pkgrel %]
-#_pkgreal is used by apkbuild-cpan to find modules at MetaCpan
+# _pkgreal is used by apkbuild-cpan to find modules at MetaCpan
 _pkgreal=[% pkgreal %]
 pkgdesc="Perl module for [% pkgreal %]"
 provides="[% provides %]"
