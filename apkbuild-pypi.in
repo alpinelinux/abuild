@@ -21,7 +21,7 @@ my $template = <<'EOF';
 pkgname=[% pkgname %]
 pkgver=[% pkgver %]
 pkgrel=[% pkgrel %]
-#_pkgreal is used by apkbuild-pypi to find modules at PyPI
+# _pkgreal is used by apkbuild-pypi to find modules at PyPI
 _pkgreal=[% pkgreal %]
 pkgdesc="[% pkgdesc %]"
 url="[% url %]"
