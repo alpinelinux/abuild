@@ -87,6 +87,11 @@ The following variables must be set in all *APKBUILD* files:
 	packages, shell script packages, and JARs. If you are not sure what
 	this means, using "_all_" is safe.
 
+	Architectures can be negated using the _!_ character to exclude them
+	from the list of supported architectures. E.g. _arch="all !ppc64le"_
+	means that the package is allowed to be built on all architectures
+	but the ppc64le architecture.
+
 *license*
 	Specifies the license under which the package is distributed. The
 	value provided must match a SPDX license identifier.
