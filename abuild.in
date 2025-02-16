@@ -212,15 +212,13 @@ default_validate() {
 	fi
 	is_function package || die "Missing package() function in APKBUILD"
 
-	if [ -n "$replaces_priority" ] \
-		&& ! echo $replaces_priority | grep -E -q '^[0-9]+$'; then
-		die "replaces_priority must be a number"
-	fi
+	case "$replaces_priority" in
+		*[!0-9]*) die "replaces_priority must be a number" ;;
+	esac
 
-	if [ -n "$provider_priority" ] \
-		&& ! echo $provider_priority | grep -E -q '^[0-9]+$'; then
-		die "provider_priority must be a number"
-	fi
+	case "$provider_priority" in
+		*[!0-9]*) die "provider_priority must be a number" ;;
+	esac
 
 	# check pkgname and subpkgnames
 	for i in "$pkgname" $subpackages; do
