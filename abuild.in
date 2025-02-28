@@ -2025,10 +2025,7 @@ default_dbg() {
 	# assume $pkgbasedir is all one filesystem
 	mkdir -p "$pkgbasedir/.dbg-tmp"
 	# note: the subpkgdir doesn't exist when the glob is evaluated
-	scanelf -Ry "$pkgbasedir"/* | while read type src; do
-		if [ "$type" != ET_DYN ]; then
-			continue
-		fi
+	scanelf -RyB -E ET_DYN "$pkgbasedir"/* | while read type src; do
 		local ino dst=$subpkgdir/usr/lib/debug/${src#"$pkgbasedir"/*/}.debug
 		mkdir -p "${dst%/*}"
 		ino=$(stat -c %i "$src")
