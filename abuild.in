@@ -1566,13 +1566,6 @@ trace_apk_deps() {
 			autodeps="$autodeps pc:$i"
 		else
 			warning "Could not find any provider for pc:$i"
-			for d in share lib; do
-				local pcfile=/usr/$d/pkgconfig/"${i%%[<>=]*}".pc
-				if [ -e "$pcfile" ]; then
-					owner=$($APK $apkroot info --quiet --who-owns $pcfile)
-					warning "${owner:-package providing $pcfile} needs to be rebuilt"
-				fi
-			done
 		fi
 	done
 
