@@ -2140,7 +2140,7 @@ default_openrc() {
 	pkgdesc="$pkgdesc (OpenRC init scripts)"
 	install_if="openrc ${subpkgname%-openrc}=$pkgver-r$pkgrel"
 
-	amove etc/conf.d etc/init.d || :
+	amove etc/conf.d etc/init.d etc/user/conf.d etc/user/init.d || :
 }
 
 openrc() {
