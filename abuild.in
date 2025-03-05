@@ -1243,8 +1243,7 @@ prepare_metafiles() {
 		fi
 		script=${f#$name}
 		msg "Adding $script"
-		cp "$startdir/$f" "$controldir/$script" || return 1
-		chmod +x "$controldir/$script"
+		install -m 0755 "$startdir/$f" "$controldir/$script" || return 1
 		metafiles="$metafiles $script"
 	done
 	printf %s "$metafiles" | tr ' ' '\0' > "$controldir"/.metafiles
