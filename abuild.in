@@ -2510,7 +2510,8 @@ rootbld() {
 
 	[ $CBUILD = $CHOST ] || die "rootbld: set CBUILD=$CHOST to build for $CHOST"
 
-	local qarch cachedir=/etc/apk/cache
+	local qarch cachedir=""
+	[ -d /etc/apk/cache ] && cachedir=/etc/apk/cache
 	if ! [ $CBUILD_ARCH = "$($APK --print-arch)" ]; then
 		# cross-building, so check for binfmt registration
 		qarch="$(rootbld_qemu_arch)"
