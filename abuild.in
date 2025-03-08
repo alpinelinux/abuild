@@ -2655,6 +2655,10 @@ stripbin() {
 		# scanelf may have picked up a temp file so verify that file still exists
 		[ -e "$filename" ] || continue
 
+		case "$filename" in
+			./usr/lib/debug/*) continue ;;
+		esac
+
 		[ "$osabi" != "STANDALONE" ] || continue
 		local tmp="$pkgbasedir/.strip-tmp/${filename##*/}"
 		"${stripcmd}" -o "$tmp" "${filename}"
@@ -2973,7 +2977,9 @@ if [ -n "$DEBUG" ] || subpackage_types_has "dbg"; then
 	CFLAGS="$CFLAGS -g"
 	CXXFLAGS="$CXXFLAGS -g"
 	DFLAGS="$DFLAGS -g"
-	options="$options !strip"
+	if [ -n "$DEBUG" ]; then
+		options="$options !strip"
+	fi
 fi
 
 if [ -n "$subpkgname" ]; then
