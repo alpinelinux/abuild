@@ -1515,7 +1515,7 @@ trace_apk_deps() {
 		if subpkg_provides_prefixed_so "$i"; then
 			autodeps="$autodeps so:$sonameprefix$i"
 		elif subpkg_provides_so "$i" \
-				|| $APK $apkroot info --quiet --installed "so:$i"; then
+				|| $APK $apkroot info --quiet -e "so:$i"; then
 			autodeps="$autodeps so:$i"
 		else
 			missing="$missing $i"
@@ -1559,7 +1559,7 @@ trace_apk_deps() {
 		if subpkg_provides_prefixed_pc "$i"; then
 			autodeps="$autodeps pc:$pcprefix$i"
 		elif subpkg_provides_pc "$i" \
-				|| $APK $apkroot info --quiet --installed "pc:$i"; then
+				|| $APK $apkroot info --quiet -e "pc:$i"; then
 			provider=$($APK $apkroot search --quiet --exact "pc:$i")
 			if list_has "$provider" $depends_dev; then
 				warning "$provider should be removed from depends_dev"
@@ -2376,7 +2376,7 @@ calcdeps() {
 }
 
 get_missing_deps() {
-	local cmd="$APK info --quiet --installed $1"
+	local cmd="$APK info --quiet -e $1"
 	shift
 
 	while [ "$1" ]; do
