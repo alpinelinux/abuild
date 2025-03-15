@@ -2978,6 +2978,8 @@ if [ -n "$DEBUG" ] || subpackage_types_has "dbg"; then
 	CFLAGS="$CFLAGS -g"
 	CXXFLAGS="$CXXFLAGS -g"
 	DFLAGS="$DFLAGS -g"
+	export CARGO_PROFILE_RELEASE_DEBUG=true
+	export CARGO_PROFILE_RELEASE_STRIP=none
 	if [ -n "$DEBUG" ]; then
 		options="$options !strip"
 	fi
