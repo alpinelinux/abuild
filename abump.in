@@ -78,6 +78,7 @@ fixes #${fixes#\#}
 			APKBUILD
 
 		$ABUILD $abuild_opts checksum all
+		checkapk
 
 		git add APKBUILD
 		git commit -m"$message"
