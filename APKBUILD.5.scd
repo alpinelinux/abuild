@@ -219,6 +219,9 @@ file.
 	The *options* variable allows you to set parameters for the package
 	at build time. There are a number of valid options you may set,
 	and you may set multiple options by writing a space between each one.
+	Custom option names can be used when they contain exactly one _:_.
+	Options can be set for a specific (sub)packages by using
+	_subpkgname::option_ (or _subpkgname:option_ for custom options).
 
 	*!archcheck*
 		Specifies that the package contains binaries that cannot

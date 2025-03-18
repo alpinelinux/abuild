@@ -1197,7 +1197,7 @@ abuild_command_provides_body() {
 		arch="noarch"
 		license="MIT"
 		subpackages="noprovides"
-		options="noprovides:!tracedeps"
+		options="noprovides::!tracedeps"
 		package() {
 			mkdir -p "\$pkgdir/usr/bin"
 			printf "%s\n" '#!/bin/sh' >"\$pkgdir/usr/bin/foo"
