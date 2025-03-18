@@ -29,3 +29,7 @@
 #GOCACHE="${XDG_CACHE_HOME:-$HOME/.cache}"/go-build
 #GOMODCACHE=${GOPATH:-$HOME/go}/pkg/mod
 #CARGO_HOME=$HOME/.cargo
+
+# uncomment to create .orig files when patches don't align. May change
+# build output
+#patch_args_cfg="--backup-if-mismatch"

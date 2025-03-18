@@ -726,19 +726,20 @@ default_prepare() {
 		return 0
 	fi
 	[ -d "$builddir" ] || { error "Is \$builddir set correctly?"; return 1; }
+	local args="$patch_args_cfg ${patch_args:--p1}"
 	for i in $source; do
 		case ${i%::*} in
 			*.patch)
 				msg "${i%::*}"
-				POSIXLY_CORRECT=1 patch ${patch_args:--p1} -i "$srcdir/$(filename_from_uri $i)" || failed="$failed $i"
+				POSIXLY_CORRECT=1 patch $args -i "$srcdir/$(filename_from_uri $i)" || failed="$failed $i"
 				;;
 			*.patch.gz)
 				msg "${i%::*}"
-				gunzip -c "$srcdir/$(filename_from_uri $i)" | POSIXLY_CORRECT=1 patch ${patch_args:--p1} || failed="$failed $i"
+				gunzip -c "$srcdir/$(filename_from_uri $i)" | POSIXLY_CORRECT=1 patch $args || failed="$failed $i"
 				;;
 			*.patch.xz)
 				msg "${i%::*}"
-				unxz -c "$srcdir/$(filename_from_uri $i)" | POSIXLY_CORRECT=1 patch ${patch_args:--p1} || failed="$failed $i"
+				unxz -c "$srcdir/$(filename_from_uri $i)" | POSIXLY_CORRECT=1 patch $args || failed="$failed $i"
 				;;
 		esac
 	done
