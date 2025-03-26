@@ -1791,13 +1791,6 @@ human_size() {
 		printf("%.1f %s\n", y, type[i+2]) }'
 }
 
-apk_tar() {
-	tar --format=posix \
-		--pax-option=exthdr.name=%d/PaxHeaders/%f,atime:=0,ctime:=0 \
-		--mtime="@$SOURCE_DATE_EPOCH" \
-		--no-recursion --null -T - -f - -c "$@"
-}
-
 create_apks() {
 	local file= dir= name= ver= apk= datadir= size= i= gzip=
 	gzip=$(command -v pigz || echo gzip)
@@ -1861,7 +1854,7 @@ create_apks() {
 
 			# explicitly sort package content
 			find "$@" -print0
-		fi | LC_ALL=C sort -z | apk_tar --xattrs \
+		fi | LC_ALL=C sort -z | apk_tar -T - --xattrs \
 			--xattrs-exclude=security.selinux \
 			--owner-map="$pkgbasedir"/.owner-map \
 			--group-map="$pkgbasedir"/.group-map \
@@ -1875,7 +1868,7 @@ create_apks() {
 
 		# control.tar.gz
 		cd "$dir"
-		apk_tar < .metafiles | abuild-tar --cut \
+		apk_tar -T - < .metafiles | abuild-tar --cut \
 			| $gzip -n -9 > control.tar.gz
 		abuild-sign -q control.tar.gz || exit 1
 

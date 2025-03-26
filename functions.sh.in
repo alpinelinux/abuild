@@ -246,6 +246,15 @@ any_buildscript() {
 	fi
 }
 
+apk_tar() {
+	if [ -n "$SOURCE_DATE_EPOCH" ]; then
+		set -- --mtime="@$SOURCE_DATE_EPOCH" "$@"
+	fi
+	tar --format=posix \
+		--pax-option=exthdr.name=%d/PaxHeaders/%f,atime:=0,ctime:=0 \
+		--no-recursion --null -f - -c "$@"
+}
+
 # output functions
 msg() {
 	[ -n "$quiet" ] && return 0
