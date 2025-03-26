@@ -39,7 +39,7 @@ do_sign() {
 		fi
 
 		tmptargz=$(mktemp)
-		tar --owner=0 --group=0 --numeric-owner -f - -c "$sig" | abuild-tar --cut | $gzip -n -9 > "$tmptargz"
+		apk_tar --owner=0 --group=0 --numeric-owner "$sig" | abuild-tar --cut | $gzip -n -9 > "$tmptargz"
 		tmpsigned=$(mktemp)
 		cat "$tmptargz" "$i" > "$tmpsigned"
 		rm -f "$tmptargz" "$sig"
