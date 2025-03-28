@@ -2559,10 +2559,10 @@ rootbld() {
 
 	[ -s "$repo_template" ] || die "rootbld: $repo_template does not exist"
 	(
-		for key in $(git config --list --name-only); do
+		for key in $($git config --list --name-only); do
 			k=${key#abuild.}
 			[ $k != $key ] && \
-				eval "export $k=\"$(git config --get $key)\""
+				eval "export $k=\"$($git config --get $key)\""
 		done
 
 		export mirror version
