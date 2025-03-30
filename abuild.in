@@ -2625,6 +2625,7 @@ rootbld() {
 		${USE_CCACHE:+ --bind "$HOME/.ccache" "$HOME/.ccache"} \
 		--bind "$SRCDEST" "$SRCDEST" \
 		--bind "$BUILD_ROOT/tmp" /tmp \
+		--bind "$BUILD_ROOT/var/tmp" /var/tmp \
 		--bind "$REPODEST" "$REPODEST" \
 		--hostname "build-$buildhost-$CARCH" \
 		--chdir "$startdir" \
