@@ -2681,6 +2681,8 @@ rootbld() {
 		--bind "$BUILD_ROOT/tmp" /tmp \
 		--bind "$BUILD_ROOT/var/tmp" /var/tmp \
 		--bind "$REPODEST" "$REPODEST" \
+		--ro-bind "$abuild_path" /usr/bin/abuild \
+		--ro-bind "$sharedir/functions.sh" /usr/share/abuild/functions.sh \
 		--hostname "build-$buildhost-$CARCH" \
 		--chdir "$startdir" \
 		--clearenv \
