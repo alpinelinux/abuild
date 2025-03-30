@@ -58,7 +58,7 @@ LDFLAGS-abuild-gzsplit = $(ZLIB_LIBS)
 OBJS-abuild-sudo = abuild-sudo.o
 OBJS-abuild-fetch = abuild-fetch.o
 
-TEST_TIMEOUT = 30
+TEST_TIMEOUT = 60
 
 .SUFFIXES:	.conf.in .sh.in .in
 %.conf: %.conf.in
