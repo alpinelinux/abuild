@@ -2348,7 +2348,7 @@ calcdeps() {
 
 	if cross_compiling && [ -n "$makedepends_build" -o -n "$makedepends_host" ]; then
 		for i in $EXTRADEPENDS_BUILD $1 $makedepends_build; do
-			list_has $i $hostdeps && continue
+			list_has $i $builddeps && continue
 			builddeps="$builddeps $i"
 		done
 		for i in $EXTRADEPENDS_HOST $EXTRADEPENDS_TARGET $makedepends_host; do
