@@ -2613,7 +2613,7 @@ rootbld() {
 		groups["user"] = "user:x:1000:user"
 		for (i in arr)
 			groups[arr[i]] = arr[i] ":x:" gid++ ":";
-		while (getline < root "/etc/group")
+		while (getline < (root "/etc/group"))
 			groups[$1] = $0
 
 		uid = 100;
@@ -2623,13 +2623,13 @@ rootbld() {
 			$0 = groups[arr[i] in groups ? arr[i] : "nobody"]
 			users[arr[i]] = arr[i] ":x:" uid++ ":" $3 ":" arr[i] ":/dev/null:/sbin/nologin";
 		}
-		while (getline < root "/etc/passwd")
+		while (getline < (root "/etc/passwd"))
 			users[$1] = $0
 
 		for (i in groups)
-			printf("%s\n", groups[i]) > root "/group"
+			printf("%s\n", groups[i]) > (root "/group")
 		for (i in users)
-			printf("%s\n", users[i]) > root "/passwd"
+			printf("%s\n", users[i]) > (root "/passwd")
 	}'
 
 	local bwrap_opts=""
