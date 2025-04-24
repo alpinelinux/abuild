@@ -2392,8 +2392,17 @@ calcdeps() {
 	builddeps=
 	hostdeps=
 
+	case "$BOOTSTRAP" in
+	no*) ;;
+	*)	if cross_creating || cross_compiling; then
+			builddeps=" build-base-$CTARGET_ARCH"
+		else
+			builddeps=" build-base"
+		fi
+	esac
+
 	if cross_compiling && [ -n "$makedepends_build" -o -n "$makedepends_host" ]; then
-		for i in $EXTRADEPENDS_BUILD $1 $makedepends_build; do
+		for i in $EXTRADEPENDS_BUILD $makedepends_build; do
 			list_has $i $builddeps && continue
 			builddeps="$builddeps $i"
 		done
@@ -2405,7 +2414,7 @@ calcdeps() {
 	else
 		[ -z "$makedepends" ] && makedepends="$makedepends_build $makedepends_host"
 		want_check && makedepends="$makedepends $checkdepends"
-		for i in $EXTRADEPENDS_BUILD $EXTRADEPENDS_HOST $1 $depends $makedepends; do
+		for i in $EXTRADEPENDS_BUILD $EXTRADEPENDS_HOST $depends $makedepends; do
 			[ "$pkgname" = "${i%%[<>=~]*}" ] && continue
 			list_has $i $builddeps && continue
 			subpackages_has ${i%%[<>=~]*} || builddeps="$builddeps $i"
@@ -2447,19 +2456,11 @@ apk_add_makedeps() {
 
 # build and install dependencies
 builddeps() {
-	local pkg= i= BUILD_BASE=
+	local pkg= i=
 	[ -n "$nodeps" ] && return 0
 
 	msg "Analyzing dependencies..."
-	case "$BOOTSTRAP" in
-	no*)	BUILD_BASE="";;
-	*)	if cross_creating || cross_compiling; then
-			BUILD_BASE="build-base-$CTARGET_ARCH"
-		else
-			BUILD_BASE="build-base"
-		fi
-	esac
-	calcdeps "$BUILD_BASE"
+	calcdeps
 
 	# shall ccache be added?
 	[ -n "$USE_CCACHE" ] && builddeps="$builddeps ccache"
@@ -2634,7 +2635,7 @@ rootbld() {
 		--arch $CBUILD_ARCH \
 		--root "$BUILD_ROOT" \
 		${cachedir:+--cache-dir $cachedir} \
-		abuild alpine-base build-base git $hostdeps $builddeps \
+		abuild alpine-base git $hostdeps $builddeps \
 		${USE_CCACHE:+ccache}
 
 	# busybox adduser/addgroup check if uid is 0 so we need to generate the files manually

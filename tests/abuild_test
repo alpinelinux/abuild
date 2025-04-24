@@ -1372,8 +1372,8 @@ abuild_deps_body() {
 	# native build. pull in both depends and makedepends
 	# do not install in any --root
 	atf_check \
-		-e match:'Installing for build: foo bar checkdep$' \
-		-e match:'apk add .*--virtual .makedepends-testdeps foo bar checkdep' \
+		-e match:'Installing for build: build-base foo bar checkdep$' \
+		-e match:'apk add .*--virtual .makedepends-testdeps build-base foo bar checkdep' \
 		-e not-match:'apk add .*--root' \
 		abuild deps
 
@@ -1386,9 +1386,9 @@ abuild_deps_body() {
 	#   install makedepends_build without --root
 	#   install makedepends_host with --root
 	CTARGET='s390x' CHOST='ppc64le' CBUILDROOT="$PWD/root" atf_check \
-		-e match:'Installing for build: builddep' \
+		-e match:'Installing for build: build-base-s390x builddep' \
 		-e match:'Installing for host: hostdep' \
-		-e match:'apk add .*--virtual .makedepends-testdeps builddep' \
+		-e match:'apk add .*--virtual .makedepends-testdeps build-base-s390x builddep' \
 		-e not-match:'apk add.*--root.*builddep' \
 		-e match:'apk add .*--root.*hostdep' \
 		-e match:'apk add .*--arch s390x.*hostdep' \
