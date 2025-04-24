@@ -634,7 +634,7 @@ cleanoldpkg() {
 	msg "Cleaning all packages except $pkgver-r$pkgrel..."
 	for i in $allpackages; do
 		subpkg_set "$i"
-		for j in "$REPODEST"/$repo/$CARCH/$subpkgname-[0-9]*.apk ; do
+		for j in "$REPODEST"/$repo/$(arch2dir "$subpkgarch")/$subpkgname-[0-9]*.apk ; do
 			[ "${j##*/}" = "$subpkgname-$pkgver-r$pkgrel.apk" ] \
 				&& continue
 			rm -f "$j"
