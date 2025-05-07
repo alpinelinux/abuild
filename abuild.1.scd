@@ -170,7 +170,7 @@ other related operations.
 	Path to a private key used to sign packages.
 
 *REPODEST*
-	Packages shall be stored in _$REPODEST/$repo/$pkgname-$pkgver-r$pkgrel.apk_,
+	Packages shall be stored in _$REPODEST/$repo/$arch/$pkgname-$pkgver-r$pkgrel.apk_,
 	where *$repo* is the base name of the parent directory of *$startdir*.
 
 *SOURCE_DATE_EPOCH*
