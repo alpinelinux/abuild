@@ -419,7 +419,6 @@ sourcecheck() {
 
 uri_fetch() {
 	local uri="$1"
-	mkdir -p "$SRCDEST"
 	msg "Fetching $uri"
 	abuild-fetch -d "$SRCDEST" "$uri"
 }
@@ -444,13 +443,14 @@ filename_from_uri() {
 # try download from file from mirror first
 uri_fetch_mirror() {
 	local uri="$1"
+	mkdir -p "$SRCDEST"
 	if [ -n "$DISTFILES_MIRROR" ]; then
 		if is_remote "$DISTFILES_MIRROR"; then
 			uri_fetch "$DISTFILES_MIRROR"/$(filename_from_uri $uri)\
 				&& return 0
 		else
 			cp "$DISTFILES_MIRROR"/$(filename_from_uri $uri) \
-				"$SRCDEST" && return 0
+				"$SRCDEST"/ && return 0
 		fi
 	fi
 	uri_fetch "$uri"
