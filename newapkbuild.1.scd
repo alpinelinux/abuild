@@ -84,11 +84,6 @@ the generated APKBUILD file will not contain any build instructions.
 	Specifies the Web page (url=) for the new package. This should _not_
 	be the source package URL; it should be the project's main Web page.
 
-*-y*
-	Specifies that the package uses a Python setup.py build
-	system. Python's setuptools will be added to the makedepends and
-	Python to the depends.
-
 
 # FILES
 

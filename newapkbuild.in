@@ -98,12 +98,6 @@ __EOF__
 
 build_python() {
 	cat >>APKBUILD<<__EOF__
-	python3 setup.py build
-__EOF__
-}
-
-build_python_gpep517() {
-	cat >>APKBUILD<<__EOF__
 	gpep517 build-wheel \\
 		--wheel-dir .dist \\
 		--output-fd 3 3>&1 >&2
@@ -138,12 +132,6 @@ __EOF__
 }
 
 check_python() {
-	cat >>APKBUILD<<__EOF__
-	pytest
-__EOF__
-}
-
-check_python_gpep517() {
 	cat >>APKBUILD<<__EOF__
 	python3 -m venv --clear --without-pip --system-site-packages .testenv
 	.testenv/bin/python3 -m installer .dist/*.whl
@@ -202,12 +190,6 @@ __EOF__
 }
 
 package_python() {
-	cat >>APKBUILD<<__EOF__
-	python3 setup.py install --prefix=/usr --root="\$pkgdir"
-__EOF__
-}
-
-package_python_gpep517() {
 	cat >>APKBUILD<<__EOF__
 	python3 -m installer -d "\$pkgdir" \\
 		.dist/*.whl
@@ -275,8 +257,7 @@ newaport() {
 	fi
 
 	case "$buildtype" in
-	python) makedepends="py3-setuptools";;
-	python_gpep517) makedepends="py3-gpep517 py3-setuptools py3-wheel";;
+	python) makedepends="py3-gpep517 py3-setuptools py3-wheel";;
 	cmake)  makedepends="cmake samurai";;
 	meson)  makedepends="meson";;
 	rust)   makedepends="cargo cargo-auditable";;
@@ -351,10 +332,8 @@ __EOF__
 			buildtype="cmake"
 		elif [ -r "$sdir"/Makefile ]; then
 			buildtype="make"
-		elif [ -r "$sdir"/setup.py ] || [ "${pn#py[0-9]-}" != "$pn" ]; then
+		elif [ -r "$sdir"/pyproject.toml ] || [ -r "$sdir"/setup.py ] || [ "${pn#py[0-9]-}" != "$pn" ]; then
 			buildtype="python"
-		elif [ -r "$sdir"/pyproject.toml ] || [ "${pn#py[0-9]-}" != "$pn" ]; then
-			buildtype="python_gpep517"
 		elif [ -r "$sdir"/Cargo.toml ]; then
 			buildtype="rust"
 		fi
@@ -393,8 +372,6 @@ __EOF__
 		build_perl;;
 	python)
 		build_python;;
-	python_gpep517)
-		build_python_gpep517;;
 	rust)
 		build_rust;;
 	*)
@@ -420,8 +397,6 @@ __EOF__
 		check_meson;;
 	python)
 		check_python;;
-	python_gpep517)
-		check_python_gpep517;;
 	rust)
 		check_rust;;
 	*)
@@ -451,8 +426,6 @@ __EOF__
 		package_perl;;
 	python)
 		package_python;;
-	python_gpep517)
-		package_python_gpep517;;
 	rust)
 		package_rust;;
 	*)
@@ -493,8 +466,7 @@ usage() {
 		  -C  Create CMake package (Assume cmake/ is there)
 		  -m  Create meson package (Assume meson.build is there)
 		  -p  Create perl package (Assume Makefile.PL is there)
-		  -y  Create python setuptools package (Assume setup.py is there)
-		  -e  Create python gpep517 package (Assume pyproject.toml is there)
+		  -e  Create python gpep517 package (Assume pyproject.toml or setup.py is there)
 		  -r  Create rust package (Assume Cargo.toml is there)
 		  -s  Use sourceforge source URL
 		  -c  Copy a sample init.d, conf.d, and install script
@@ -543,8 +515,7 @@ while getopts "acCmd:fhl:n:pyeu:sr" opt; do
 		'l') license="$OPTARG";;
 		'n') pkgname="$OPTARG";;
 		'p') set_buildtype "perl";;
-		'y') set_buildtype "python";;
-		'e') set_buildtype "python_gpep517";;
+		'y'|'e') set_buildtype "python";;
 		'r') set_buildtype "rust";;
 		'u') url="$OPTARG";;
 		's') sourceforge=1;;
