@@ -43,7 +43,7 @@ the generated APKBUILD file will not contain any build instructions.
 *-d* _DESC_
 	Specifies the description (pkgdesc=) for the new package.
 
-*-e*
+*-e*, *-y*
 	Specifies that the package uses a Python PEP517 build
 	system. Python's gpep517, setuptools and wheel will be added
 	to the makedepends.

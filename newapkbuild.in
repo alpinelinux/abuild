@@ -457,21 +457,21 @@ usage() {
 		       [-a | -C | -m | -p | -y | -r] [-s] [-c] [-f] [-h]
 		       PKGNAME[-PKGVER] | SRCURL
 		Options:
-		  -n  Set package name to PKGNAME (only use with SRCURL)
-		  -d  Set package description to PKGDESC
-		  -l  Set package license to LICENSE, use identifiers from:
-		      <https://spdx.org/licenses/>
-		  -u  Set package URL
-		  -a  Create autotools package (use ./configure ...)
-		  -C  Create CMake package (Assume cmake/ is there)
-		  -m  Create meson package (Assume meson.build is there)
-		  -p  Create perl package (Assume Makefile.PL is there)
-		  -e  Create python gpep517 package (Assume pyproject.toml or setup.py is there)
-		  -r  Create rust package (Assume Cargo.toml is there)
-		  -s  Use sourceforge source URL
-		  -c  Copy a sample init.d, conf.d, and install script
-		  -f  Force even if directory already exists
-		  -h  Show this help
+		  -n    Set package name to PKGNAME (only use with SRCURL)
+		  -d    Set package description to PKGDESC
+		  -l    Set package license to LICENSE, use identifiers from:
+		        <https://spdx.org/licenses/>
+		  -u    Set package URL
+		  -a    Create autotools package (use ./configure ...)
+		  -C    Create CMake package (Assume cmake/ is there)
+		  -m    Create meson package (Assume meson.build is there)
+		  -p    Create perl package (Assume Makefile.PL is there)
+		  -e,-y Create python gpep517 package (Assume pyproject.toml or setup.py is there)
+		  -r    Create rust package (Assume Cargo.toml is there)
+		  -s    Use sourceforge source URL
+		  -c    Copy a sample init.d, conf.d, and install script
+		  -f    Force even if directory already exists
+		  -h    Show this help
 	__EOF__
 }
 
