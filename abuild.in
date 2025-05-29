@@ -2401,6 +2401,9 @@ calcdeps() {
 		fi
 	esac
 
+	# shall ccache be added?
+	[ -n "$USE_CCACHE" ] && builddeps="$builddeps ccache"
+
 	if cross_compiling && [ -n "$makedepends_build" -o -n "$makedepends_host" ]; then
 		for i in $EXTRADEPENDS_BUILD $makedepends_build; do
 			list_has $i $builddeps && continue
@@ -2461,9 +2464,6 @@ builddeps() {
 
 	msg "Analyzing dependencies..."
 	calcdeps
-
-	# shall ccache be added?
-	[ -n "$USE_CCACHE" ] && builddeps="$builddeps ccache"
 
 	# find which deps are missing
 	local mbd mhd missing
@@ -2634,8 +2634,7 @@ rootbld() {
 		--arch $CBUILD_ARCH \
 		--root "$BUILD_ROOT" \
 		${cachedir:+--cache-dir $cachedir} \
-		abuild alpine-base git $hostdeps $builddeps \
-		${USE_CCACHE:+ccache}
+		abuild alpine-base git $hostdeps $builddeps
 
 	# busybox adduser/addgroup check if uid is 0 so we need to generate the files manually
 	awk -F: -v pkggroups="$pkggroups" -v pkgusers="$pkgusers" -v root="$BUILD_ROOT" -v home="$HOME" 'BEGIN {
