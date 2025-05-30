@@ -600,7 +600,7 @@ subpkg_set() {
 	subpkgarch=${_splitarch#*:}
 	if [ "$subpkgarch" = "$_splitarch" -o -z "$subpkgarch" ]; then
 		case "$subpkgname" in
-		*-doc | *-openrc | *-lang | *sh-completion | *-pyc) subpkgarch="noarch" ;;
+		*-doc | *-openrc | *-lang | *sh-completion | *-pyc | *-nftrules) subpkgarch="noarch" ;;
 		*) subpkgarch="$pkgarch" ;;
 		esac
 	elif [ "$subpkgarch" = "all" ]; then
