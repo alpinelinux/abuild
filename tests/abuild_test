@@ -1393,7 +1393,6 @@ abuild_deps_body() {
 		-e match:'apk add .*--virtual .makedepends-testdeps build-base-s390x builddep' \
 		-e not-match:'apk add.*--root.*builddep' \
 		-e match:'apk add .*--root.*hostdep' \
-		-e match:'apk add .*--arch s390x.*hostdep' \
 		-e not-match:'apk add.*checkdep' \
 		abuild deps
 
@@ -1401,8 +1400,7 @@ abuild_deps_body() {
 	CHOST='armhf' atf_check \
 		-e match:'apk add.*builddep' \
 		-e not-match:'apk add.*--root.*builddep' \
-		-e match:'apk add.*--root.*--arch armhf.*hostdep' \
-		-e not-match:'apk add.*--arch armhf.*builddep' \
+		-e match:'apk add.*--root.*hostdep' \
 		abuild deps
 
 	# Check shell_escape

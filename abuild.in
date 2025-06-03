@@ -1508,7 +1508,7 @@ trace_apk_deps() {
 	local apkroot=
 
 	if [ "$CBUILD" != "$CHOST" ] || [ "$CBUILD_ARCH" != "$(arch2dir "$parch")" ]; then
-		apkroot="--root $CBUILDROOT --arch $CTARGET_ARCH"
+		apkroot="--root $CBUILDROOT"
 	fi
 
 	msg "Tracing dependencies..."
@@ -2468,7 +2468,7 @@ builddeps() {
 	# find which deps are missing
 	local mbd mhd missing
 	mbd=$(get_missing_deps "" $builddeps) || return 1
-	mhd=$(get_missing_deps "--root $CBUILDROOT --arch $CTARGET_ARCH" $hostdeps) || return 1
+	mhd=$(get_missing_deps "--root $CBUILDROOT" $hostdeps) || return 1
 	missing=$(echo $mbd $mhd)
 
 	if [ -z "$install_deps" ]; then
@@ -2829,7 +2829,7 @@ deps() {
 	if [ -n "$CBUILDROOT" ]; then
 		[ -z "$_quiet" ] && msg "Installing for host:$hostdeps"
 		apk_add_makedeps host $_quiet --no-scripts \
-			--root "$CBUILDROOT" --arch "$CTARGET_ARCH" $hostdeps \
+			--root "$CBUILDROOT" $hostdeps \
 			|| return 1
 	fi
 }
@@ -2840,7 +2840,7 @@ undeps() {
 		.makedepends-$pkgname || :
 	if [ -n "$CBUILDROOT" ]; then
 		$SUDO_APK del $_quiet \
-			--root "$CBUILDROOT" --arch "$CTARGET_ARCH" $apk_opt_wait \
+			--root "$CBUILDROOT" $apk_opt_wait \
 			--no-scripts .hostdepends-$pkgname || :
 	fi
 }
