@@ -24,7 +24,7 @@ fi
 
 # defaults
 : ${FAKEROOT:="fakeroot"}
-: ${SUDO_APK:="abuild-apk"}
+: ${SUDO_APK:="abuild-apk --no-interactive"}
 : ${APK:="apk"}
 : ${ADDUSER:="abuild-adduser"}
 : ${ADDGROUP:="abuild-addgroup"}
@@ -2450,7 +2450,7 @@ apk_add_makedeps() {
 		repo_args="$repo_args --repository $(shell_escape "$REPODEST/${r##*/}")"
 	done < "$repo_template"
 
-	eval "$SUDO_APK" add --no-interactive "$apk_opt_wait" "$repo_args" \
+	eval "$SUDO_APK" add "$apk_opt_wait" "$repo_args" \
 		--virtual .${prefix}depends-$pkgname "\$@" || return
 }
 
@@ -2631,7 +2631,6 @@ rootbld() {
 	esac
 
 	$SUDO_APK add --initdb --update \
-		--no-interactive \
 		--arch $CBUILD_ARCH \
 		--root "$BUILD_ROOT" \
 		${cachedir:+--cache-dir $cachedir} \
@@ -2837,10 +2836,10 @@ deps() {
 
 undeps() {
 	local _quiet="$@"
-	$SUDO_APK del --no-interactive $_quiet $apk_opt_wait \
+	$SUDO_APK del $_quiet $apk_opt_wait \
 		.makedepends-$pkgname || :
 	if [ -n "$CBUILDROOT" ]; then
-		$SUDO_APK del --no-interactive $_quiet \
+		$SUDO_APK del $_quiet \
 			--root "$CBUILDROOT" --arch "$CTARGET_ARCH" $apk_opt_wait \
 			--no-scripts .hostdepends-$pkgname || :
 	fi
