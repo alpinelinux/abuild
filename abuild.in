@@ -1032,7 +1032,7 @@ check_license() {
 	fi
 	local IFS="$IFS()"
 	local i; for i in $license; do
-		list_has "$i" AND OR WITH && continue
+		list_has "$i" "" AND OR WITH && continue
 		if ! grep -q -x -F "$i" "$license_list"; then
 			ret=1
 			warning "\"$i\" is not a known license"
