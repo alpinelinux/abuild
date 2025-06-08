@@ -1952,7 +1952,7 @@ update_abuildrepo_index() {
 		# correct URL path. Remainder of the script uses $(arch2dir "$subpkgarch")
 		# when expanding to the target repository path.
 		[ "$subpkgarch" = "noarch" ] && subpkgarch="$CARCH"
-		list_has "$subpkgarch" "$allarch" || allarch="$allarch $subpkgarch"
+		list_has "$subpkgarch" $allarch || allarch="$allarch $subpkgarch"
 	done
 	subpkg_unset
 
@@ -2782,7 +2782,7 @@ list_has() {
 	local needle="$1"
 	local i
 	shift
-	for i in $@; do
+	for i in "$@"; do
 		[ "$needle" = "$i" ] && return 0
 		[ "$needle" = "!$i" ] && return 1
 	done
@@ -2794,7 +2794,7 @@ deplist_has() {
 	local needle="$1"
 	local i
 	shift
-	for i in $@; do
+	for i in "$@"; do
 		i=${i%%[<>=~]*}
 		[ "$needle" = "$i" ] && return 0
 		[ "$needle" = "!$i" ] && return 1
