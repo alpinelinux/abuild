@@ -1282,7 +1282,7 @@ prepare_symlinks() {
 	local target
 	local dir="${subpkgdir:-$pkgdir}"
 	options_has "!tracedeps" && return 0
-	cd "$dir" || return 1
+	cd "$dir"
 	find . -type l | while read symlink; do
 		target=$(readlink "$symlink")
 		if ! [ -e "$dir$(normalize_target_path "$target" "$symlink")" ]; then
@@ -1294,7 +1294,7 @@ prepare_symlinks() {
 prepare_pkgconfig_provides() {
 	local dir="${subpkgdir:-$pkgdir}" v
 	options_has "!tracedeps" && return 0
-	cd "$dir" || return 1
+	cd "$dir"
 	for i in usr/lib/pkgconfig/*.pc usr/share/pkgconfig/*.pc; do
 		if ! [ -e "$i" ]; then
 			continue
@@ -1312,7 +1312,7 @@ prepare_pkgconfig_provides() {
 prepare_command_provides() {
 	local dir="${subpkgdir:-$pkgdir}"
 	options_has "!tracedeps" && return 0
-	cd "$dir" || return 1
+	cd "$dir"
 	for i in bin/* sbin/* usr/bin/* usr/sbin/*; do
 		# We can't check symlinks properly with absolute paths,
 		# subpackages and dependencies so assume that they are commands
@@ -1336,7 +1336,7 @@ prepare_command_provides() {
 prepare_py_provides() {
 	local dir="${subpkgdir:-$pkgdir}" py_providers=""
 	options_has "!tracedeps" && return 0
-	cd "$dir" || return 1
+	cd "$dir"
 
 	# Find all directories under site-packages, ignore __pycache__ and
 	# .egg-info packages, store the basename with the proper pyX.Y prefix
@@ -1367,7 +1367,7 @@ prepare_py_provides() {
 		d="${d%%.py*}"
 
 		echo "py$pyver:${d##*/}"
-	' sh {} \; 2>/dev/null)"
+	' sh {} \; 2>/dev/null || :)"
 	local i; for i in $py_providers; do
 		echo "$i=$pkgver-r$pkgrel" >> "$controldir"/.provides-py
 	done
@@ -1431,13 +1431,12 @@ archcheck() {
 prepare_package() {
 	msg "Preparing ${subpkgname:+sub}package ${subpkgname:-$pkgname}..."
 	stripbin
-	prepare_metafiles \
-		&& prepare_trace_rpaths \
-		&& prepare_symlinks \
-		&& prepare_pkgconfig_provides \
-		&& prepare_command_provides \
-		&& prepare_py_provides \
-		|| return 1
+	prepare_metafiles
+	prepare_trace_rpaths
+	prepare_symlinks
+	prepare_pkgconfig_provides
+	prepare_command_provides
+	prepare_py_provides
 	archcheck
 }
 
