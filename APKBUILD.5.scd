@@ -194,8 +194,8 @@ file.
 	the last hyphen. So for _$pkgname-foo_ and _libfoo_ the split function
 	is _foo_ and _libfoo_ respectively. A custom split function name can
 	be set by using _foo:funcname_. Similar to the *package* function,
-	the split function must move files from _$pkgdir_ or _$srcdir_ to
-	_$subpkgdir_ after creating _$subpkgdir_.
+	the split function must move files from _$pkgdir_ (which is the
+	default cwd) or _$srcdir_ to _$subpkgdir_ after creating _$subpkgdir_.
 
 	By default *arch* determines whether or not a subpackage is considered
 	arch independant or not. This can be changed by using _foo::noarch_ or

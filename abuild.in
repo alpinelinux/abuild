@@ -938,6 +938,8 @@ pre_split() {
 	# the subpackages should not inherit these from main package
 	provides=""
 	install_if=""
+
+	cd "$pkgdir"
 }
 
 prepare_subpackages() {
