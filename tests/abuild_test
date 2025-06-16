@@ -1252,7 +1252,6 @@ abuild_gocache_dir_body() {
 	EOF
 
 	unset GOCACHE
-	MOVE_CACHES=1 \
 	atf_check -s exit:0 \
 		-o match:"dir:.*/tmp/go" \
 		abuild prepare build
@@ -1283,7 +1282,6 @@ abuild_cargo_home_dir_body() {
 	EOF
 
 	unset CARGO_HOME
-	MOVE_CACHES=1 \
 	atf_check -s exit:0 \
 		-o match:"dir:.*/tmp/cargo" \
 		abuild prepare build

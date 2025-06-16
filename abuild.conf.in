@@ -25,5 +25,7 @@
 # what to cleanup after a failed build
 #ERROR_CLEANUP="bldroot deps"
 
-# uncomment to prevent using global cache directories for Go and Cargo
-#MOVE_CACHES=1
+# uncomment to use global cache directories for Go and Cargo
+#GOCACHE="${XDG_CACHE_HOME:-$HOME/.cache}"/go-build
+#GOMODCACHE=${GOPATH:-$HOME/go}/pkg/mod
+#CARGO_HOME=$HOME/.cargo

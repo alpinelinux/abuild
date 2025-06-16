@@ -159,9 +159,6 @@ other related operations.
 *CTARGET*
 	Generate compiler for given arch or hostspec.
 
-*MOVE_CACHES*
-	Don't use global cache directories for Go and Cargo.
-
 *PACKAGER*
 	Name and email of the packages in RFC5322 format.
 	E.g.: *John Doe <john@example.com>*.

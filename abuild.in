@@ -3052,12 +3052,10 @@ if [ -n "$DEBUG" ] || subpackage_types_has "dbg"; then
 fi
 
 # prevent using global cache directories
-if [ -n "$MOVE_CACHES" ]; then
-	export GOCACHE="${GOCACHE:-"$tmpdir/go"}"
-	export GOMODCACHE="${GOCACHE:-"$tmpdir/gomod"}"
-	export GOTMPDIR="${GOTMPDIR:-"$tmpdir"}"
-	export CARGO_HOME="${CARGO_HOME:-"$tmpdir/cargo"}"
-fi
+export GOCACHE="${GOCACHE:-"$tmpdir/go"}"
+export GOMODCACHE="${GOCACHE:-"$tmpdir/gomod"}"
+export GOTMPDIR="${GOTMPDIR:-"$tmpdir"}"
+export CARGO_HOME="${CARGO_HOME:-"$tmpdir/cargo"}"
 
 if [ -n "$subpkgname" ]; then
 	# If we are handling a sub package then reset subpackages and install
