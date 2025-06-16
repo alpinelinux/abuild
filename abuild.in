@@ -695,26 +695,26 @@ runpart() {
 	local part=$1
 	[ -n "$DEBUG" ] && msg "$part"
 	trap "die '$part failed'" EXIT
-	if [ -d "$builddir" ]; then
-		case "$part" in
-			prepare|build|package|check)
-				# exclude aports from git repo discovery
-				export GIT_CEILING_DIRECTORIES="$startdir"
+	case "$part" in
+		prepare|build|package|check)
+			# exclude aports from git repo discovery
+			export GIT_CEILING_DIRECTORIES="$startdir"
 
-				# prevent using global cache directories
-				if [ -n "$MOVE_CACHES" ]; then
-					export GOCACHE="${GOCACHE:-"$tmpdir/go"}"
-					export GOMODCACHE="${GOCACHE:-"$tmpdir/gomod"}"
-					export GOTMPDIR="${GOTMPDIR:-"$tmpdir"}"
-					# https://github.com/golang/go/issues/32320
-					mkdir -p "$GOTMPDIR"
-					export CARGO_HOME="${CARGO_HOME:-"$tmpdir/cargo"}"
-				fi
+			# prevent using global cache directories
+			if [ -n "$MOVE_CACHES" ]; then
+				export GOCACHE="${GOCACHE:-"$tmpdir/go"}"
+				export GOMODCACHE="${GOCACHE:-"$tmpdir/gomod"}"
+				export GOTMPDIR="${GOTMPDIR:-"$tmpdir"}"
+				# https://github.com/golang/go/issues/32320
+				mkdir -p "$GOTMPDIR"
+				export CARGO_HOME="${CARGO_HOME:-"$tmpdir/cargo"}"
+			fi
 
+			if [ -d "$builddir" ]; then
 				cd "$builddir"
-				;;
-		esac
-	fi
+			fi
+			;;
+	esac
 	$part
 	trap - EXIT
 }
