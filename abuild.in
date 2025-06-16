@@ -700,16 +700,6 @@ runpart() {
 			# exclude aports from git repo discovery
 			export GIT_CEILING_DIRECTORIES="$startdir"
 
-			# prevent using global cache directories
-			if [ -n "$MOVE_CACHES" ]; then
-				export GOCACHE="${GOCACHE:-"$tmpdir/go"}"
-				export GOMODCACHE="${GOCACHE:-"$tmpdir/gomod"}"
-				export GOTMPDIR="${GOTMPDIR:-"$tmpdir"}"
-				# https://github.com/golang/go/issues/32320
-				mkdir -p "$GOTMPDIR"
-				export CARGO_HOME="${CARGO_HOME:-"$tmpdir/cargo"}"
-			fi
-
 			if [ -d "$builddir" ]; then
 				cd "$builddir"
 			fi
@@ -731,6 +721,10 @@ have_patches() {
 
 default_prepare() {
 	local i failed=
+
+	# https://github.com/golang/go/issues/32320
+	mkdir -p "$GOTMPDIR"
+
 	[ -n "$builddir" -a -d "$builddir" ] && cd "$builddir"
 	if ! have_patches; then
 		return 0
@@ -3055,6 +3049,14 @@ if [ -n "$DEBUG" ] || subpackage_types_has "dbg"; then
 	if [ -n "$DEBUG" ]; then
 		options="$options !strip"
 	fi
+fi
+
+# prevent using global cache directories
+if [ -n "$MOVE_CACHES" ]; then
+	export GOCACHE="${GOCACHE:-"$tmpdir/go"}"
+	export GOMODCACHE="${GOCACHE:-"$tmpdir/gomod"}"
+	export GOTMPDIR="${GOTMPDIR:-"$tmpdir"}"
+	export CARGO_HOME="${CARGO_HOME:-"$tmpdir/cargo"}"
 fi
 
 if [ -n "$subpkgname" ]; then
