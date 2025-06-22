@@ -83,7 +83,7 @@ for i in $pkgname $subpackages; do
 	repodir=${startdir%/*}
 	repo=${repodir##*/}
 
-	for filepath in "$PKGDEST"/$pkgfile "$REPODEST"/$repo/$CARCH/$pkgfile "$startdir"/$pkgfile; do
+	for filepath in "$REPODEST"/$repo/$CARCH/$pkgfile "$startdir"/$pkgfile; do
 		if [ -f "$filepath" ]; then
 			break
 		fi

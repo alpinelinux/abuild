@@ -72,16 +72,13 @@ hostspec_to_libc() {
 }
 
 readconfig() {
-	local _APORTSDIR _BUILDDIR _PKGDEST _SRCPKGDEST _REPODEST _SRCDEST _ABUILD_USERDIR
+	local _APORTSDIR _REPODEST _SRCDEST _ABUILD_USERDIR
 	local _CC=cc _CXX=c++ _LD=ld _CARCH _CHOST _CTARGET _CPPFLAGS _CFLAGS _CXXFLAGS _LDFLAGS
 	local _MAKEFLAGS _PACKAGER _USE_COLORS _USE_CCACHE
 	local _BUILDCC _BUILDCXX _BUILDLD _BUILDCPPFLAGS _BUILDCXXFLAGS _BUILDCFLAGS
 	local _BUILDLDFLAGS
 	local gitbase=
 	[ -n "${APORTSDIR+x}" ] && _APORTSDIR=$APORTSDIR
-	[ -n "${BUILDDIR+x}" ] && _BUILDDIR=$BUILDDIR
-	[ -n "${PKGDEST+x}" ] && _PKGDEST=$PKGDEST
-	[ -n "${SRCPKGDEST+x}" ] && _SRCPKGDEST=$SRCPKGDEST
 	[ -n "${REPODEST+x}" ] && _REPODEST=$REPODEST
 	[ -n "${SRCDEST+x}" ] && _SRCDEST=$SRCDEST
 	[ -n "${ABUILD_USERDIR+x}" ] && _ABUILD_USERDIR=$ABUILD_USERDIR
@@ -133,9 +130,6 @@ readconfig() {
 	fi
 	# source any .abuild file at the aports root, but only if we are currently in aports tree
 	[ -n "$APORTSDIR" ] && [ -f "$APORTSDIR/.abuild" ] && [ "$APORTSDIR" = "$gitbase" ] && . "$APORTSDIR/.abuild"
-	BUILDDIR=${_BUILDDIR-$BUILDDIR}
-	PKGDEST=${_PKGDEST-$PKGDEST}
-	SRCPKGDEST=${_SRCPKGDEST-$SRCPKGDEST}
 	REPODEST=${_REPODEST-$REPODEST}
 	SRCDEST=${_SRCDEST-$SRCDEST}
 	CC=${_CC-$CC}
