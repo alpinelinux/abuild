@@ -942,11 +942,13 @@ prepare_subpackages() {
 	cd "$startdir"
 	for i in $subpackages; do
 		# call abuild recursively, setting subpkg{dir,name}
-		( subpkg_set "$i"; msg "Running split function $subpkgsplit..."; \
-		  subpkgdir="$pkgbasedir/$subpkgname" subpkgname="$subpkgname" subpkgarch="$subpkgarch" \
-		  "$abuild_path" $forceroot $verbose pre_split $subpkgsplit prepare_package \
-			&& postcheck "$pkgbasedir/$subpkgname" "$subpkgname" ) || return 1
+		subpkg_set "$i"
+		msg "Running split function $subpkgsplit..."
+		subpkgdir="$pkgbasedir/$subpkgname" subpkgname="$subpkgname" subpkgarch="$subpkgarch" \
+		  "$abuild_path" $forceroot $verbose pre_split $subpkgsplit prepare_package
+		postcheck "$pkgbasedir/$subpkgname" "$subpkgname"
 	done
+	subpkg_unset
 	postcheck "$pkgdir" "$pkgname" || return 1
 	# post check for /usr/share/locale
 	if [ -d "$pkgdir"/usr/share/locale ]; then
