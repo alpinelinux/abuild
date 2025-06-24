@@ -2082,7 +2082,7 @@ default_dev() {
 	depends="$depends_dev"
 	pkgdesc="$pkgdesc (development files)"
 
-	cd "$pkgdir" || return 0
+	cd "$pkgdir"
 	local libdirs=usr/
 	[ -d lib/ ] && libdirs="lib/ $libdirs"
 	for i in usr/include usr/lib/pkgconfig usr/share/pkgconfig \
@@ -2128,7 +2128,7 @@ default_static() {
 	depends="$depends_static"
 	pkgdesc="$pkgdesc (static library)"
 
-	cd "$pkgdir" || return 0
+	cd "$pkgdir"
 	local libdirs=usr/lib
 	[ -d lib/ ] && libdirs="lib/ $libdirs"
 
@@ -2197,7 +2197,6 @@ default_bashcomp() {
 	pkgdesc="Bash completions for $pkgname"
 	install_if="${subpkgname%-bash-completion}=$pkgver-r$pkgrel bash-completion"
 
-	cd "$pkgdir" || return 0
 	amove usr/share/bash-completion/completions
 }
 
@@ -2222,7 +2221,6 @@ default_fishcomp() {
 	pkgdesc="Fish completions for $pkgname"
 	install_if="${subpkgname%-fish-completion}=$pkgver-r$pkgrel fish"
 
-	cd "$pkgdir" || return 0
 	amove usr/share/fish/vendor_completions.d || :
 
 	amove usr/share/fish/completions &&
@@ -2239,7 +2237,7 @@ default_pyc() {
 	pkgdesc="Precompiled Python bytecode for ${subpkgname%-pyc}"
 	install_if="${subpkgname%-pyc}=$pkgver-r$pkgrel pyc"
 
-	cd "$pkgdir" || return 0
+	cd "$pkgdir"
 	local IFS=$'\n'
 	amove $(find usr/lib/python* -type d -name __pycache__)
 }
@@ -2252,9 +2250,7 @@ default_nftrules() {
 	pkgdesc="$pkgdesc (nftables ruleset)"
 	install_if="nftables-rulesets ${subpkgname%-nftrules}=$pkgver-r$pkgrel"
 
-	if [ -d "$pkgdir"/usr/share/nftables.avail ]; then
-		amove 'usr/share/nftables.avail/*.nft'
-	fi
+	amove 'usr/share/nftables.avail/*.nft' || :
 }
 
 nftrules() {
