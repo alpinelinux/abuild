@@ -722,6 +722,7 @@ have_patches() {
 default_prepare() {
 	local i failed=
 
+	mkdir -p "$tmpdir"
 	# https://github.com/golang/go/issues/32320
 	mkdir -p "$GOTMPDIR"
 
