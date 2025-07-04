@@ -4,7 +4,6 @@
 init_tests \
 	checkapk_help \
 	checkapk_invalid_opt \
-	checkapk_missing_abuild_conf \
 	checkapk_missing_apkbuild
 
 checkapk_help_body() {
@@ -17,13 +16,6 @@ checkapk_invalid_opt_body() {
 	atf_check -s not-exit:0 \
 		-e match:"Usage:" \
 		checkapk --invalid
-}
-
-checkapk_missing_abuild_conf_body() {
-	atf_check \
-		-s not-exit:0 \
-		-e match:"no abuild.conf found" \
-		env ABUILD_DEFCONF=/dev/null checkapk
 }
 
 checkapk_missing_apkbuild_body() {

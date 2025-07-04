@@ -51,16 +51,8 @@ if [ $# -gt 0 ]; then
 	exit 2
 fi
 
-if ! [ -f "$ABUILD_CONF" ] && ! [ -f "$ABUILD_USERCONF" ] && ! [ -f "$ABUILD_DEFCONF" ]; then
-	die "no abuild.conf found"
-fi
-
 if ! [ -f APKBUILD ]; then
 	die 'must be run in the directory of a built package'
-fi
-
-if ! [ -n "$CARCH" ]; then
-	die "failed to detect CARCH"
 fi
 
 . ./APKBUILD
