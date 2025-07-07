@@ -282,7 +282,7 @@ default_validate() {
 			*::*) i=${i%%::*};;
 			https://*) makedepends_has wget && warning "wget no longer need to be in makedepends when source has https://" ;;
 		esac
-		list_has ${i##*/} $sha256sums $sha512sums \
+		list_has ${i##*/} ${sha512sums:-$sha256sums} \
 			|| die "${i##*/} is missing in checksums"
 
 		# verify that our source does not have git tag version
@@ -297,14 +297,17 @@ default_validate() {
 	done
 
 	# verify that things listed in checksum also is listed in source
-	local algo=
-	for algo in sha256 sha512; do
-		eval set -- \$${algo}sums
-		while [ $# -gt 1 ]; do
-			local file="$2"
-			shift 2
-			source_has $file || die "$file exists in ${algo}sums but is missing in \$source"
-		done
+	# get number of checksums
+	set -- $source
+	local numsources=$#
+	set -- ${sha512sums:-$sha256sums}
+	if [ $# -ne $((numsources * 2)) ]; then
+		die "Number of checksums($# / 2) does not correspond to number of sources($numsources)"
+	fi
+	while [ $# -gt 1 ]; do
+		local file="$2"
+		shift 2
+		source_has $file || die "$file exists in checksums but is missing in \$source"
 	done
 
 	# common spelling errors
@@ -352,19 +355,12 @@ sumcheck() {
 	local algo="$1" sums="$2"
 	local f endreturnval origin csum file
 
-	# get number of checksums
-	set -- $sums
-	local numsums=$(( $# / 2 ))
-
-	set -- $source
-	if [ $# -ne $numsums ]; then
-		die "Number of ${algo}sums($numsums) does not correspond to number of sources($#)"
-	fi
 	fetch || return 1
 	msg "Checking ${algo}sums..."
 	cd "$srcdir" || return 1
 	local IFS=$'\n'
 	endreturnval=0
+	set -- $source
 	for src in $sums; do
 		origin=$1; shift
 		if ! echo "$src" | ${algo}sum -c; then
