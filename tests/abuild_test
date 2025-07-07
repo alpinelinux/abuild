@@ -690,7 +690,7 @@ abuild_package_size_body() {
 		arch='noarch'
 		license='MIT'
 		install="\$pkgname-empty-script.post-install"
-		trigger="\$pkgname-empty-trigger.trigger=/"
+		triggers="\$pkgname-empty-trigger.trigger=/"
 		subpackages="
 			\$pkgname-empty-noscript:_empty
 			\$pkgname-empty-script:_empty

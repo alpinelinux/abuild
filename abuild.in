@@ -1140,7 +1140,7 @@ prepare_metafiles() {
 		if [ -n "$(find . ! -name .)" ]; then
 			size=1
 		else
-			for i in $install $trigger; do
+			for i in $install $triggers; do
 				local j=${i%=*}
 				[ "${j%.*}" = "$name" ] && {
 					size=1
