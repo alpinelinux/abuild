@@ -389,12 +389,8 @@ is_remote() {
 }
 
 filename_from_uri() {
-	local uri="$1"
-	local filename="${uri##*/}"  # $(basename $uri)
-	case "$uri" in
-	*::*) filename=${uri%%::*};;
-	esac
-	echo "$filename"
+	local filename="${1%%::*}"
+	echo "${filename##*/}" # $(basename $filename)
 }
 
 # try download from file from mirror first
