@@ -355,20 +355,22 @@ sanitycheck() {
 	warning "'sanitycheck' is renamed. Use 'validate' instead."
 }
 
-sumcheck() {
-	local algo="$1" sums="$2"
-	local f endreturnval origin csum file
+# verify checksums
+verify() {
+	local algo=sha512
+	if [ -z "$sha512sums" ] && [ -n "$sha256sums" ]; then
+		algo=sha256
+	fi
 
 	fetch || return 1
 	msg "Checking ${algo}sums..."
 	cd "$srcdir" || return 1
-	local IFS=$'\n'
-	endreturnval=0
+	local IFS=$'\n' fail=false origin csum file
 	set -- $source
-	for src in $sums; do
+	for src in ${sha512sums:-$sha256sums}; do
 		origin=$1; shift
 		if ! echo "$src" | ${algo}sum -c; then
-			endreturnval=1
+			fail=true
 			is_remote $origin || continue
 
 			csum="${src:0:8}"
@@ -380,26 +382,10 @@ sumcheck() {
 			mv "$file" "$file.$csum"
 		fi
 	done
-	return $endreturnval
-}
 
-# verify checksums
-verify() {
-	local verified=false algo=
-	for algo in sha512 sha256; do
-		local sums=
-		eval sums=\"\$${algo}sums\"
-		if [ -z "$sums" ] || [ -z "$source" ]; then
-			continue
-		fi
-		sumcheck "$algo" "$sums" || return 1
-		verified=true
-		break
-	done
-	if [ -n "$source" ] && ! $verified; then
+	if $fail; then
 		die "Use 'abuild checksum' to generate/update the checksum(s)"
 	fi
-	return 0
 }
 
 # verify upstream sources
