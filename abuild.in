@@ -296,6 +296,10 @@ default_validate() {
 		fi
 	done
 
+	if [ -z "$sha512sums" ] && [ -n "$sha256sums" ]; then
+		warning "Found old (sha256) checksum, use 'abuild checksum' to regenerate"
+	fi
+
 	# verify that things listed in checksum also is listed in source
 	# get number of checksums
 	set -- $source
