@@ -355,37 +355,8 @@ sanitycheck() {
 	warning "'sanitycheck' is renamed. Use 'validate' instead."
 }
 
-# verify checksums
 verify() {
-	local algo=sha512
-	if [ -z "$sha512sums" ] && [ -n "$sha256sums" ]; then
-		algo=sha256
-	fi
-
-	fetch || return 1
-	msg "Checking ${algo}sums..."
-	cd "$srcdir" || return 1
-	local IFS=$'\n' fail=false origin csum file
-	set -- $source
-	for src in ${sha512sums:-$sha256sums}; do
-		origin=$1; shift
-		if ! echo "$src" | ${algo}sum -c; then
-			fail=true
-			is_remote $origin || continue
-
-			csum="${src:0:8}"
-			file="$SRCDEST/$(filename_from_uri $origin)"
-
-			echo "Because the remote file above failed the ${algo}sum check it will be renamed."
-			echo "Rebuilding will cause it to re-download which in some cases may fix the problem."
-			echo "Renaming: ${file##*/} to ${file##*/}.$csum"
-			mv "$file" "$file.$csum"
-		fi
-	done
-
-	if $fail; then
-		die "Use 'abuild checksum' to generate/update the checksum(s)"
-	fi
+	fetch
 }
 
 # verify upstream sources
@@ -454,16 +425,35 @@ symlinksrc() {
 	done
 }
 
+# fetch sources and validate checksum
 default_fetch() {
 	local s
 	mkdir -p "$srcdir"
+	set -- ${sha512sums:-$sha256sums}
+
 	for s in $source; do
+		local file="$startdir/$s"
 		if is_remote "$s"; then
 			uri_fetch_mirror "$s" || return 1
-			ln -sf "$SRCDEST/$(filename_from_uri $s)" "$srcdir"/
-		else
-			ln -sf "$startdir/$s" "$srcdir/"
+			file="$SRCDEST/$(filename_from_uri $s)"
 		fi
+
+		if [ "$sumalgo" != none ]; then
+			if ! echo "$1 $file" | ${sumalgo}sum -c; then
+				if is_remote $s; then
+					csum="${1:0:8}"
+
+					echo "Because the remote file above failed the ${sumalgo}sum check it will be renamed."
+					echo "Rebuilding will cause it to re-download which in some cases may fix the problem."
+					echo "Renaming: ${file##*/} to ${file##*/}.$csum"
+					mv "$file" "$file.$csum"
+				fi
+				die "Use 'abuild checksum' to generate/update the checksum(s)"
+			fi
+			shift 2
+		fi
+
+		ln -sf "$file" "$srcdir/"
 	done
 }
 
@@ -498,7 +488,7 @@ initdcheck() {
 # unpack the sources
 default_unpack() {
 	local u gunzip
-	verify || return 1
+	fetch || return 1
 	initdcheck || return 1
 	mkdir -p "$srcdir"
 	gunzip=$(command -v unpigz || echo gunzip)
@@ -2478,7 +2468,7 @@ checksum() {
 		"$APKBUILD"
 
 	[ -z "$source" ] && return 0
-	fetch
+	sumalgo=none fetch
 	for s in $source; do
 		name="$(filename_from_uri $s)"
 		case " $files " in
@@ -2491,6 +2481,7 @@ checksum() {
 	sha256sums=
 	sha512sums="$(cd "$srcdir" && sha512sum $files)" \
 		|| die "sha512sum failed"
+	sumalgo=sha512
 	printf 'sha512sums="\n%s\n"\n' "$sha512sums" >>"$APKBUILD"
 }
 
@@ -2553,7 +2544,6 @@ rootbld() {
 	validate
 	clean
 	fetch
-	verify
 
 	msg "Preparing build chroot..."
 
@@ -2920,7 +2910,7 @@ usage() {
 		  cleanoldpkg Remove binary packages except current version
 		  cleanpkg    Remove already built binary and source package
 		  deps        Install packages listed in makedepends and depends
-		  fetch       Fetch sources to \$SRCDEST (consider: 'abuild fetch verify')
+		  fetch       Fetch sources to \$SRCDEST
 		  index       Regenerate indexes in \$REPODEST
 		  listpkg     List target packages
 		  package     Install project into \$pkgdir
@@ -2934,7 +2924,6 @@ usage() {
 		  undeps      Uninstall packages listed in makedepends and depends
 		  unpack      Unpack sources to \$srcdir
 		  up2date     Compare target and sources dates
-		  verify      Verify checksums
 
 		To activate cross compilation specify in environment:
 		  CHOST       Arch or hostspec of machine to generate packages for
@@ -3057,6 +3046,11 @@ if [ -z "$pkgarch" ]; then
 	list_has noarch $arch && pkgarch=noarch
 fi
 controldir="$pkgbasedir"/.control.${subpkgname:-$pkgname}
+
+sumalgo=sha512
+if [ -z "$sha512sums" ] && [ -n "$sha256sums" ]; then
+	sumalgo=sha256
+fi
 
 trap 'die "Aborted by user"' INT
 

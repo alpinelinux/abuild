@@ -95,7 +95,7 @@ other related operations.
 	Install packages listed in makedepends and depends
 
 *fetch*
-	Fetch sources to $SRCDEST (consider: 'abuild fetch verify')
+	Fetch sources to $SRCDEST
 
 *index*
 	Regenerate indexes in $REPODEST
@@ -135,9 +135,6 @@ other related operations.
 
 *up2date*
 	Compare target and sources dates
-
-*verify*
-	Verify checksums
 
 # ENVIRONMENT
 
