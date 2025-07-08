@@ -233,6 +233,12 @@ default_validate() {
 		done
 	done
 
+	for i in $subpackages; do
+		subpkg_set "$i"
+		is_function "$subpkgsplit" || die "Missing split function for $subpkgname"
+	done
+	subpkg_unset
+
 	# check dependencies
 	for i in $depends $makedepends; do
 		check_depver "$i" || return 1
