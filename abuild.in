@@ -671,6 +671,7 @@ update_config_guess() {
 
 runpart() {
 	local part=$1
+	is_function "$part" || die "No such function $part"
 	[ -n "$DEBUG" ] && msg "$part"
 	trap "die '$part failed'" EXIT
 	case "$part" in
@@ -1893,7 +1894,7 @@ build_abuildrepo() {
 		_check=check_fakeroot
 	fi
 	if ! want_check; then
-		_check=true
+		_check=
 	fi
 	if ! apk_up2date || [ -n "$force" ]; then
 		# check early if we have abuild key
@@ -2493,7 +2494,7 @@ rootbld_actions() {
 		_check=check_fakeroot
 	fi
 	if ! want_check; then
-		_check=true
+		_check=
 	fi
 	for part in symlinksrc unpack prepare build $_check rootpkg; do
 		runpart $part
