@@ -185,7 +185,7 @@ verify_pkgname() {
 
 # check if apkbuild is valid
 default_validate() {
-	local i= j=
+	local i= j= found
 	msg "Validating $APKBUILD..."
 	[ -z "$pkgver" ] && die "Missing pkgver in APKBUILD"
 	$APK version --check --quiet -- "$pkgver"-r0 || \
@@ -224,7 +224,7 @@ default_validate() {
 	for i in "$pkgname" $subpackages; do
 		i="${i%%:*}"
 		verify_pkgname "$i" || die "$i is not a valid package name"
-		local found=
+		found=
 		for j in "$pkgname" $subpackages; do
 			j="${j%%:*}"
 			[ "$j" = "$i" ] || continue
@@ -305,6 +305,22 @@ default_validate() {
 	if [ -z "$sha512sums" ] && [ -n "$sha256sums" ]; then
 		warning "Found old (sha256) checksum, use 'abuild checksum' to regenerate"
 	fi
+
+	for i in "$startdir"/*; do
+		i=${i##*/}
+		case "$i" in
+			APKBUILD|tmp|src|pkg) continue ;;
+		esac
+		found=
+		for j in $source; do
+			if ! is_remote "$j" && [ "$i" = "$j" ]; then
+				found=1
+			fi
+		done
+		if [ -z "$found" ] && ! install_has "$i" && ! triggers_has "$i"; then
+			warning "$i is not in \$source/\$install/\$triggers"
+		fi
+	done
 
 	# verify that things listed in checksum also is listed in source
 	# get number of checksums
@@ -2790,6 +2806,14 @@ makedepends_has() {
 
 install_has() {
 	list_has "$1" $install
+}
+
+triggers_has() {
+	local i
+	for i in $triggers; do
+		[ "$1" = "${i%=*}" ] && return 0
+	done
+	return 1
 }
 
 deps() {
