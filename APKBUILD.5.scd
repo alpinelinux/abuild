@@ -99,8 +99,8 @@ The following variables must be set in all *APKBUILD* files:
 *source*
 	Specifies the location of both local and remote source files
 	used to build the package. Typically, the remote source file(s)
-	or archive(s) is specified, followed by any local patches, install
-	scripts, configuration files, or other necessary files.
+	or archive(s) is specified, followed by any local patches,
+	configuration files, or other necessary files.
 
 
 ## Optional Variables
@@ -190,20 +190,19 @@ file.
 	_$pkgname-doc_ for documentation (such as _/usr/share/doc_ and
 	_/usr/share/man_).
 
-	Each subpackage may be specified using three different methods. The
-	first, and most common, is _$pkgname-foo_ where _foo_ is the name
-	of the split function specified later in the file. Similar to the
-	*package* function, the _foo_ function must move files from _$pkgdir_
-	or _$srcdir_ to _$subpkgdir_ after creating _$subpkgdir_.
+	By default the split function is the end of the package name after
+	the last hyphen. So for _$pkgname-foo_ and _libfoo_ the split function
+	is _foo_ and _libfoo_ respectively. A custom split function name can
+	be set by using _foo:funcname_. Similar to the *package* function,
+	the split function must move files from _$pkgdir_ or _$srcdir_ to
+	_$subpkgdir_ after creating _$subpkgdir_.
 
-	The second method is to simply call the subpackage _foo_ which will
-	create a package called _foo_ instead of _$pkgname-foo_.
+	By default *arch* determines whether or not a subpackage is considered
+	arch independant or not. This can be changed by using _foo::noarch_ or
+	_foo:funcname:all_.
 
-	However, _foo_ in both of these examples cannot contain an hyphen,
-	as shell function names cannot have hyphens in them. In this case,
-	the third method may be used: _foo:funcname_ where _foo_ is the name
-	of the subpackage and _funcname_ is the name of the shell function
-	in the *APKBUILD* that creates it.
+	When multiple subpackages are specified their split functions are
+	executed in the order in which they occur in *subpackages*.
 
 *triggers*
 	Specifies a trigger script used by the package. A trigger script
@@ -342,7 +341,8 @@ overridden if necessary.
 	and you should not need to modify this.
 
 *startdir*
-	Specifies the directory where the *APKBUILD* file resides.
+	Specifies the directory where the *APKBUILD* file resides. This should
+	generally not be used.
 
 *subpkgdir*
 	Specifies the directory where the subpackage's files should be
