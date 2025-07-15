@@ -2935,7 +2935,7 @@ while getopts ":AcC:dD:fFhkKmnP:qrRs:uvV" opt; do
 		'A') echo "$CARCH"; exit 0;;
 		'c') enable_colors
 		     color_opt="-c";;
-		'C') chdir "$OPTARG";;
+		'C') cd "$OPTARG";;
 		'd') nodeps="-d";;
 		'D') DESCRIPTION=$OPTARG;;
 		'f') force="-f";;
