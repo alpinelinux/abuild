@@ -2824,7 +2824,7 @@ index() { update_abuildrepo_index; }
 
 all() {
 	if ! [ -n "$force" ] && ! check_arch; then
-		echo "Package not available for the target architecture ($CARCH). Aborting."
+		msg "not available for the target architecture ($CARCH). Skipping."
 		return 0
 	fi
 	if up2date && [ -z "$force" ]; then
