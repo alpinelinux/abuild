@@ -111,15 +111,15 @@ readconfig() {
 	[ -f "$ABUILD_USERCONF" ] && . "$ABUILD_USERCONF"
 	APORTSDIR=${_APORTSDIR-$APORTSDIR}
 
-	: ${GIT:=git}
-	gitbase=$($GIT rev-parse --show-toplevel 2>/dev/null) || true # already is -P
+	: ${git:=git}
+	gitbase=$($git rev-parse --show-toplevel 2>/dev/null) || true # already is -P
 	if [ -d "$APORTSDIR" ]; then
 		APORTSDIR=$(cd "$APORTSDIR"; pwd -P)
 	elif [ -z "$APORTSDIR" ] && [ -d "$HOME/aports" ]; then
 		APORTSDIR=$(cd "$HOME/aports"; pwd -P)
 	else
 		if [ -n "$gitbase" ]; then
-			case $($GIT remote get-url origin 2>/dev/null || true) in
+			case $($git remote get-url origin 2>/dev/null || true) in
 			# '.git' for SSH URLs, and no suffix for HTTPS URLs
 			*/aports|*/aports.git) APORTSDIR=$gitbase ;;
 			*) APORTSDIR= ;;
