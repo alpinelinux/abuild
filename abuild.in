@@ -1711,22 +1711,20 @@ normalize_target_path() {
 # find which package provides file that symlink points to
 scan_symlink_targets() {
 	local name="$1" dir="$2" datadir="$3"
-	local symfile= targetpath=
-	cd "$datadir"
-	for symfile in "$pkgbasedir"/.control.*/.symlinks; do
-		local d="${symfile%/.symlinks}"
-		if ! [ -e "$symfile" ] || [ "$d" = "$dir" ]; then
-			continue
-		fi
+	local symfile target targetname
+	[ -e "$dir"/.symlinks ] || return 0
 
-		while read symlink target; do
-			targetpath=$datadir$(normalize_target_path "$target" "$symlink")
-			if [ -e "$targetpath" ] || [ -L "$targetpath" ]; then
-				echo "$name=$pkgver-r$pkgrel" \
-					>> "$d"/.symlinks-needs
+	while read -r symlink target; do
+		set -- "$pkgbasedir"/[!.]*/$(normalize_target_path "$target" "$symlink")
+		targetname=${1#"$pkgbasedir"/}
+		targetname=${targetname%%/*}
+		# When there are multiple matches we don't know the right one, ignore
+		if [ $# -eq 1 ] && [ "$targetname" != "$name" ]; then
+			if [ -L "$1" ] || [ -e "$1" ]; then
+				echo "$targetname=$pkgver-r$pkgrel"
 			fi
-		done < "$symfile"
-	done
+		fi
+	done < "$dir"/.symlinks > "$dir"/.symlinks-needs
 }
 
 # check if python3 site packages are installed and depend on a compatible version
