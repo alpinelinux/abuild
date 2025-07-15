@@ -1625,10 +1625,10 @@ find_scanelf_paths() {
 }
 
 scan_shared_objects() {
-	local name="$1" controldir="$2" datadir="$3"
+	local controldir="$1" datadir="$2"
 	local opt= i= dupes=
 
-	if [ "${subpkgarch:-$pkgarch}" = "noarch" ]; then
+	if [ "$subpkgarch" = "noarch" ]; then
 		return 0
 	fi
 
@@ -1726,7 +1726,7 @@ normalize_target_path() {
 
 # find which package provides file that symlink points to
 scan_symlink_targets() {
-	local name="$1" dir="$2" datadir="$3"
+	local dir="$1" datadir="$2"
 	local symfile target targetname
 	[ -e "$dir"/.symlinks ] || return 0
 
@@ -1735,7 +1735,7 @@ scan_symlink_targets() {
 		targetname=${1#"$pkgbasedir"/}
 		targetname=${targetname%%/*}
 		# When there are multiple matches we don't know the right one, ignore
-		if [ $# -eq 1 ] && [ "$targetname" != "$name" ]; then
+		if [ $# -eq 1 ] && [ "$targetname" != "$subpkgname" ]; then
 			if [ -L "$1" ] || [ -e "$1" ]; then
 				echo "$targetname=$pkgver-r$pkgrel"
 			fi
@@ -1745,7 +1745,7 @@ scan_symlink_targets() {
 
 # check if python3 site packages are installed and depend on a compatible version
 scan_python3_dependency() {
-	local controldir="$2" datadir="$3"
+	local controldir="$1" datadir="$2"
 	local dir_count=0
 	local site_pkg_dir
 	for site_pkg_dir in "$datadir"/usr/lib/python3*/site-packages; do
@@ -1769,7 +1769,7 @@ scan_python3_dependency() {
 
 # find the packages containing the binaries corresponding to the debug files
 scan_debuginfo_targets() {
-	local root=$3/usr/lib/debug
+	local root=$2/usr/lib/debug
 	[ -d "$root" ] || return 0
 
 	find "$root" -name "*.debug" | while read path; do
@@ -1785,11 +1785,9 @@ scan_debuginfo_targets() {
 
 #find pkg-config dependencies
 scan_pkgconfig_depends() {
-	local provides_pc="$1" controldir= name= datadir=
+	local controldir="$1" datadir="$2"
+	local provides_pc="$controldir"/.provides-pc
 	[ -e "$provides_pc" ] || return 0
-	controldir="${provides_pc%/*}"
-	name="$(pkginfo_val pkgname "$controldir"/.PKGINFO)"
-	datadir="$pkgbasedir"/$name
 	for i in $(sort -u "$provides_pc"); do
 		PKG_CONFIG_PATH="$datadir"/usr/lib/pkgconfig:"$datadir"/usr/share/pkgconfig \
 				pkg-config \
@@ -1814,7 +1812,7 @@ human_size() {
 }
 
 create_apks() {
-	local file= dir= name= ver= apk= datadir= size= i= gzip=
+	local file= dir= ver= apk= datadir= size= i= gzip=
 	gzip=$(command -v pigz || echo gzip)
 	if ! options_has "keepdirs"; then
 		rmdir "$pkgdir"/usr/lib \
@@ -1825,21 +1823,20 @@ create_apks() {
 			"$pkgdir"/lib/ \
 			2>/dev/null || :
 	fi
-	if ! options_has "!tracedeps"; then
-		for file in "$pkgbasedir"/.control.*/.PKGINFO; do
-			dir="${file%/.PKGINFO}"
-			name="$(pkginfo_val pkgname "$file")"
-			datadir="$pkgbasedir"/$name
-			subpkgname=$name
-			scan_shared_objects "$name" "$dir" "$datadir"
-			scan_symlink_targets "$name" "$dir" "$datadir"
-			scan_python3_dependency "$name" "$dir" "$datadir"
-			scan_debuginfo_targets "$name" "$dir" "$datadir"
-		done
-		for file in "$pkgbasedir"/.control.*/.provides-pc; do
-			scan_pkgconfig_depends "$file"
-		done
-	fi
+
+	for i in $allpackages; do
+		subpkg_set "$i"
+		if ! options_has "!tracedeps"; then
+			dir="$pkgbasedir"/.control.$subpkgname
+			datadir="$pkgbasedir"/$subpkgname
+			scan_shared_objects "$dir" "$datadir"
+			scan_symlink_targets "$dir" "$datadir"
+			scan_python3_dependency "$dir" "$datadir"
+			scan_debuginfo_targets "$dir" "$datadir"
+			scan_pkgconfig_depends "$dir" "$datadir"
+		fi
+	done
+	subpkg_unset
 
 	for i in root $pkgusers; do
 		printf '%s %s:0\n' "$i" "$i"
