@@ -1523,22 +1523,6 @@ trace_apk_deps() {
 		done
 	fi
 
-	# symlink targets
-	for i in $(sort -u "$dir"/.symlinks-needs 2>/dev/null); do
-		autodeps="$autodeps $i"
-	done
-
-	# python3 dependencies
-	for i in $(sort -u "$dir"/.python3-needs 2>/dev/null); do
-		autodeps="$autodeps $i"
-	done
-
-	# debuginfo conflict dependencies
-	local ver=$pkgver-r$pkgrel
-	for i in $(sort -u "$dir"/.debug-target-pkgs 2>/dev/null); do
-		autodeps="$autodeps !$i<$ver !$i>$ver"
-	done
-
 	# pkg-config depends
 	local provider
 	for i in $(sort -u "$dir"/.needs-pc 2>/dev/null); do
@@ -1559,6 +1543,10 @@ trace_apk_deps() {
 
 	touch "$dir"/.provides-dummy
 	sed 's/^/provides = /' "$dir"/.provides-* | sort -u >> "$dir"/.PKGINFO
+
+	for i in "$dir"/.needs-symlinks "$dir"/.needs-python3 "$dir"/.needs-debug; do
+		[ -f "$i" ] && cat "$i"
+	done | sed 's/^/depend = /' | sort -u >> "$dir"/.PKGINFO
 
 	for i in $autodeps; do
 		echo "depend = $i"
@@ -1703,7 +1691,7 @@ scan_symlink_targets() {
 				echo "$targetname=$pkgver-r$pkgrel"
 			fi
 		fi
-	done < "$dir"/.symlinks > "$dir"/.symlinks-needs
+	done < "$dir"/.symlinks > "$dir"/.needs-symlinks
 }
 
 # check if python3 site packages are installed and depend on a compatible version
@@ -1725,14 +1713,14 @@ scan_python3_dependency() {
 		pyver="${pyver%%/*}"
 		if [ -n "$pyver" ] && [ "${subpkgname:-$pkgname}" != python3 ]; then
 			echo "python3~$pyver" \
-				>> "$controldir"/.python3-needs
+				>> "$controldir"/.needs-python3
 		fi
 	done
 }
 
 # find the packages containing the binaries corresponding to the debug files
 scan_debuginfo_targets() {
-	local root=$2/usr/lib/debug
+	local root=$2/usr/lib/debug pkgdir name
 	[ -d "$root" ] || return 0
 
 	find "$root" -name "*.debug" | while read path; do
@@ -1740,10 +1728,12 @@ scan_debuginfo_targets() {
 		path=${path%.debug}
 		for pkgdir in "$pkgbasedir"/*; do
 			if [ -x "$pkgdir$path" ]; then
-				echo "${pkgdir#$pkgbasedir/}"
+				name="${pkgdir#$pkgbasedir/}"
+				echo "!$name<$pkgver-r$pkgrel"
+				echo "!$name>$pkgver-r$pkgrel"
 			fi
 		done
-	done > "$dir"/.debug-target-pkgs
+	done > "$dir"/.needs-debug
 }
 
 #find pkg-config dependencies
