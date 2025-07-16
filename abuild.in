@@ -1515,10 +1515,9 @@ trace_apk_deps() {
 	# find all packages that holds the so files
 	if [ -f "$dir"/.rpaths ]; then
 		local so_files
-		so_files=$(find_so_files "$dir"/.rpaths $missing) \
-			|| return 1
+		so_files=$(find_so_files "$dir"/.rpaths $missing)
 		if [ -n "$so_files" ]; then
-			deppkgs=$($APK $apkroot info --quiet --who-owns $so_files) || return 1
+			deppkgs=$($APK $apkroot info --quiet --who-owns $so_files)
 		fi
 	fi
 
@@ -1848,7 +1847,7 @@ create_apks() {
 			warning "The -doc subpackage is unusually large, consider splitting it"
 		fi
 
-		trace_apk_deps "$name" "$dir" "$subpkgarch" || return 1
+		trace_apk_deps "$name" "$dir" "$subpkgarch"
 		msg "Package size: $(echo "$size" | human_size)"
 		msg "Compressing data..."
 		(
