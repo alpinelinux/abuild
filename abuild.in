@@ -989,7 +989,8 @@ git_dirty() {
 
 # echo last commit hash id
 git_last_commit() {
-	$git rev-list -n 1 HEAD -- "$startdir"
+	$git ls-files --error-unmatch "$APKBUILD" >/dev/null 2>&1 \
+		&& $git rev-list -n 1 HEAD -- "$startdir"
 }
 
 # date of last commit
