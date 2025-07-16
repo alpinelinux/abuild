@@ -1500,9 +1500,6 @@ trace_apk_deps() {
 	fi
 
 	[ -f "$dir"/.needs-so ] && for i in $(cat "$dir"/.needs-so); do
-		# first check if its provided by same apkbuild
-		grep -q -w "^so:$sonameprefix$i" "$dir"/.provides-so 2>/dev/null && continue
-
 		if subpkg_provides_so "$sonameprefix$i"; then
 			autodeps="$autodeps so:$sonameprefix$i"
 		elif $APK $apkroot info --quiet -e "so:$i"; then
@@ -1548,9 +1545,6 @@ trace_apk_deps() {
 	# pkg-config depends
 	local provider owner
 	for i in $(sort -u "$dir"/.needs-pc 2>/dev/null); do
-		# first check if its provided by same apkbuild
-		grep -q -w "^pc:$pcprefix$i" "$dir"/.provides-pc 2>/dev/null && continue
-
 		if subpkg_provides_pc "$pcprefix$i"; then
 			autodeps="$autodeps pc:$pcprefix$i"
 		elif $APK $apkroot info --quiet -e "pc:$i"; then
