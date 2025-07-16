@@ -1472,18 +1472,8 @@ find_so_files() {
 	return 0
 }
 
-subpkg_provides_prefixed_so() {
-	[ -n "$sonameprefix" ] && grep -q -w "^$sonameprefix$1" \
-		"$pkgbasedir"/.control.*/.provides-so 2>/dev/null
-}
-
 subpkg_provides_so() {
 	grep -q -w "^$1" "$pkgbasedir"/.control.*/.provides-so 2>/dev/null
-}
-
-subpkg_provides_prefixed_pc() {
-	[ -n "$pcprefix" ] && grep -q -w "^$pcprefix$1" \
-		"$pkgbasedir"/.control.*/.provides-pc 2>/dev/null
 }
 
 subpkg_provides_pc() {
@@ -1513,10 +1503,9 @@ trace_apk_deps() {
 		# first check if its provided by same apkbuild
 		grep -q -w "^$sonameprefix$i" "$dir"/.provides-so 2>/dev/null && continue
 
-		if subpkg_provides_prefixed_so "$i"; then
+		if subpkg_provides_so "$sonameprefix$i"; then
 			autodeps="$autodeps so:$sonameprefix$i"
-		elif subpkg_provides_so "$i" \
-				|| $APK $apkroot info --quiet -e "so:$i"; then
+		elif $APK $apkroot info --quiet -e "so:$i"; then
 			autodeps="$autodeps so:$i"
 		else
 			missing="$missing $i"
@@ -1563,10 +1552,9 @@ trace_apk_deps() {
 		# first check if its provided by same apkbuild
 		grep -q -w "^$pcprefix$i" "$dir"/.provides-pc 2>/dev/null && continue
 
-		if subpkg_provides_prefixed_pc "$i"; then
+		if subpkg_provides_pc "$pcprefix$i"; then
 			autodeps="$autodeps pc:$pcprefix$i"
-		elif subpkg_provides_pc "$i" \
-				|| $APK $apkroot info --quiet -e "pc:$i"; then
+		elif $APK $apkroot info --quiet -e "pc:$i"; then
 			provider=$($APK $apkroot search --quiet --exact "pc:$i")
 			if list_has "$provider" $depends_dev; then
 				warning "$provider should be removed from depends_dev"
