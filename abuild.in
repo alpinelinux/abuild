@@ -1301,7 +1301,7 @@ prepare_pkgconfig_provides() {
 			--modversion ${f%.pc} | sed -E -e 's/-(alpha|beta|rc|pre)/_\1/')
 		v=${v#v}
 		$APK version --check --quiet $v || die "$i: pkgconf version $v is invalid"
-		echo "$pcprefix${f%.pc}=${v:-0}" >> "$controldir"/.provides-pc
+		echo "pc:$pcprefix${f%.pc}=${v:-0}" >> "$controldir"/.provides-pc
 	done
 }
 
@@ -1325,7 +1325,7 @@ prepare_command_provides() {
 			*@*) continue;;
 		esac
 		local f=${i##*/}
-		echo $f >> "$controldir"/.provides-command
+		echo cmd:$f=$pkgver-r$pkgrel >> "$controldir"/.provides-command
 	done
 }
 
@@ -1473,11 +1473,11 @@ find_so_files() {
 }
 
 subpkg_provides_so() {
-	grep -q -w "^$1" "$pkgbasedir"/.control.*/.provides-so 2>/dev/null
+	grep -q -w "^so:$1" "$pkgbasedir"/.control.*/.provides-so 2>/dev/null
 }
 
 subpkg_provides_pc() {
-	grep -q -w "^${1%%[<>=]*}" "$pkgbasedir"/.control.*/.provides-pc \
+	grep -q -w "^pc:${1%%[<>=]*}" "$pkgbasedir"/.control.*/.provides-pc \
 		2>/dev/null
 }
 
@@ -1501,7 +1501,7 @@ trace_apk_deps() {
 
 	[ -f "$dir"/.needs-so ] && for i in $(cat "$dir"/.needs-so); do
 		# first check if its provided by same apkbuild
-		grep -q -w "^$sonameprefix$i" "$dir"/.provides-so 2>/dev/null && continue
+		grep -q -w "^so:$sonameprefix$i" "$dir"/.provides-so 2>/dev/null && continue
 
 		if subpkg_provides_so "$sonameprefix$i"; then
 			autodeps="$autodeps so:$sonameprefix$i"
@@ -1549,7 +1549,7 @@ trace_apk_deps() {
 	local provider owner
 	for i in $(sort -u "$dir"/.needs-pc 2>/dev/null); do
 		# first check if its provided by same apkbuild
-		grep -q -w "^$pcprefix$i" "$dir"/.provides-pc 2>/dev/null && continue
+		grep -q -w "^pc:$pcprefix$i" "$dir"/.provides-pc 2>/dev/null && continue
 
 		if subpkg_provides_pc "$pcprefix$i"; then
 			autodeps="$autodeps pc:$pcprefix$i"
@@ -1565,24 +1565,10 @@ trace_apk_deps() {
 	done
 
 	echo "# automatically detected:" >> "$dir"/.PKGINFO
-	if [ -f "$dir"/.provides-so ]; then
-		sed 's/^\(.*\) \([0-9].*\)/provides = so:\1=\2/' \
-			"$dir"/.provides-so | sort -u \
-			>> "$dir"/.PKGINFO
-	fi
-	if [ -f "$dir"/.provides-pc ]; then
-		sed 's/^/provides = pc:/' "$dir"/.provides-pc | sort -u \
-			>> "$dir"/.PKGINFO
-	fi
-	if [ -f "$dir"/.provides-command ]; then
-		sed -e 's/^/provides = cmd:/' -e "s/\$/=$pkgver-r$pkgrel/" \
-			 "$dir"/.provides-command | sort -u \
-			>> "$dir"/.PKGINFO
-	fi
-	if [ -f "$dir"/.provides-py ]; then
-		sed 's/^/provides = /' "$dir"/.provides-py | sort -u \
-			>> "$dir"/.PKGINFO
-	fi
+
+	touch "$dir"/.provides-dummy
+	sed 's/^/provides = /' "$dir"/.provides-* | sort -u >> "$dir"/.PKGINFO
+
 	for i in $autodeps; do
 		echo "depend = $i"
 	done | sort -u >> "$dir"/.PKGINFO
@@ -1669,11 +1655,11 @@ scan_shared_objects() {
 		echo "$sonameprefix$soname $sover"
 	# use awk to filter out dupes that has sover = 0
 	done | awk '{ if (so[$1] == 0) so[$1] = $2; }
-		END { for (i in so) print(i " " so[i]); }' \
+		END { for (i in so) print("so:" i "=" so[i]); }' \
 		| sort -u > "$controldir"/.provides-so
 
 	# verify that we dont have any duplicates
-	dupes="$(cut -d' ' -f1 "$controldir"/.provides-so | uniq -d)"
+	dupes="$(cut -d'=' -f1 "$controldir"/.provides-so | uniq -d)"
 	if [ -n "$dupes" ]; then
 		die  "provides multiple versions of same shared object: $dupes"
 	fi
@@ -1684,7 +1670,7 @@ scan_shared_objects() {
 		| sed 's:,:\n:g' | sort -u \
 	| while read soname; do
 		# only add files that are not self provided
-		grep -q -w "^$sonameprefix$soname" "$controldir"/.provides-so \
+		grep -q -w "^so:$sonameprefix$soname" "$controldir"/.provides-so \
 			|| list_has "$soname" $somask \
 			|| echo $soname
 	done > "$controldir"/.needs-so
@@ -1775,6 +1761,7 @@ scan_pkgconfig_depends() {
 	local provides_pc="$controldir"/.provides-pc
 	[ -e "$provides_pc" ] || return 0
 	for i in $(sort -u "$provides_pc"); do
+		i=${i#pc:}
 		PKG_CONFIG_PATH="$datadir"/usr/lib/pkgconfig:"$datadir"/usr/share/pkgconfig \
 				pkg-config \
 				--print-requires \
