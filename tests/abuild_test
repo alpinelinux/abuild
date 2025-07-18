@@ -53,7 +53,8 @@ init_tests \
 	abuild_cargo_home_dir \
 	abuild_fish_comp_split \
 	abuild_deps \
-	abuild_usr_merge
+	abuild_usr_merge \
+	abuild_symlink_depends
 
 export ABUILD_SHAREDIR=$(atf_get_srcdir)/..
 export ABUILD_CONF=/dev/null
@@ -1434,4 +1435,79 @@ abuild_usr_merge_body() {
 		-e match:"WARNING:.*: Packages must not put anything under /bin, use /usr/bin instead" \
 		-e match:"WARNING:.*: Packages must not put anything under /sbin, use /usr/bin instead" \
 		abuild -d
+}
+
+abuild_symlink_depends_body() {
+	init_keys
+	mkdir testsymlink
+	cd testsymlink
+	cat >APKBUILD<<- 'EOF'
+		# Maintainer: Natanael Copa <ncopa@alpinelinux.org>
+		pkgname=testsymlink
+		pkgver=1.0
+		pkgrel=0
+		pkgdesc="Dummy test package for symlink dependency tracing"
+		url="https://gitlab.alpinelinux.org/alpine/aports"
+		arch="noarch"
+		license="MIT"
+		subpackages="bar:_dir baz:_dir baz-2:_dir absolute relative multiple duplicate notrace:absolute"
+		options="notrace::!tracedeps"
+
+		package() {
+			mkdir -p "$pkgdir/foo"
+		}
+
+		_dir() {
+			mkdir -p "$subpkgdir/${subpkgname%-*}"
+		}
+
+		absolute() {
+			mkdir -p "$subpkgdir"/links
+			ln -s /foo "$subpkgdir"/links/
+		}
+
+		relative() {
+			mkdir -p "$subpkgdir"/links
+			ln -s ../foo "$subpkgdir"/links/
+		}
+
+		multiple() {
+			mkdir -p "$subpkgdir"/links
+			ln -s ../foo ../bar "$subpkgdir"/links/
+		}
+
+		duplicate() {
+			mkdir -p "$subpkgdir"/links
+			ln -s ../baz "$subpkgdir"/links/
+		}
+	EOF
+	abuild rootpkg
+
+	set -x
+
+	atf_check \
+		-o match:"depend = testsymlink=1.0-r0" \
+		-o not-match:"depend = foo-notrace=1.0-r0" \
+		grep '^depend = ' pkg/.control.absolute/.PKGINFO
+
+	atf_check \
+		-o match:"depend = testsymlink=1.0-r0" \
+		-o not-match:"depend = foo-notrace=1.0-r0" \
+		grep '^depend = ' pkg/.control.relative/.PKGINFO
+
+	atf_check \
+		-o match:"depend = testsymlink=1.0-r0" \
+		-o not-match:"depend = foo-notrace=1.0-r0" \
+		-o match:"depend = bar=1.0-r0" \
+		grep '^depend = ' pkg/.control.multiple/.PKGINFO
+
+	atf_check -s exit:1 \
+		-o not-match:"depend = testsymlink=1.0-r0" \
+		-o not-match:"depend = foo-notrace=1.0-r0" \
+		grep '^depend = ' pkg/.control.notrace/.PKGINFO
+
+	atf_check -s exit:1 \
+		-o not-match:"depend = baz=1.0-r0" \
+		-o not-match:"depend = baz-2=1.0-r0" \
+		grep '^depend = ' pkg/.control.duplicate/.PKGINFO
 }
