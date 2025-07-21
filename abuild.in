@@ -2332,10 +2332,11 @@ apk_up2date() {
 	[ -n "$keep" ] && return 0
 
 	cd "$startdir"
-	for i in $source APKBUILD; do
+	for i in $install $triggers $source APKBUILD; do
 		if is_remote "$i"; then
 			s="$SRCDEST/$(filename_from_uri $i)"
 		else
+			i=${i%=*}
 			s="$startdir/${i##*/}"
 		fi
 		if [ "$s" -nt "$REPODEST/$repo/$(arch2dir "$pkgarch")/$pkgname-$pkgver-r$pkgrel.apk" ]; then
