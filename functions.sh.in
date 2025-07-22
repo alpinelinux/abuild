@@ -63,7 +63,10 @@ triplet_to_arch() {
 	sh3-*-*-*)		echo "sh3" ;;
 	sh4-*-*-*)		echo "sh4" ;;
 	x86_64-*-*-*)		echo "x86_64" ;;
-	*)			echo "unknown" ;;
+	*)
+		echo "Couldn't determine arch from triplet: $1" >&2
+		exit 1
+		;;
 	esac
 }
 
@@ -72,7 +75,10 @@ triplet_to_libc() {
 	*-*-*-uclibc*)	echo "uclibc" ;;
 	*-*-*-musl*)	echo "musl" ;;
 	*-*-*-gnu*)	echo "glibc" ;;
-	*)		echo "unknown" ;;
+	*)
+		echo "Couldn't determine libc from triplet: $1" >&2
+		exit 1
+		;;
 	esac
 }
 
