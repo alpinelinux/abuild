@@ -4,7 +4,7 @@ sysconfdir=@sysconfdir@
 sharedir=${ABUILD_SHAREDIR:-@sharedir@}
 program=${0##*/}
 
-arch_to_hostspec() {
+arch_to_triplet() {
 	case "$1" in
 	aarch64)	echo "aarch64-alpine-linux-musl" ;;
 	aarch64_be)	echo "aarch64_be-alpine-linux-musl" ;;
@@ -33,7 +33,12 @@ arch_to_hostspec() {
 	esac
 }
 
-hostspec_to_arch() {
+# Compat for some aports
+arch_to_hostspec() {
+	arch_to_triplet "$@"
+}
+
+triplet_to_arch() {
 	case "$1" in
 	aarch64-*-*-*)		echo "aarch64" ;;
 	aarch64_be-*-*-*)	echo "aarch64_be" ;;
@@ -62,7 +67,7 @@ hostspec_to_arch() {
 	esac
 }
 
-hostspec_to_libc() {
+triplet_to_libc() {
 	case "$1" in
 	*-*-*-uclibc*)	echo "uclibc" ;;
 	*-*-*-musl*)	echo "musl" ;;
@@ -167,19 +172,19 @@ readconfig() {
 	[ -z "$CBUILD" ] && CBUILD="$(${APK:-apk} --print-arch 2>/dev/null || :)"
 	[ -z "$CHOST" ] && CHOST="$CBUILD"
 	[ -z "$CTARGET" ] && CTARGET="$CHOST"
-	[ "$(arch_to_hostspec $CBUILD)" != "unknown" ] && CBUILD="$(arch_to_hostspec $CBUILD)"
-	[ "$(arch_to_hostspec $CHOST)" != "unknown" ] && CHOST="$(arch_to_hostspec $CHOST)"
-	[ "$(arch_to_hostspec $CTARGET)" != "unknown" ] && CTARGET="$(arch_to_hostspec $CTARGET)"
+	[ "$(arch_to_triplet $CBUILD)" != "unknown" ] && CBUILD="$(arch_to_triplet $CBUILD)"
+	[ "$(arch_to_triplet $CHOST)" != "unknown" ] && CHOST="$(arch_to_triplet $CHOST)"
+	[ "$(arch_to_triplet $CTARGET)" != "unknown" ] && CTARGET="$(arch_to_triplet $CTARGET)"
 	if [ -z "$CBUILD" ]; then
 		echo "Unable to deduce build architecture. Install apk-tools, or set CBUILD." >&2
 		exit 1
 	fi
 
-	[ -z "$CARCH" ] && CARCH="$(hostspec_to_arch $CHOST)"
-	[ -z "$CLIBC" ] && CLIBC="$(hostspec_to_libc $CHOST)"
-	[ -z "$CBUILD_ARCH" ] && CBUILD_ARCH="$(hostspec_to_arch $CBUILD)"
-	[ -z "$CTARGET_ARCH" ] && CTARGET_ARCH="$(hostspec_to_arch $CTARGET)"
-	[ -z "$CTARGET_LIBC" ] && CTARGET_LIBC="$(hostspec_to_libc $CTARGET)"
+	[ -z "$CARCH" ] && CARCH="$(triplet_to_arch $CHOST)"
+	[ -z "$CLIBC" ] && CLIBC="$(triplet_to_libc $CHOST)"
+	[ -z "$CBUILD_ARCH" ] && CBUILD_ARCH="$(triplet_to_arch $CBUILD)"
+	[ -z "$CTARGET_ARCH" ] && CTARGET_ARCH="$(triplet_to_arch $CTARGET)"
+	[ -z "$CTARGET_LIBC" ] && CTARGET_LIBC="$(triplet_to_libc $CTARGET)"
 
 	if [ "$CHOST" != "$CTARGET" ]; then
 		# setup environment for creating cross compiler

@@ -151,10 +151,10 @@ other related operations.
 	This list of values is not exhaustive.
 
 *CHOST*
-	Generate packages for given arch or hostspec.
+	Generate packages for given arch or triplet.
 
 *CTARGET*
-	Generate compiler for given arch or hostspec.
+	Generate compiler for given arch or triplet.
 
 *PACKAGER*
 	Name and email of the packages in RFC5322 format.

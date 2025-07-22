@@ -2907,8 +2907,8 @@ usage() {
 		  up2date     Compare target and sources dates
 
 		To activate cross compilation specify in environment:
-		  CHOST       Arch or hostspec of machine to generate packages for
-		  CTARGET     Arch or hostspec of machine to generate compiler for
+		  CHOST       Arch or triplet of machine to generate packages for
+		  CTARGET     Arch or triplet of machine to generate compiler for
 
 	EOF
 }
