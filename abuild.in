@@ -2598,6 +2598,14 @@ rootbld() {
 	) < "$repo_template" > "$BUILD_ROOT/etc/apk/repositories"
 
 	calcdeps
+
+	case "$version" in
+		edge|v3.2[3-6])
+			mkdir -p "$BUILD_ROOT"/usr/lib "$BUILD_ROOT"/usr/bin "$BUILD_ROOT"/usr/sbin
+			ln -s usr/bin usr/sbin usr/lib "$BUILD_ROOT"/
+			;;
+	esac
+
 	$SUDO_APK add --initdb --update \
 		--no-interactive \
 		--arch $CBUILD_ARCH \
