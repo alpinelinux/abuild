@@ -17,6 +17,7 @@ SAMPLES		:= sample.APKBUILD sample.initd sample.confd \
 		sample.pre-install sample.post-install
 MAN_PAGES	:= $(MAN_1_PAGES) $(MAN_5_PAGES)
 AUTOTOOLS_TOOLCHAIN_FILES := config.sub config.guess
+ZSH_COMPLETIONS	:= zsh_completions/apkgrel.zsh
 
 SCRIPT_SOURCES	:= $(addsuffix .in,$(SCRIPTS))
 
@@ -143,6 +144,8 @@ install: $(USR_BIN_FILES) $(SAMPLES) $(MAN_PAGES) $(AUTOTOOLS_TOOLCHAIN_FILES) d
 
 	install -D -t $(DESTDIR)/$(sharedir)/ $(AUTOTOOLS_TOOLCHAIN_FILES)
 	install -D -m 644 -t $(DESTDIR)/$(sharedir)/ functions.sh default.conf $(SAMPLES)
+
+	install -D -m 644 -t $(DESTDIR)/$(sharedir)/zsh/site-functions/ $(ZSH_COMPLETIONS)
 
 depends depend:
 	sudo apk --no-cache -U --virtual .abuild-depends add openssl-dev openssl-libs-static zlib-dev

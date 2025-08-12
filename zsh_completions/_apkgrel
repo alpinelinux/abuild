@@ -1,0 +1,15 @@
+#compdef apkgrel
+
+_apkgrel() {
+  _arguments \
+    '(-z --zero)'{-z,--zero}'[Set pkgrel to 0]' \
+    '(-a --add)'{-a,--add}'[Add 1 to current pkgrel]' \
+    '(-g --clean-git)'{-g,--clean-git}'[Only operate on APKBUILDs with clean git status (implies --add)]' \
+    '(-s --set)'{-s,--set}'[Set pkgrel to NUM]:NUM:' \
+    '(-t --test)'{-t,--test}'[Only verify that files have a valid pkgrel]' \
+    '(-f --force)'{-f,--force}'[Operate on files without a valid pkgrel]' \
+    '(-h --help)'{-h,--help}'[Show help]' \
+    '*:APKBUILD file or directory:_files -g "*(/)|APKBUILD"'
+}
+
+_apkgrel "$@"
