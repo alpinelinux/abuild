@@ -154,11 +154,19 @@ other related operations.
 
 	This list of values is not exhaustive.
 
+*CBUILDROOT*
+	Path to sysroot. Primarily used for cross-compilation.
+
+*CBUILD*
+	Architecture or hostspec of the machine compiling the packages.
+
 *CHOST*
-	Generate packages for given arch or triplet.
+	Architecture or hostspec of the machine where packages will run.
 
 *CTARGET*
-	Generate compiler for given arch or triplet.
+	Architecture or hostspec of packages that will be produced by the package
+	being compiled. E.g.: when compiling a compiler, the architecture or
+	hostspec of the binaries produced by that compiler.
 
 *PACKAGER*
 	Name and email of the packages in RFC5322 format.
