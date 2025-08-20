@@ -1108,13 +1108,11 @@ check_depver() {
 prepare_metafiles() {
 	local name=${subpkgname:-$pkgname}
 	[ -z "${name##* *}" ] && die "package name contains spaces"
-	local dir=${subpkgdir:-$pkgdir}
 	local pkg="$name-$pkgver-r$pkgrel.apk"
 	local pkginfo="$controldir"/.PKGINFO
 	local i size
 
-	[ ! -d "$dir" ] && die "Missing $dir"
-	cd "$dir"
+	cd "${subpkgdir:-$pkgdir}"
 	mkdir -p "$controldir"
 	local builddate="$SOURCE_DATE_EPOCH"
 
@@ -1432,6 +1430,7 @@ archcheck() {
 }
 
 prepare_package() {
+	[ ! -d "${subpkgdir:-$pkgdir}" ] && die "Missing ${subpkgname:+sub}pkgdir for ${subpkgname:-$pkgname}"
 	msg "Preparing ${subpkgname:+sub}package ${subpkgname:-$pkgname}..."
 	stripbin
 	prepare_metafiles
@@ -2696,7 +2695,7 @@ stripbin() {
 	if options_has "!strip" || [ "${subpkgarch:-$pkgarch}" = "noarch" ]; then
 		return 0
 	fi
-	cd "${subpkgdir:-$pkgdir}" || return 1
+	cd "${subpkgdir:-$pkgdir}"
 
 	local stripcmd=strip
 	case "${subpkgarch:-$pkgarch}" in
