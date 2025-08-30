@@ -2525,6 +2525,10 @@ rootbld_qemu_arch() {
 }
 
 rootbld() {
+	if ! [ -n "$force" ] && ! check_arch; then
+		msg "Package not available for the target architecture ($CARCH). Skipping."
+		return
+	fi
 	if apk_up2date && [ -z "$force" ]; then
 		msg "Package is up to date"
 		return
