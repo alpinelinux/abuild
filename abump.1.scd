@@ -56,7 +56,7 @@ abump telegram-desktop-4.11.8
 
 # SEE ALSO
 
-abuild(1), apkgrel(1), newapkbuild(1), APKBUILD(5), apk(8).
+abuild(1), apkgrel(1), newapkbuild(1), APKBUILD(5), apk(8), checkapk(1).
 
 # AUTHORS
 

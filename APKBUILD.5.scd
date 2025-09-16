@@ -484,7 +484,7 @@ preferred /bin/sh, which is typically bash(1).
 # SEE ALSO
 
 SPDX license reference (on the Web at <https://spdx.org/licenses/>),
-abuild(1), newapkbuild(1), apk(8), buildrepo(1), ap(1).
+abuild(1), newapkbuild(1), apk(8), buildrepo(1), ap(1), checkapk(1).
 
 
 # HISTORY
