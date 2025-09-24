@@ -2436,7 +2436,10 @@ checksum() {
 		-e "/^sha[0-9]+sums='/,/'\$/d" \
 		"$APKBUILD"
 
+	sha256sums=
+	sha512sums=
 	[ -z "$source" ] && return 0
+
 	sumalgo=none fetch
 	for s in $source; do
 		name="$(filename_from_uri $s)"
@@ -2447,7 +2450,6 @@ checksum() {
 	done
 
 	msg "Updating the sha512sums in $APKBUILD..."
-	sha256sums=
 	sha512sums="$(cd "$srcdir" && sha512sum $files)" \
 		|| die "sha512sum failed"
 	sumalgo=sha512
