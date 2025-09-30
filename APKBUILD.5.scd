@@ -399,6 +399,10 @@ the exception of *package*, are not strictly required.
 	applies any _\*.patch_ files specified in *source*. You must call
 	*default_prepare* if you write a custom *prepare* function.
 
+	A custom *prepare* function may call *update_config_sub* or
+	*update_config_guess* to update *config.sub* and *config.guess* files
+	respectively.
+
 *build*
 	Compiles the source in *builddir*. You must implement this function
 	yourself. If no compilation is required, you may omit it.
