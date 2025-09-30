@@ -286,8 +286,8 @@ file.
 
 	*!strip*
 		Specifies that strip(1) should not be run on any of the
-		package's binaries. This is automatically implying if the
-		_-dbg_ subpackage is enabled, or if you are using DEFAULT_DBG.
+		package's binaries. This is automatically implying if the DEBUG
+		variable is set.
 
 	*suid*
 		Specifies that binaries in the package may be installed
