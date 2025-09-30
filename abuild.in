@@ -2918,7 +2918,7 @@ usage() {
 
 APKBUILD="${APKBUILD:-./APKBUILD}"
 unset color_opt force forceroot install_deps keep keep_build nodeps quiet verbose
-while getopts ":AcC:dD:fFhkKmnP:qrRs:uvV" opt; do
+while getopts ":AcC:dD:fFhkKmnP:qrs:vV" opt; do
 	case $opt in
 		'A') echo "$CARCH"; exit 0;;
 		'c') enable_colors
