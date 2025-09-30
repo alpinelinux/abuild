@@ -205,16 +205,16 @@ file.
 	executed in the order in which they occur in *subpackages*.
 
 *triggers*
-	Specifies a trigger script used by the package. A trigger script
-	is a shell script that is called whenever monitored files or
-	directories are modified.  You may specify the paths to monitor
-	using the triggers variable as follows:
+	Specifies trigger scripts used by the specified (sub)packages. A
+	trigger script is a shell script that is called whenever monitored
+	files or directories are modified.  You may specify the paths to
+	monitor using the triggers variable as follows:
 
 	```
 	$pkgname.trigger=/usr/share/man:/usr/local/share/man
 	```
 
-	This will run the package trigger script whenever files in
+	This will run the trigger script for _$pkgname_ whenever files in
 	_/usr/share/man_ or _/usr/local/share/man_ are created, modified,
 	or removed.
 
