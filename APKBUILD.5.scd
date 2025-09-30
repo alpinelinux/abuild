@@ -313,8 +313,8 @@ file.
 
 	*!tracedeps*
 		Specifies that abuild(1) should not automatically populate
-		*depends* with shared library (.so) or symlink target
-		dependencies.
+		*depends* and *provides* with shared library (.so), symlink
+		target dependencies and similar.
 
 
 ## Automatic Variables
