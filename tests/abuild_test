@@ -925,6 +925,11 @@ abuild_doc_body() {
 		package() {
 			install -Dt "\$pkgdir"/usr/bin foo
 			install -Dt "\$pkgdir"/usr/share/man/man1 foo.1
+			ln -s foo.1 "\$pkgdir"/usr/share/man/man1/sym.1
+			ln "\$pkgdir"/usr/share/man/man1/foo.1 "\$pkgdir"/usr/share/man/man1/hard-a.1
+			ln "\$pkgdir"/usr/share/man/man1/foo.1 "\$pkgdir"/usr/share/man/man1/hard-b.1
+			# This should be considered a crime
+			ln "\$pkgdir"/usr/share/man/man1/sym.1 "\$pkgdir"/usr/share/man/man1/hard-sym.1
 			install -Dt "\$pkgdir"/usr/share/doc/foo readme
 		}
 	EOF
@@ -936,6 +941,10 @@ abuild_doc_body() {
 			foo-doc/usr/share/doc/foo/readme \
 			; do \
 		test -f pkg/$i || atf_fail "$i failed"
+	done
+	cd pkg/foo-doc/usr/share/man/man1
+	for i in sym.1.gz hard-a.1.gz hard-b.1.gz hard-sym.1.gz; do
+		test "$(readlink $i)" = "foo.1.gz" || atf_fail "$i link failed"
 	done
 }
 
