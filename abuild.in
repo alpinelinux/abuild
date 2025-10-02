@@ -1985,6 +1985,7 @@ doc() {
 # predefined splitfunc dbg
 default_dbg() {
 	local f
+	depends=
 	pkgdesc="$pkgdesc (debug symbols)"
 
 	# assume $pkgbasedir is all one filesystem
@@ -2183,6 +2184,7 @@ fishcomp() {
 }
 
 default_pyc() {
+	depends=
 	pkgdesc="Precompiled Python bytecode for ${subpkgname%-pyc}"
 	install_if="${subpkgname%-pyc}=$pkgver-r$pkgrel pyc"
 
@@ -2196,6 +2198,7 @@ pyc() {
 }
 
 default_nftrules() {
+	depends=
 	pkgdesc="$pkgdesc (nftables ruleset)"
 	install_if="nftables-rulesets ${subpkgname%-nftrules}=$pkgver-r$pkgrel"
 
