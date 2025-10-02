@@ -2584,6 +2584,8 @@ rootbld() {
 	local repo_list="$BUILD_ROOT"/etc/apk/repositories
 	[ -s "$repo_template" ] || die "rootbld: $repo_template does not exist"
 	(
+		echo "$REPODEST/$repo"
+
 		for key in $($git config --list --name-only); do
 			k=${key#abuild.}
 			[ $k != $key ] && \
