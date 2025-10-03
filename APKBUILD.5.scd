@@ -44,17 +44,17 @@ The following variables must be set in all *APKBUILD* files:
 	it, for upstreams that use such a versioning scheme (such as 1.5a,
 	1.5b, 1.5c).
 
-	After the final number (and optional single letter), a suffix may
-	be appended, which must be an underscore (\_) followed by one of
-	_alpha_, _beta_, _pre_, _rc_, _cvs_, _svn_, _git_, _hg_, or _p_,
-	optionally followed by another number. If the suffix is _alpha_,
+	After the final number (and optional single letter), one or more
+	suffixes may be appended, which must be an underscore (\_) followed
+	by one of _alpha_, _beta_, _pre_, _rc_, _cvs_, _svn_, _git_, _hg_, or
+	_p_, optionally followed by another number. If a suffix is _alpha_,
 	_beta_, _pre_, or _rc_, it is considered to be earlier than the
-	version without a suffix; if the suffix is _cvs_, _svn, _git_, _hg_,
-	or _p_, it is considered to be later than the version without a
+	version without this suffix; if a suffix is _cvs_, _svn, _git_, _hg_,
+	or _p_, it is considered to be later than the version without this
 	suffix. All of the following examples are valid versions, in order
 	from lowest to highest:
 
-	1.0, 1.1_alpha2, 1.1.3_pre, 1.1.3, 1.1.3_hg, 1.2, 1.2a, 1.2b
+	1.0, 1.1_alpha2, 1.1.3_pre, 1.1.3_pre_p2, 1.1.3, 1.1.3_hg, 1.2, 1.2a, 1.2b
 
 *pkgrel*
 	Specifies the package release number of this particular package
