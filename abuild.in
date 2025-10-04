@@ -594,7 +594,7 @@ subpkg_set() {
 	subpkgarch=${_splitarch#*:}
 	if [ "$subpkgarch" = "$_splitarch" -o -z "$subpkgarch" ]; then
 		case "$subpkgname" in
-		*-doc | *-openrc | *-lang | *sh-completion | *-pyc | *-nftrules | *-systemd) subpkgarch="noarch" ;;
+		*-doc | *-openrc | *-lang | *sh-completion | *-pyc | *-nftrules | *-systemd | *-udev) subpkgarch="noarch" ;;
 		*) subpkgarch="$pkgarch" ;;
 		esac
 	elif [ "$subpkgarch" = "all" ]; then
@@ -830,6 +830,11 @@ postcheck() {
 	if [ -e "$dir"/usr/lib/systemd ] \
 			&& ! is_systemd_pkg "$name"; then
 		warning "Found systemd directory (/usr/lib/systemd) but it's not in a systemd package"
+	fi
+	# look for /usr/lib/udev
+	if [ -e "$dir"/usr/lib/udev ] \
+			&& ! is_udev_pkg "$name"; then
+		warning "Found udev directory (/usr/lib/udev) but it's not in a -udev package"
 	fi
 	# look for /usr/share/doc
 	if [ -e "$dir"/usr/share/doc ] \
@@ -1413,6 +1418,11 @@ is_openrc_pkg() {
 # returns true if this is the -systemd package
 is_systemd_pkg() {
 	test "${1%-systemd}" != "$1" || test "systemd" = "$1"
+}
+
+# returns true if this is the -udev package
+is_udev_pkg() {
+	test "${1%-udev}" != "$1" || test "udev" = "$1"
 }
 
 # check that noarch is set if needed
@@ -2104,6 +2114,19 @@ default_systemd() {
 
 systemd() {
 	default_systemd
+}
+
+# predefined splitfunc udev
+default_udev() {
+	depends="$depends_udev"
+	pkgdesc="$pkgdesc (udev rules)"
+	install_if="udev ${subpkgname%-udev}=$pkgver-r$pkgrel"
+
+	amove usr/lib/udev || :
+}
+
+udev() {
+	default_udev
 }
 
 default_devhelp() {
