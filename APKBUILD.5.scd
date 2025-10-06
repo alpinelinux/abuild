@@ -356,28 +356,27 @@ be required or optional depending on their usage and the contents of other
 variables.
 
 *depends_dev*
-	Specifies the run-time dependencies of the _-dev_ subpackage.
+	Run-time dependencies of the _-dev_ subpackage.
 
 *depends_doc*
-	Specifies the run-time dependencies of the _-doc_ subpackage.
+	Run-time dependencies of the _-doc_ subpackage.
 
 *depends_libs*
-	Specifies the run-time dependencies of the _-libs_ subpackage.
+	Run-time dependencies of the _-libs_ subpackage.
 
 *depends_openrc*
-	Specifies the run-time dependencies of the _-openrc_ subpackage.
+	Run-time dependencies of the _-openrc_ subpackage.
 
 *depends_static*
-	Specifies the run-time dependencies of the _-static_ subpackage.
+	Run-time dependencies of the _-static_ subpackage.
 
 *depends_systemd*
-	Specifies the run-time dependencies of the _-systemd_ subpackage.
+	Run-time dependencies of the _-systemd_ subpackage.
 
 *giturl*
-	Specifies the URL of the Git repository to use with `abuild
-	snapshot`. If the default branch of the repository is not desired,
-	a different one may be specified by appending *-b* _branch_ where
-	_branch_ is the branch to checkout.
+	URL of the Git repository to use with `abuild snapshot`. If the default
+	branch of the repository is not desired, a different one may be specified by
+	appending *-b* _branch_ where _branch_ is the branch to checkout.
 
 
 ## Functions
