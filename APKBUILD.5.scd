@@ -373,6 +373,9 @@ variables.
 *depends_systemd*
 	Run-time dependencies of the _-systemd_ subpackage.
 
+*depends_udev*
+	Run-time dependencies of the _-udev_ subpackage.
+
 *giturl*
 	URL of the Git repository to use with `abuild snapshot`. If the default
 	branch of the repository is not desired, a different one may be specified by
