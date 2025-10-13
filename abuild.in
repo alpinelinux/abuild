@@ -1965,15 +1965,14 @@ default_doc() {
 
 		if [ -L "$name" ]; then
 			ln -s $(readlink $name).gz "$name".gz
-			rm "$name"
 		elif [ "$inode" = "$prev_inode" ]; then
 			ln -s "${prev_name##*/}".gz "$name".gz
-			rm "$name"
 		else
-			$gzip -n -9 "$name"
+			$gzip -n -9 -k "$name"
 			prev_name=$name
 			prev_inode=$inode
 		fi
+		rm "$name"
 	done
 
 	rm -f "$subpkgdir/usr/share/info/dir"
