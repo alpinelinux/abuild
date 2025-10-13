@@ -8,6 +8,7 @@ tests:
   script:
     - make
     - make check
+    - make install DESTDIR=/tmp/abuild
   tags:
     - docker-alpine
     - x86_64
