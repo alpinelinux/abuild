@@ -1587,7 +1587,7 @@ find_scanelf_paths() {
 }
 
 scan_shared_objects() {
-	local controldir="$1" datadir="$2"
+	local controldir="$2" datadir="$3"
 	local opt= i= dupes=
 
 	if [ "$subpkgarch" = "noarch" ]; then
@@ -1688,7 +1688,7 @@ normalize_target_path() {
 
 # find which package provides file that symlink points to
 scan_symlink_targets() {
-	local dir="$1" datadir="$2"
+	local dir="$2" datadir="$3"
 	local symfile target targetname
 	[ -e "$dir"/.symlinks ] || return 0
 
@@ -1707,7 +1707,7 @@ scan_symlink_targets() {
 
 # check if python3 site packages are installed and depend on a compatible version
 scan_python3_dependency() {
-	local controldir="$1" datadir="$2"
+	local controldir="$2" datadir="$3"
 	local dir_count=0
 	local site_pkg_dir
 	for site_pkg_dir in "$datadir"/usr/lib/python3*/site-packages; do
@@ -1731,7 +1731,7 @@ scan_python3_dependency() {
 
 # find the packages containing the binaries corresponding to the debug files
 scan_debuginfo_targets() {
-	local root=$2/usr/lib/debug pkgdir name
+	local root=$3/usr/lib/debug pkgdir name
 	[ -d "$root" ] || return 0
 
 	find "$root" -name "*.debug" | while read path; do
@@ -1749,7 +1749,7 @@ scan_debuginfo_targets() {
 
 #find pkg-config dependencies
 scan_pkgconfig_depends() {
-	local controldir="$1" datadir="$2"
+	local controldir="$2" datadir="$3"
 	local provides_pc="$controldir"/.provides-pc
 	[ -e "$provides_pc" ] || return 0
 	for i in $(sort -u "$provides_pc"); do
@@ -1794,11 +1794,11 @@ create_apks() {
 		if ! options_has "!tracedeps"; then
 			dir="$pkgbasedir"/.control.$subpkgname
 			datadir="$pkgbasedir"/$subpkgname
-			scan_shared_objects "$dir" "$datadir"
-			scan_symlink_targets "$dir" "$datadir"
-			scan_python3_dependency "$dir" "$datadir"
-			scan_debuginfo_targets "$dir" "$datadir"
-			scan_pkgconfig_depends "$dir" "$datadir"
+			scan_shared_objects "$subpkgname" "$dir" "$datadir"
+			scan_symlink_targets "$subpkgname" "$dir" "$datadir"
+			scan_python3_dependency "$subpkgname" "$dir" "$datadir"
+			scan_debuginfo_targets "$subpkgname" "$dir" "$datadir"
+			scan_pkgconfig_depends "$subpkgname" "$dir" "$datadir"
 		fi
 	done
 	subpkg_unset
