@@ -17,7 +17,7 @@ SAMPLES		:= sample.APKBUILD sample.initd sample.confd \
 		sample.pre-install sample.post-install
 MAN_PAGES	:= $(MAN_1_PAGES) $(MAN_5_PAGES)
 AUTOTOOLS_TOOLCHAIN_FILES := config.sub config.guess
-ZSH_COMPLETIONS	:= zsh_completions/apkgrel.zsh
+ZSH_COMPLETIONS	:= zsh_completions/_apkgrel
 
 SCRIPT_SOURCES	:= $(addsuffix .in,$(SCRIPTS))
 
