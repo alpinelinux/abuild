@@ -12,6 +12,18 @@ tests:
     - docker-alpine
     - x86_64
 
+tests-pigz:
+  image:
+    name: alpinelinux/abuild-ci
+  stage: verify
+  script:
+    - doas apk add pigz
+    - make
+    - make check
+  tags:
+    - docker-alpine
+    - x86_64
+
 build-clang:
   image:
     name: alpinelinux/abuild-ci
