@@ -3064,12 +3064,7 @@ export GOTMPDIR="${GOTMPDIR:-"$tmpdir"}"
 export CARGO_HOME="${CARGO_HOME:-"$tmpdir/cargo"}"
 export HARECACHE="${HARECACHE:-"$tmpdir/hare-cache"}"
 
-if [ -n "$subpkgname" ]; then
-	# If we are handling a sub package then reset subpackages and install
-	subpackages=
-else
-	allpackages="$pkgname $subpackages"
-fi
+allpackages="$pkgname $subpackages"
 apkbuild_arch="$arch"
 pkgdir="$pkgbasedir/$pkgname"
 controldir="$pkgbasedir"/.control.${subpkgname:-$pkgname}
