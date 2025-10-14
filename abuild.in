@@ -2565,11 +2565,13 @@ rootbld() {
 	BUILD_ROOT=$(mktemp -d /var/tmp/abuild.XXXXXXXXXX)
 
 	mkdir -p "$BUILD_ROOT/proc" "$BUILD_ROOT/etc/apk/keys" \
-		"$BUILD_ROOT/$ABUILD_USERDIR" "$BUILD_ROOT/$aportsgit" \
-		"$BUILD_ROOT/$SRCDEST" "$BUILD_ROOT/$REPODEST" \
+		"$BUILD_ROOT/home/user/.abuild" "$BUILD_ROOT/home/user/aports" \
+		"$BUILD_ROOT/tmp/distfiles" "$BUILD_ROOT/home/user/packages/$repo" \
 		"$BUILD_ROOT/tmp/pkg" "$BUILD_ROOT/tmp/src" \
 		"$BUILD_ROOT/tmp/tmp" "$BUILD_ROOT/usr/bin" \
-		"$REPODEST" "$SRCDEST" "$BUILD_ROOT/$HOME/.ccache"
+		"$REPODEST" "$SRCDEST" "$BUILD_ROOT/home/user/.ccache" \
+		"$BUILD_ROOT/${PACKAGER_PRIVKEY%/*}"
+	touch -- "$BUILD_ROOT/$PACKAGER_PRIVKEY"
 
 	# Avoid exporting {src,pkgbase,tmp}dir
 	cat - /etc/abuild.conf <<-EOF > "$BUILD_ROOT"/etc/abuild.conf
@@ -2631,7 +2633,7 @@ rootbld() {
 		abuild alpine-base $hostdeps $builddeps
 
 	# busybox adduser/addgroup check if uid is 0 so we need to generate the files manually
-	awk -F: -v pkggroups="$pkggroups" -v pkgusers="$pkgusers" -v root="$BUILD_ROOT" -v home="$HOME" 'BEGIN {
+	awk -F: -v pkggroups="$pkggroups" -v pkgusers="$pkgusers" -v root="$BUILD_ROOT" 'BEGIN {
 		gid = 101;
 		split(pkggroups, arr, "[ \t\n]")
 		groups["user"] = "user:x:1000:user"
@@ -2642,7 +2644,7 @@ rootbld() {
 
 		uid = 100;
 		split(pkgusers, arr, "[ \t\n]")
-		users["user"] = "user:x:1000:1000:user:" home ":/bin/sh"
+		users["user"] = "user:x:1000:1000:user:/home/user:/bin/sh"
 		for (i in arr) {
 			$0 = groups[arr[i] in groups ? arr[i] : "nobody"]
 			users[arr[i]] = arr[i] ":x:" uid++ ":" $3 ":" arr[i] ":/dev/null:/sbin/nologin";
@@ -2658,6 +2660,7 @@ rootbld() {
 
 	local bwrap_opts=""
 	options_has "net" || bwrap_opts="$bwrap_opts --unshare-net"
+	# FIXME PACKAGER_PRIVKEY should probably not be available inside of bwrap
 	bwrap --new-session --unshare-ipc --unshare-uts $bwrap_opts \
 		--unshare-pid --die-with-parent \
 		--uid 1000 --gid 1000 \
@@ -2666,22 +2669,24 @@ rootbld() {
 		--ro-bind "$BUILD_ROOT"/passwd /etc/passwd \
 		--proc /proc \
 		--dev-bind /dev /dev \
-		--bind "$BUILD_ROOT/$HOME" "$HOME" \
-		--ro-bind "$ABUILD_USERDIR" "$ABUILD_USERDIR" \
-		--ro-bind "$aportsgit" "$aportsgit" \
-		${USE_CCACHE:+ --bind "${CCACHE_DIR:-$HOME/.ccache}" "$HOME/.ccache"} \
-		--bind "$SRCDEST" "$SRCDEST" \
 		--bind "$BUILD_ROOT/tmp" /tmp \
 		--bind "$BUILD_ROOT/var/tmp" /var/tmp \
-		--bind "$REPODEST" "$REPODEST" \
+		--bind "$BUILD_ROOT/home/user" /home/user \
+		--ro-bind "$ABUILD_USERDIR" /home/user/.abuild \
+		--ro-bind "$PACKAGER_PRIVKEY" "$PACKAGER_PRIVKEY" \
+		--ro-bind "$startdir" "/home/user/aports/$repo/$pkgname" \
+		${USE_CCACHE:+ --bind "${CCACHE_DIR:-$HOME/.ccache}" "/home/user/.ccache"} \
+		--bind "$SRCDEST" /tmp/distfiles \
+		--bind "$REPODEST/$repo" "/home/user/packages/$repo" \
 		--hostname "build-$buildhost-$CARCH" \
-		--chdir "$startdir" \
+		--chdir "/home/user/aports/$repo/$pkgname" \
 		--clearenv \
 		--setenv CARCH "$CARCH" \
-		--setenv HOME "$HOME" \
-		--setenv REPODEST "$REPODEST" \
-		--setenv SRCDEST "$SRCDEST" \
-		--setenv ABUILD_USERDIR "$ABUILD_USERDIR" \
+		--setenv APORTSDIR /home/user/aports \
+		--setenv HOME /home/user \
+		--setenv REPODEST /home/user/packages \
+		--setenv SRCDEST /tmp/distfiles \
+		--setenv ABUILD_USERDIR /home/user/.abuild \
 		${ABUILD_BOOTSTRAP:+--setenv ABUILD_BOOTSTRAP "$ABUILD_BOOTSTRAP"} \
 		${APORTS_BOOTSTRAP:+--setenv APORTS_BOOTSTRAP "$APORTS_BOOTSTRAP"} \
 		--setenv SOURCE_DATE_EPOCH "$SOURCE_DATE_EPOCH" \
