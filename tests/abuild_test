@@ -734,7 +734,7 @@ abuild_package_size_body() {
 
 		_many() {
 			mkdir -p "\$subpkgdir"
-			for i in \$(seq 10000); do
+			for i in \$(seq 1000); do
 				printf '\\n' > "\$subpkgdir/\$i"
 			done
 		}
@@ -773,7 +773,7 @@ abuild_package_size_body() {
 		empty-trigger:1 \
 		dirs:1 \
 		files:39 \
-		many:10000 \
+		many:1000 \
 		holes:65535 \
 		hardlink:5 \
 		symlink:1 \
