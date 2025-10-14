@@ -2639,7 +2639,7 @@ rootbld() {
 		--bind "$BUILD_ROOT/$HOME" "$HOME" \
 		--ro-bind "$ABUILD_USERDIR" "$ABUILD_USERDIR" \
 		--ro-bind "$aportsgit" "$aportsgit" \
-		${USE_CCACHE:+ --bind "${CCACHE_DIR:-HOME/.ccache}" "$HOME/.ccache"} \
+		${USE_CCACHE:+ --bind "${CCACHE_DIR:-$HOME/.ccache}" "$HOME/.ccache"} \
 		--bind "$SRCDEST" "$SRCDEST" \
 		--bind "$BUILD_ROOT/tmp" /tmp \
 		--bind "$BUILD_ROOT/var/tmp" /var/tmp \
@@ -2964,7 +2964,7 @@ fi
 
 # check for ccache presence and maybe export its path
 if [ -n "$USE_CCACHE" ]; then
-	mkdir -p "${CCACHE_DIR:-HOME/.ccache}"
+	mkdir -p "${CCACHE_DIR:-$HOME/.ccache}"
 	# prepend ccache path
 	export PATH="/usr/lib/ccache/bin:$PATH"
 fi
