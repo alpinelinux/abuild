@@ -731,15 +731,15 @@ default_prepare() {
 		case ${i%::*} in
 			*.patch)
 				msg "${i%::*}"
-				POSIXLY_CORRECT=1 patch $args -i "$srcdir/$(filename_from_uri $i)" || failed="$failed $i"
+				patch $args -i "$srcdir/$(filename_from_uri $i)" || failed="$failed $i"
 				;;
 			*.patch.gz)
 				msg "${i%::*}"
-				gunzip -c "$srcdir/$(filename_from_uri $i)" | POSIXLY_CORRECT=1 patch $args || failed="$failed $i"
+				gunzip -c "$srcdir/$(filename_from_uri $i)" | patch $args || failed="$failed $i"
 				;;
 			*.patch.xz)
 				msg "${i%::*}"
-				unxz -c "$srcdir/$(filename_from_uri $i)" | POSIXLY_CORRECT=1 patch $args || failed="$failed $i"
+				unxz -c "$srcdir/$(filename_from_uri $i)" | patch $args || failed="$failed $i"
 				;;
 		esac
 	done
