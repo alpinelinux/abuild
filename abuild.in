@@ -1540,7 +1540,7 @@ trace_apk_deps() {
 		if subpkg_provides_pc "$pcprefix$i"; then
 			autodeps="$autodeps pc:$pcprefix$i"
 		elif $APK $apkroot info --quiet -e "pc:$i"; then
-			provider=$($APK $apkroot search --from installed --quiet --exact "pc:$i")
+			provider=$($APK $apkroot search --from installed --quiet --exact "pc:${i%%[<>=~]*}")
 			if list_has "$provider" $depends_dev; then
 				warning "$provider should be removed from depends_dev"
 			fi
