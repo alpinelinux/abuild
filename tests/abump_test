@@ -9,6 +9,7 @@ init_tests \
 	abump_isolates_apkbuild
 
 export ABUILD_SHAREDIR=$(atf_get_srcdir)/..
+export ABUILD_CONF=/dev/null
 export GIT_CONFIG_GLOBAL="$(atf_get_srcdir)/testdata/gitconfig"
 export APORTSDIR="$PWD"
 export ABUILD_OPTS=""
