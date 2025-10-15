@@ -10,10 +10,11 @@ init_tests \
 
 export ABUILD_SHAREDIR=$(atf_get_srcdir)/..
 export ABUILD_CONF=/dev/null
+export ABUILD_USERDIR="$HOME"/.abuild
 export GIT_CONFIG_GLOBAL="$(atf_get_srcdir)/testdata/gitconfig"
 export APORTSDIR="$PWD"
 export ABUILD_OPTS=""
-export ABUILD_APK_INDEX_OPTS="--allow-untrusted"
+export APK="apk --keys-dir $(atf_get_srcdir)/testdata/.abuild"
 export REPODEST="$PWD"/packages
 
 abump_help_body() {

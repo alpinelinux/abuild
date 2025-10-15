@@ -60,7 +60,8 @@ init_tests \
 
 export ABUILD_SHAREDIR=$(atf_get_srcdir)/..
 export ABUILD_CONF=/dev/null
-export ABUILD_APK_INDEX_OPTS="--allow-untrusted"
+export ABUILD_USERDIR="$HOME"/.abuild
+export APK="apk --keys-dir $(atf_get_srcdir)/testdata/.abuild"
 export GIT_CONFIG_GLOBAL="$(atf_get_srcdir)/testdata/gitconfig"
 export REPODEST="$PWD"/packages
 
@@ -1444,6 +1445,7 @@ create_mock_apk() {
 	chmod +x usr/bin/apk
 	ln -s apk usr/bin/abuild-apk
 	PATH="$PWD/usr/bin:$PATH"
+	APK="apk"
 }
 
 abuild_deps_body() {
