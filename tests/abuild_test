@@ -728,6 +728,7 @@ abuild_package_size_body() {
 			\$pkgname-empty-noscript:_empty
 			\$pkgname-empty-script:_empty
 			\$pkgname-empty-trigger:_empty
+			\$pkgname-empty-file:_empty_file
 			\$pkgname-dirs:_dirs
 			\$pkgname-files:_files
 			\$pkgname-many:_many
@@ -745,6 +746,11 @@ abuild_package_size_body() {
 
 		_empty() {
 			mkdir -p "\$subpkgdir"
+		}
+
+		_empty_file() {
+			mkdir -p "\$subpkgdir"
+			touch "\$subpkgdir"/foo
 		}
 
 		_dirs() {
@@ -803,6 +809,7 @@ abuild_package_size_body() {
 		empty-noscript:0 \
 		empty-script:1 \
 		empty-trigger:1 \
+		empty-file:1 \
 		dirs:1 \
 		files:39 \
 		many:1000 \
