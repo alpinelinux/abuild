@@ -32,7 +32,6 @@ endif
 
 CHMOD		:= chmod
 SED		:= sed
-TAR		:= tar
 SCDOC		:= scdoc
 LINK		= $(CC) $(OBJS-$@) -o $@ $(LDFLAGS) $(LDFLAGS-$@) $(LIBS-$@)
 
