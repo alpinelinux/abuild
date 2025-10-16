@@ -1105,7 +1105,6 @@ check_depver() {
 prepare_metafiles() {
 	local name=${subpkgname:-$pkgname}
 	[ -z "${name##* *}" ] && die "package name contains spaces"
-	local pkg="$name-$pkgver-r$pkgrel.apk"
 	local pkginfo="$controldir"/.PKGINFO
 	local i size
 
@@ -1177,7 +1176,7 @@ prepare_metafiles() {
 			local s=${i%=*}
 			[ "$name" != "${s%.*}" ] && continue
 			if head -n 1 "$startdir/$s" | grep -E '^#!\s*/bin/sh' >/dev/null ; then
-				msg "Script found. /bin/sh added as a dependency for $pkg"
+				msg "Script found. /bin/sh added as a dependency"
 				deps="$deps /bin/sh"
 				break
 			fi
