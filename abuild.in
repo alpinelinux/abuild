@@ -1104,7 +1104,6 @@ check_depver() {
 
 prepare_metafiles() {
 	local name=${subpkgname:-$pkgname}
-	[ -z "${name##* *}" ] && die "package name contains spaces"
 	local pkginfo="$controldir"/.PKGINFO
 	local i size
 
