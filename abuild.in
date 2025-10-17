@@ -690,7 +690,6 @@ update_config_guess() {
 runpart() {
 	local part=$1
 	is_function "$part" || die "No such function $part"
-	[ -n "$DEBUG" ] && msg "$part"
 	trap 'exit 1' HUP
 	trap "die '$part failed'" EXIT
 	case "$part" in
