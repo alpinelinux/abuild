@@ -302,7 +302,7 @@ subpackages="\$pkgname-dev \$pkgname-doc"
 source="$source"
 __EOF__
 
-	abuild -f fetch checksum unpack
+	abuild -f checksum unpack
 	# Figure out the builddir
 	for i in src/*; do
 		if [ -d "$i" ]; then
