@@ -2543,7 +2543,7 @@ rootbld() {
 		"$BUILD_ROOT/$SRCDEST" "$BUILD_ROOT/$REPODEST" \
 		"$BUILD_ROOT/tmp/pkg" "$BUILD_ROOT/tmp/src" \
 		"$BUILD_ROOT/tmp/tmp" "$BUILD_ROOT/usr/bin" \
-		"$REPODEST" "$BUILD_ROOT/$HOME/.ccache"
+		"$REPODEST" "$SRCDEST" "$BUILD_ROOT/$HOME/.ccache"
 
 	# Avoid exporting {src,pkgbase,tmp}dir
 	cat - /etc/abuild.conf <<-EOF > "$BUILD_ROOT"/etc/abuild.conf
