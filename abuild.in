@@ -2598,7 +2598,7 @@ rootbld() {
 		--arch $CBUILD_ARCH \
 		--root "$BUILD_ROOT" \
 		${cachedir:+--cache-dir $cachedir} \
-		abuild alpine-base $hostdeps $builddeps \
+		abuild alpine-base $hostdeps $builddeps
 
 	# busybox adduser/addgroup check if uid is 0 so we need to generate the files manually
 	awk -F: -v pkggroups="$pkggroups" -v pkgusers="$pkgusers" -v root="$BUILD_ROOT" -v home="$HOME" 'BEGIN {
