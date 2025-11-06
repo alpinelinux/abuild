@@ -1493,13 +1493,12 @@ subpkg_provides_pc() {
 }
 
 trace_apk_deps() {
-	local name="$1"
-	local dir="$2"
-	local parch="$3"
+	local dir="$1"
+	local name="$subpkgname"
 	local i= found= autodeps= missing=
 	local apkroot=
 
-	if [ "$CBUILD" != "$CHOST" ] || [ "$CBUILD_ARCH" != "$(arch2dir "$parch")" ]; then
+	if [ "$CBUILD" != "$CHOST" ] || [ "$CBUILD_ARCH" != "$(arch2dir "$subpkgarch")" ]; then
 		apkroot="--root $CBUILDROOT"
 	fi
 
@@ -1814,23 +1813,22 @@ create_apks() {
 		printf '%s %s:0\n' "$i" "$i"
 	done > "$pkgbasedir"/.group-map
 
-	local name ver size subpkgarch sha256
-	for file in "$pkgbasedir"/.control.*/.PKGINFO; do
-		local dir="${file%/.PKGINFO}"
-		name=$(pkginfo_val pkgname "$file")
+	local ver size sha256
+	for i in $allpackages; do
+		subpkg_set "$i"
+		local dir="$pkgbasedir"/.control.$subpkgname
+		local file="$dir/.PKGINFO"
 		ver=$(pkginfo_val pkgver "$file")
 		size=$(pkginfo_val size "$file")
-		local apk=$name-$ver.apk
-		local datadir="$pkgbasedir"/$name
-		subpkgname=$name
-		subpkgarch=$(pkginfo_val arch "$file")
+		local apk=$subpkgname-$ver.apk
+		local datadir="$pkgbasedir"/$subpkgname
 
 		# See https://gitlab.alpinelinux.org/alpine/tsc/-/issues/16
-		if ! options_has "bigdocs" && is_doc_pkg "$name" && [ "$size" -gt "$doc_threshold" ]; then
+		if ! options_has "bigdocs" && is_doc_pkg "$subpkgname" && [ "$size" -gt "$doc_threshold" ]; then
 			warning "The -doc subpackage is unusually large, consider splitting it"
 		fi
 
-		trace_apk_deps "$name" "$dir" "$subpkgarch"
+		trace_apk_deps "$dir"
 		msg "Package size: $(echo "$size" | human_size)"
 		msg "Compressing data..."
 		(
@@ -1866,6 +1864,7 @@ create_apks() {
 		cat control.tar.gz data.tar.gz > "$REPODEST/$repo/$(arch2dir "$subpkgarch")/$apk"
 		)
 	done
+	subpkg_unset
 }
 
 build_abuildrepo() {
