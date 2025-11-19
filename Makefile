@@ -149,7 +149,7 @@ install: $(USR_BIN_FILES) $(SAMPLES) $(MAN_PAGES) $(AUTOTOOLS_TOOLCHAIN_FILES) d
 	install -D -m 644 -t $(DESTDIR)/$(zshdir)/ $(ZSH_COMPLETIONS)
 
 depends depend:
-	sudo apk --no-cache -U --virtual .abuild-depends add openssl-dev openssl-libs-static zlib-dev
+	sudo apk add --no-cache -U --virtual .abuild-depends openssl-dev openssl-libs-static zlib-dev
 
 .gitignore: Makefile
 	echo "*.tar.bz2" > $@
