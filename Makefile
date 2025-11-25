@@ -5,6 +5,7 @@ prefix		?= /usr
 bindir		?= $(prefix)/bin
 sysconfdir	?= /etc
 sharedir		?= $(prefix)/share/$(PACKAGE)
+zshdir		?= $(prefix)/share/zsh/site-functions
 mandir		?= $(prefix)/share/man
 
 SCRIPTS		:= abuild abuild-keygen abuild-sign newapkbuild \
@@ -145,7 +146,7 @@ install: $(USR_BIN_FILES) $(SAMPLES) $(MAN_PAGES) $(AUTOTOOLS_TOOLCHAIN_FILES) d
 	install -D -t $(DESTDIR)/$(sharedir)/ $(AUTOTOOLS_TOOLCHAIN_FILES)
 	install -D -m 644 -t $(DESTDIR)/$(sharedir)/ functions.sh default.conf $(SAMPLES)
 
-	install -D -m 644 -t $(DESTDIR)/$(sharedir)/zsh/site-functions/ $(ZSH_COMPLETIONS)
+	install -D -m 644 -t $(DESTDIR)/$(zshdir)/ $(ZSH_COMPLETIONS)
 
 depends depend:
 	sudo apk --no-cache -U --virtual .abuild-depends add openssl-dev openssl-libs-static zlib-dev
