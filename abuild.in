@@ -2587,12 +2587,10 @@ rootbld() {
 
 	calcdeps
 
-	case "$version" in
-		edge|v3.2[3-6])
-			mkdir -p "$BUILD_ROOT"/usr/lib "$BUILD_ROOT"/usr/bin "$BUILD_ROOT"/usr/sbin
-			ln -s usr/bin usr/sbin usr/lib "$BUILD_ROOT"/
-			;;
-	esac
+	if [ "$BOOTSTRAP_USR_MERGED" = "1" ]; then
+		mkdir -p "$BUILD_ROOT"/usr/lib "$BUILD_ROOT"/usr/bin "$BUILD_ROOT"/usr/sbin
+		ln -s usr/bin usr/sbin usr/lib "$BUILD_ROOT"/
+	fi
 
 	$SUDO_APK add --initdb --update \
 		--arch $CBUILD_ARCH \
