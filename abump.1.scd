@@ -6,7 +6,7 @@ abump(1)
 
 # SYNOPSIS
 
-*abump* [-s _CVE-1_,...] [-f _ISSUE_] [-b|--branch] [-k|--keep] _PKGNAME-1.2.3_
+*abump* [-s _CVE-1_,...] [-f _ISSUE_] [-b|--branch] [-k|--keep] [-r|--rootbld] _PKGNAME-1.2.3_
 
 # DESCRIPTION
 
@@ -30,6 +30,10 @@ working directory, assuming a layout like that of the aports repository.
 
 *-k, --keep*
 	Keep existing packages.
+
+*-r, --rootbld*
+	Build package in a clean chroot using *abuild rootbld* instead of
+	*abuild all*.
 
 *-h, --help*
 	Print help information and exit.
