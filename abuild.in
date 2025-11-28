@@ -2494,7 +2494,9 @@ rootbld() {
 		return
 	fi
 
-	$APK info -eq abuild-rootbld || die "rootbld: abuild-rootbld package not installed"
+	if ! command -v bwrap >/dev/null || ! command -v envsubst >/dev/null; then
+		die "rootbld: requires bubblewrap and envsubst (try installing abuild-rootbld)"
+	fi
 
 	[ $CBUILD = $CHOST ] || die "rootbld: set CBUILD=$CHOST to build for $CHOST"
 
