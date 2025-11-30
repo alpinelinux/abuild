@@ -735,6 +735,7 @@ abuild_package_size_body() {
 			\$pkgname-holes:_holes
 			\$pkgname-hardlink:_hardlink
 			\$pkgname-symlink:_symlink
+			\$pkgname-symlink-follow:_symlink_follow
 		"
 
 		# Test if multi line bc output is handle properly
@@ -794,6 +795,12 @@ abuild_package_size_body() {
 			mkdir -p "\$subpkgdir"
 			ln -s / "\$subpkgdir"/link
 		}
+
+		_symlink_follow() {
+			mkdir -p "\$subpkgdir"
+			printf 'test\\n' > "\$subpkgdir"/test
+			ln -s test "\$subpkgdir"/link
+		}
 	EOF
 	cat > test-size-empty-script.post-install <<-EOF
 		#!/bin/sh
@@ -816,6 +823,7 @@ abuild_package_size_body() {
 		holes:65535 \
 		hardlink:5 \
 		symlink:1 \
+		symlink-follow:5 \
 		; do \
 		size=$(awk -F ' = ' '$1 == "size" {print $2}' pkg/.control.test-size-${i%:*}/.PKGINFO)
 		[ "$size" -eq "${i#*:}" ] ||
