@@ -2478,6 +2478,8 @@ rootbld_qemu_arch() {
 	arm*) qarch="arm" ;;
 	x86)  qarch="i386" ;;
 	loongarch*) qarch="loongarch" ;;
+	sh*eb) qarch="sh4eb" ;;
+	sh*) qarch="sh4" ;;
 	*)    qarch="$CBUILD_ARCH" ;;
 	esac
 
