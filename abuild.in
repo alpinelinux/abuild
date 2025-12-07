@@ -2559,6 +2559,7 @@ rootbld() {
 		buildhost=${gitref/./-}
 	fi
 
+	local repo_list="$BUILD_ROOT"/etc/apk/repositories
 	[ -s "$repo_template" ] || die "rootbld: $repo_template does not exist"
 	(
 		for key in $($git config --list --name-only); do
@@ -2574,7 +2575,12 @@ rootbld() {
 			echo "$repository"
 			echo "$REPODEST/${repository##*/}"
 		done
-	) < "$repo_template" > "$BUILD_ROOT/etc/apk/repositories"
+	) < "$repo_template" > "$repo_list"
+
+	local repository
+	while read -r repository; do
+		msg "Using repository $repository"
+	done < "$repo_list"
 
 	calcdeps
 
