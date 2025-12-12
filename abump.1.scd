@@ -6,7 +6,7 @@ abump(1)
 
 # SYNOPSIS
 
-*abump* [-s _CVE-1_,...] [-f _ISSUE_] [-b|--branch] [-k|--keep] _PKGNAME-1.2.3_
+*abump* [-s _CVE-1_,...] [-m _MESSAGE_] [-f _ISSUE_] [-b|--branch] [-k|--keep] _PKGNAME-1.2.3_
 
 # DESCRIPTION
 
@@ -20,6 +20,9 @@ working directory, assuming a layout like that of the aports repository.
 
 *-s, --security CVE1,...*
 	Include CVE in the *secfixes* comment section.
+
+*-m, --message MESSAGE*
+	Include the given *MESSAGE* in the commit message body.
 
 *-f, --fixes ISSUE*
 	Include *Fixes #ISSUE* in the commit message. This will close the upstream
