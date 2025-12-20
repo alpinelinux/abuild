@@ -1282,6 +1282,18 @@ prepare_symlinks() {
 	done
 }
 
+pc_to_apk_ver() {
+	local v="$1"
+	v=${v/.alpha/_alpha}
+	v=${v/.beta/_beta}
+	v=${v/.rc/_rc}
+	v=${v/.pre/_pre}
+	v=${v#v}
+	v=${v:-0}
+	$APK version --check --quiet "$v" || die "$i: pkgconf version $v is invalid"
+	echo "$v"
+}
+
 prepare_pkgconfig_provides() {
 	local dir="${subpkgdir:-$pkgdir}" v i
 	options_has "!tracedeps" && return 0
@@ -1298,13 +1310,7 @@ prepare_pkgconfig_provides() {
 	PKG_CONFIG_PATH="$dir"/usr/lib/pkgconfig:"$dir"/usr/share/pkgconfig \
 	PKG_CONFIG_MAXIMUM_TRAVERSE_DEPTH=1 pkg-config --print-provides "$@" |
 	while IFS=' =' read -r i v; do
-		v=${v/-alpha/_alpha}
-		v=${v/-beta/_beta}
-		v=${v/-rc/_rc}
-		v=${v/-pre/_pre}
-		v=${v#v}
-		v=${v:-0}
-		$APK version --check --quiet "$v" || die "$i: pkgconf version $v is invalid"
+		v=$(pc_to_apk_ver "$v")
 		echo "pc:$pcprefix$i=$v"
 	done > "$controldir"/.provides-pc
 }
@@ -1758,6 +1764,10 @@ scan_pkgconfig_depends() {
 				--print-requires-private ${i%=*} \
 				| sed -E 's/\s*([<>=]+)\s*/\1/' \
 				| while read pc; do
+			local v="${pc##*[<>=]}"
+			if [ "$v" != "$pc" ]; then
+				pc=${pc%%"$v"}$(pc_to_apk_ver "$v")
+			fi
 			# only add files that are not self provided
 			if ! grep -q -w "^pc:${pc%%[<>=]*}" "$provides_pc"; then
 				echo "$pc" >> "$controldir"/.needs-pc
