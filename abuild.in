@@ -1283,21 +1283,30 @@ prepare_symlinks() {
 }
 
 prepare_pkgconfig_provides() {
-	local dir="${subpkgdir:-$pkgdir}" v
+	local dir="${subpkgdir:-$pkgdir}" v i
 	options_has "!tracedeps" && return 0
 	cd "$dir"
+	set --
 	for i in usr/lib/pkgconfig/*.pc usr/share/pkgconfig/*.pc; do
 		if ! [ -e "$i" ]; then
 			continue
 		fi
-		local f=${i##*/}
-		v=$(PKG_CONFIG_PATH="$dir"/usr/lib/pkgconfig:"$dir"/usr/share/pkgconfig \
-			PKG_CONFIG_MAXIMUM_TRAVERSE_DEPTH=1 pkg-config \
-			--modversion ${f%.pc} | sed -E -e 's/-(alpha|beta|rc|pre)/_\1/')
-		v=${v#v}
-		$APK version --check --quiet $v || die "$i: pkgconf version $v is invalid"
-		echo "pc:$pcprefix${f%.pc}=${v:-0}" >> "$controldir"/.provides-pc
+		i=${i##*/}
+		set -- "$@" "${i%.pc}"
 	done
+
+	PKG_CONFIG_PATH="$dir"/usr/lib/pkgconfig:"$dir"/usr/share/pkgconfig \
+	PKG_CONFIG_MAXIMUM_TRAVERSE_DEPTH=1 pkg-config --print-provides "$@" |
+	while IFS=' =' read -r i v; do
+		v=${v/-alpha/_alpha}
+		v=${v/-beta/_beta}
+		v=${v/-rc/_rc}
+		v=${v/-pre/_pre}
+		v=${v#v}
+		v=${v:-0}
+		$APK version --check --quiet "$v" || die "$i: pkgconf version $v is invalid"
+		echo "pc:$pcprefix$i=$v"
+	done > "$controldir"/.provides-pc
 }
 
 prepare_command_provides() {
