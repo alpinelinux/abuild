@@ -1284,10 +1284,10 @@ prepare_symlinks() {
 
 pc_to_apk_ver() {
 	local v="$1"
-	v=${v/.alpha/_alpha}
-	v=${v/.beta/_beta}
-	v=${v/.rc/_rc}
-	v=${v/.pre/_pre}
+	v=${v/[.-]alpha/_alpha}
+	v=${v/[.-]beta/_beta}
+	v=${v/[.-]rc/_rc}
+	v=${v/[.-]pre/_pre}
 	v=${v#v}
 	v=${v:-0}
 	$APK version --check --quiet "$v" || die "$i: pkgconf version $v is invalid"
