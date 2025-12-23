@@ -56,7 +56,9 @@ init_tests \
 	abuild_fish_comp_split \
 	abuild_deps \
 	abuild_usr_merge \
-	abuild_symlink_depends
+	abuild_symlink_depends \
+	abuild_pc_providers \
+	abuild_pc_depends
 
 export ABUILD_SHAREDIR=$(atf_get_srcdir)/..
 export ABUILD_CONF=/dev/null
@@ -1625,4 +1627,167 @@ abuild_symlink_depends_body() {
 		-o not-match:"depend = baz=1.0-r0" \
 		-o not-match:"depend = baz-2=1.0-r0" \
 		grep '^depend = ' pkg/.control.duplicate/.PKGINFO
+}
+
+abuild_pc_providers_body() {
+	init_keys
+	mkdir testsymlink
+	cd testsymlink
+	cat >APKBUILD<<- '__EOF__'
+		# Maintainer: Natanael Copa <ncopa@alpinelinux.org>
+		pkgname=testpc
+		pkgver=1.0
+		pkgrel=0
+		pkgdesc="Dummy test package for pkgconf provides tracing"
+		url="https://gitlab.alpinelinux.org/alpine/aports"
+		arch="noarch"
+		license="MIT"
+		subpackages="name provides share dot_rc nover"
+
+		package() {
+			mkdir -p "$pkgdir"/usr/lib/pkgconfig
+			cat > "$pkgdir"/usr/lib/pkgconfig/pkg.pc <<EOF
+Name: pkg
+Description:
+Version: 1.0
+EOF
+		}
+
+		name() {
+			mkdir -p "$subpkgdir"/usr/lib/pkgconfig
+			cat > "$subpkgdir"/usr/lib/pkgconfig/pkg.pc <<EOF
+Name: pkg-1.0
+Description:
+Version: 1.0
+EOF
+		}
+
+		provides() {
+			mkdir -p "$subpkgdir"/usr/lib/pkgconfig
+			cat > "$subpkgdir"/usr/lib/pkgconfig/pkg.pc <<EOF
+Name: pkg
+Description:
+Version: 1.0
+Provides: unver, ver = 2.5
+EOF
+		}
+
+		share() {
+			mkdir -p "$subpkgdir"/usr/share/pkgconfig
+			cat > "$subpkgdir"/usr/share/pkgconfig/pkg.pc <<EOF
+Name: pkg
+Description:
+Version: 1.0
+EOF
+		}
+
+		dot_rc() {
+			mkdir -p "$subpkgdir"/usr/lib/pkgconfig
+			cat > "$subpkgdir"/usr/lib/pkgconfig/pkg.pc <<EOF
+Name: pkg
+Description:
+Version: 1.0.rc1
+Provides: foo = 1.2.3.rc5
+EOF
+		}
+
+		nover() {
+			mkdir -p "$subpkgdir"/usr/lib/pkgconfig
+			cat > "$subpkgdir"/usr/lib/pkgconfig/pkg.pc <<EOF
+Name: pkg
+Description:
+Version:
+EOF
+		}
+	__EOF__
+	abuild rootpkg
+
+	atf_check \
+		-o match:"provides = pc:pkg=1.0" \
+		grep '^provides = ' pkg/.control.testpc/.PKGINFO
+
+	atf_check \
+		-o match:"provides = pc:pkg=1.0" \
+		-o not-match:"provides = pc:pkg-1.0=1.0" \
+		grep '^provides = ' pkg/.control.name/.PKGINFO
+
+	atf_check \
+		-o match:"provides = pc:pkg=1.0" \
+		-o match:"provides = pc:unver=0" \
+		-o match:"provides = pc:ver=2.5" \
+		grep '^provides = ' pkg/.control.provides/.PKGINFO
+
+	atf_check \
+		-o match:"provides = pc:pkg=1.0_rc1" \
+		-o match:"provides = pc:foo=1.2.3_rc5" \
+		grep '^provides = ' pkg/.control.dot_rc/.PKGINFO
+
+	atf_check \
+		-o match:"provides = pc:pkg=0" \
+		grep '^provides = ' pkg/.control.nover/.PKGINFO
+}
+
+abuild_pc_depends_body() {
+	init_keys
+	mkdir testsymlink
+	cd testsymlink
+	cat >APKBUILD<<- '__EOF__'
+		# Maintainer: Natanael Copa <ncopa@alpinelinux.org>
+		pkgname=testpc
+		pkgver=1.0
+		pkgrel=0
+		pkgdesc="Dummy test package for pkgconf provides tracing"
+		url="https://gitlab.alpinelinux.org/alpine/aports"
+		arch="noarch"
+		license="MIT"
+		subpackages="noreq dummy"
+
+		package() {
+			mkdir -p "$pkgdir"/usr/lib/pkgconfig
+			cat > "$pkgdir"/usr/lib/pkgconfig/pkg.pc <<EOF
+Name: pkg
+Description:
+Version: 1.0
+Requires: unver, fixed = 0.1, bound >= 1.2.3.rc5
+# TODO these should maybe not be traced
+Requires.private: private
+# Should not prevent install
+Conflicts: conflict
+EOF
+		}
+
+		noreq() {
+			mkdir -p "$subpkgdir"/usr/lib/pkgconfig
+			cat > "$subpkgdir"/usr/lib/pkgconfig/pkg.pc <<EOF
+Name: pkg
+Description:
+Version: 1.0
+EOF
+		}
+
+		dummy() {
+			mkdir -p "$subpkgdir"/usr/lib/pkgconfig
+			cat > "$subpkgdir"/usr/lib/pkgconfig/pkg.pc <<EOF
+Name: pkg
+Description:
+Version: 1.0
+Provides: unver, fixed = 0.1, bound = 1.2.3.rc5, conflict, private
+EOF
+		}
+	__EOF__
+	abuild rootpkg
+
+	atf_check \
+		-o match:"depend = pkgconf" \
+		-o match:"depend = pc:unver$" \
+		-o match:"depend = pc:fixed=0.1" \
+		-o match:"depend = pc:bound>=1.2.3_rc5" \
+		-o match:"depend = pc:private" \
+		-o not-match:"pc:conflict" \
+		grep '^depend = ' pkg/.control.testpc/.PKGINFO
+
+	atf_check \
+		-o match:"depend = pkgconf" \
+		-o not-match:"pc:" \
+		grep '^depend = ' pkg/.control.noreq/.PKGINFO
 }
