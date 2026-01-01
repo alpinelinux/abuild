@@ -174,8 +174,8 @@ file.
 	virtual provider.
 
 *replaces*
-	Specifies packages that the package replaces. This is typically
-	used for packages renamed by upstream.
+	Specifies packages that the package should replace files from when
+	both are installed.
 
 *replaces_priority*
 	Specifies the numeric value that is used by apk(8) when multiple
