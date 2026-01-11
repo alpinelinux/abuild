@@ -277,7 +277,6 @@ default_validate() {
 		fi
 		case "$i" in
 			*::*) i=${i%%::*};;
-			https://*) makedepends_has wget && warning "wget no longer need to be in makedepends when source has https://" ;;
 		esac
 		list_has ${i##*/} ${sha512sums:-$sha256sums} \
 			|| die "${i##*/} is missing in checksums"
