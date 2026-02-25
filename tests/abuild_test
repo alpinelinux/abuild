@@ -17,6 +17,7 @@ init_tests \
 	abuild_subpkg_libs \
 	abuild_py_providers_creation \
 	abuild_py_dependency_scan \
+	abuild_py_dependency_scan_versioned_python \
 	abuild_py_dependency_scan_conflict \
 	abuild_rpaths \
 	abuild_reject_init_with_improper_shebang \
@@ -387,6 +388,35 @@ abuild_py_dependency_scan_body() {
 		-o match:"depend = python3~3.9" \
 		cat pkg/.control.py3-foo-and-bar/.PKGINFO
 }
+
+# test that depend = python3~3.12 is not added on python3.12
+abuild_py_dependency_scan_versioned_python_body() {
+	init_keys
+	mkdir -p testrepo/python3.12
+	cd testrepo/python3.12
+	cat > APKBUILD <<-EOF
+		# Maintainer: Test user <user@example.com>
+		pkgname=python3.12
+		pkgver=3.12.12
+		pkgrel=0
+		pkgdesc="dummy python package for test"
+		url="https://python.org"
+		license="MIT"
+		builddir="\$srcdir"
+		_sitedir=usr/lib/python3.12/site-packages
+		package() {
+			mkdir -p "\$pkgdir"/\$_sitedir/foo
+			touch "\$pkgdir"/\$_sitedir/foo/__init__.py
+			touch "\$pkgdir"/\$_sitedir/bar.py
+		}
+	EOF
+
+	abuild rootpkg || atf_fail "abuild failed"
+	atf_check -s exit:0 \
+		-o not-match:"depend = python3~3.12" \
+		cat pkg/.control.python3.12/.PKGINFO
+}
+
 
 abuild_py_dependency_scan_conflict_body() {
 	init_keys
