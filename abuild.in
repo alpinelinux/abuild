@@ -129,10 +129,7 @@ set_source_date() {
 }
 
 default_cleanup_srcdir() {
-	if options_has "chmod-clean" && test -d "$srcdir"; then
-		chmod -R +w "$srcdir"
-	fi
-	rm -rf "$srcdir"
+	abuild-rm -rf "$srcdir"
 }
 
 cleanup_srcdir() {
@@ -152,9 +149,9 @@ cleanup() {
 				msg "Cleaning up build chroot"
 				abuild-rmtemp "$BUILD_ROOT"
 			fi;;
-		pkgdir) msg "Cleaning up pkgdir"; rm -rf "$pkgbasedir";;
+		pkgdir) msg "Cleaning up pkgdir"; abuild-rm -rf "$pkgbasedir";;
 		srcdir) msg "Cleaning up srcdir"; cleanup_srcdir;;
-		tmpdir) msg "Cleaning up tmpdir"; rm -rf "$tmpdir";;
+		tmpdir) msg "Cleaning up tmpdir"; abuild-rm -rf "$tmpdir";;
 		deps)
 			if [ -n "$uninstall_after" ]; then
 				msg "Uninstalling dependencies..."
@@ -2231,7 +2228,7 @@ check_fakeroot() {
 # build and package in fakeroot
 rootpkg() {
 	cd "$startdir"
-	rm -rf "$pkgdir"
+	abuild-rm -rf "$pkgdir"
 
 	do_fakeroot "$abuild_path" $forceroot $color_opt $keep_build $verbose \
 		set_source_date \
