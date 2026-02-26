@@ -44,6 +44,7 @@ init_tests \
 	abuild_devhelp \
 	abuild_check_maintainer \
 	abuild_cleanoldpkg \
+	abuild_clean \
 	abuild_path_with_spaces \
 	abuild_pyc_warn \
 	abuild_pyc \
@@ -1136,6 +1137,64 @@ abuild_cleanoldpkg_body() {
 			atf_fail "$f was deleted"
 		fi
 	done
+}
+
+abuild_clean_body() {
+	mkdir -p testrepo/clean
+	cd testrepo/clean
+	cat > APKBUILD <<-EOF
+		# Maintainer: Natanael Copa <ncopa@alpinelinux.org>
+		pkgname="clean"
+		pkgver=1.0
+		pkgrel=0
+		pkgdesc="Dummy test package"
+		url="https://gitlab.alpinelinux.org/alpine/aports"
+		arch="noarch"
+		license="MIT"
+		options="!check"
+		subpackages="\$pkgname-subpkg"
+		builddir="\$srcdir"
+
+		build() {
+			mkdir -p "\$srcdir"/srcdir/a
+			chmod 0 "\$srcdir"/srcdir
+
+			mkdir -p "\$tmpdir"/tmpdir/a
+			chmod 0 "\$tmpdir"/tmpdir
+		}
+
+		package() {
+			mkdir -p "\$pkgdir"/pkgdir/a
+			chmod 0 "\$pkgdir"/pkgdir
+		}
+
+		subpkg() {
+			mkdir -p "\$subpkgdir"/subpkgdir/a
+			chmod 0 "\$subpkgdir"/subpkgdir
+		}
+	EOF
+	abuild clean unpack prepare build rootpkg
+
+	abuild -K clean
+
+	{
+		[ -d src/srcdir ] &&
+		[ -d tmp/tmpdir ] &&
+		[ -d pkg/clean/pkgdir ] &&
+		[ -d pkg/clean-subpkg/subpkgdir ]
+	} || atf_fail "cleaned with -K"
+
+	abuild clean || atf_fail "unable to clean"
+
+
+	if
+		[ -d src/srcdir ] ||
+		[ -d tmp/tmpdir ] ||
+		[ -d pkg/clean/pkgdir ] ||
+		[ -d pkg/clean-subpkg/subpkgdir ]
+	then
+		atf_fail "not cleaned"
+	fi
 }
 
 abuild_path_with_spaces_body() {
