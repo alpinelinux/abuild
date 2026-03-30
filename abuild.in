@@ -855,7 +855,8 @@ postcheck() {
 	# trying to calculate the python version.
 	i="$(find "$dir"/usr/lib/python* \( -type d -a -name "__pycache__" \) 2>/dev/null || :)"
 	if [ -n "$i" ] && [ "${name%-pyc}" = "$name" ]; then
-		warning "Found __pycache__ but package name doesn't end with -pyc"
+		error "Found __pycache__ but package name doesn't end with -pyc"
+		e=1
 	fi
 	# look for /usr/share/nftables.avail
 	if [ -e "$dir"/usr/share/nftables.avail ]; then
