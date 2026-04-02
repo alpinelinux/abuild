@@ -447,7 +447,7 @@ default_fetch() {
 		fi
 
 		if [ "$sumalgo" != none ]; then
-			if ! echo "$1 $file" | ${sumalgo}sum -c; then
+			if ! echo "$1  $file" | ${sumalgo}sum -c; then
 				if is_remote $s; then
 					csum="${1:0:8}"
 
