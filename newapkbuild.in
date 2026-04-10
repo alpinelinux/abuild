@@ -98,9 +98,7 @@ __EOF__
 
 build_python() {
 	cat >>APKBUILD<<__EOF__
-	gpep517 build-wheel \\
-		--wheel-dir .dist \\
-		--output-fd 3 3>&1 >&2
+	gpep517 build-wheel --wheel-dir .dist --output-fd 3 3>&1
 __EOF__
 }
 
@@ -191,8 +189,7 @@ __EOF__
 
 package_python() {
 	cat >>APKBUILD<<__EOF__
-	python3 -m installer -d "\$pkgdir" \\
-		.dist/*.whl
+	python3 -m installer -d "\$pkgdir" .dist/*.whl
 __EOF__
 }
 

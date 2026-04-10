@@ -36,9 +36,7 @@ builddir="[% builddir %]"
 options="[% options %]"[% options_comment %]
 [% compatibility %]
 build() {
-	gpep517 build-wheel \
-		--wheel-dir .dist \
-		--output-fd 3 3>&1 >&2
+	gpep517 build-wheel --wheel-dir .dist --output-fd 3 3>&1
 }
 
 check() {
@@ -48,8 +46,7 @@ check() {
 }
 
 package() {
-	python3 -m installer -d "$pkgdir" \
-		.dist/*.whl
+	python3 -m installer -d "$pkgdir" .dist/*.whl
 }
 
 EOF
