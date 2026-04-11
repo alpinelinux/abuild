@@ -6,7 +6,7 @@ abump(1)
 
 # SYNOPSIS
 
-*abump* [-s _CVE-1_,...] [-m _MESSAGE_] [-f _ISSUE_] [-b|--branch] [-k|--keep] [-r|--rootbld] _PKGNAME-1.2.3_
+*abump* [-s _CVE-1_,...] [-m _MESSAGE_] [-f _ISSUE_] [-p _REMOTE_] [-b|--branch] [-k|--keep] [-r|--rootbld] _PKGNAME-1.2.3_
 
 # DESCRIPTION
 
@@ -27,6 +27,9 @@ working directory, assuming a layout like that of the aports repository.
 *-f, --fixes ISSUE*
 	Include *Fixes #ISSUE* in the commit message. This will close the upstream
 	issue when the commit is merged into the aports master branch.
+
+*-p, --push REMOTE*
+	Push the commit and resulting changes to the specified *REMOTE* (e.g. *origin*).
 
 *-b, --branch*
 	Create a git branch from HEAD before normal operation.

@@ -87,6 +87,10 @@ fixes #${fixes#\#}
 
 		git add APKBUILD
 		git commit -m"$message"
+
+		if [ -n "$remote" ]; then
+			git push "$remote"
+		fi
 		)
 		rc=$?
 		if [ $rc -gt 0 ]; then
@@ -102,11 +106,12 @@ fixes #${fixes#\#}
 usage() {
 	cat <<-__EOF__
 		$program $program_version - bump pkgver in APKBUILDs
-		Usage: $program [-s CVE-1,CVE-2,...] [-m MESSAGE] [-f ISSUE] [-b|--branch] [-k|--keep] [-r|--rootbld] PKGNAME-1.2.3 ...
+		Usage: $program [-s CVE-1,CVE-2,...] [-m MESSAGE] [-f ISSUE] [-p REMOTE] [-b|--branch] [-k|--keep] [-r|--rootbld] PKGNAME-1.2.3 ...
 		Options:
 		  -s, --security CVE1,CVE-2,...  Security update
 		  -m, --message MESSAGE          Message to include in the commit message body
 		  -f, --fixes ISSUE              Fixes ISSUE
+		  -p, --push REMOTE              Push the commit and resulting changes to the specified remote (e.g. origin)
 		  -b, --branch                   Create a git branch from HEAD before normal operation
 		  -k, --keep                     Run abuild with -k to keep existing packages
 		  -r, --rootbld                  Build in a clean chroot using 'abuild rootbld'
@@ -123,7 +128,7 @@ fixes=
 branch=
 abuild_main=all
 
-args=$(getopt -o f:s:m:bkrqh --long fixes:,security:,message:,branch,keep,rootbld,quiet,help \
+args=$(getopt -o f:s:m:p:bkrqh --long fixes:,security:,message:,push:,branch,keep,rootbld,quiet,help \
 	-n "$program" -- "$@")
 if [ $? -ne 0 ]; then
 	usage >&2
@@ -135,6 +140,7 @@ while true; do
 		-s|--security) cvelist=" ($2)"; shift;;
 		-m|--message) commit_message="$2"; shift;;
 		-f|--fixes) fixes="$2"; shift;;
+		-p|--push) remote="$2"; shift;;
 		-b|--branch) branch=1;;
 		-k|--keep) keep="-k";;
 		-r|--rootbld) abuild_main=rootbld;;
