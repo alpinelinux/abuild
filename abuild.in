@@ -930,9 +930,6 @@ postcheck() {
 }
 
 pre_split() {
-	if [ -z "$subpkgname" ]; then
-		return 0
-	fi
 	# the subpackages should not inherit these from main package
 	provides=""
 	install_if=""
