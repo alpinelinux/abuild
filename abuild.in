@@ -277,7 +277,6 @@ default_validate() {
 		fi
 		case "$i" in
 			*::*) i=${i%%::*};;
-			https://*) makedepends_has wget && warning "wget no longer need to be in makedepends when source has https://" ;;
 		esac
 		list_has ${i##*/} ${sha512sums:-$sha256sums} \
 			|| die "${i##*/} is missing in checksums"
@@ -856,7 +855,19 @@ postcheck() {
 	# trying to calculate the python version.
 	i="$(find "$dir"/usr/lib/python* \( -type d -a -name "__pycache__" \) 2>/dev/null || :)"
 	if [ -n "$i" ] && [ "${name%-pyc}" = "$name" ]; then
-		warning "Found __pycache__ but package name doesn't end with -pyc"
+		error "Found __pycache__ but package name doesn't end with -pyc"
+		e=1
+	fi
+	# look for /usr/share/nftables.avail
+	if [ -e "$dir"/usr/share/nftables.avail ]; then
+		if ! is_nftrules_pkg "$name"; then
+			warning "Found /usr/share/nftables.avail but package doesn't end with -nftrules"
+		fi
+	fi
+	# error on automatic nftables rule activation
+	if [ -e "$dir"/etc/nftables.d ]; then
+		error "Packages must not put anything under /etc/nftables.d, use /usr/share/nftables.avail instead"
+		e=1
 	fi
 
 	# check that we don't have any files names with newline
@@ -1418,6 +1429,11 @@ is_devhelp_pkg() {
 # returns true if this is the -openrc package
 is_openrc_pkg() {
 	test "${1%-openrc}" != "$1"
+}
+
+# returns true if this is the -nftrules package
+is_nftrules_pkg() {
+	test "${1%-nftrules}" != "$1"
 }
 
 # returns true if this is the -systemd package
