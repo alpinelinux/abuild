@@ -11,7 +11,7 @@ abump(1)
 # DESCRIPTION
 
 *abump* updates the *pkgver* in an APKBUILD file, updates its checksums,
-rebuilds it, and finally creates a new commit commit with the changes resulting.
+rebuilds it, and finally creates a new commit with the changes resulting.
 
 *abump* looks for the specified package in nested directories inside the current
 working directory, assuming a layout like that of the aports repository.
