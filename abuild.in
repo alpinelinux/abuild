@@ -1709,7 +1709,7 @@ normalize_target_path() {
 # find which package provides file that symlink points to
 scan_symlink_targets() {
 	local dir="$2" datadir="$3"
-	local symfile target targetname
+	local target targetname
 	[ -e "$dir"/.symlinks ] || return 0
 
 	while read -r symlink target; do
@@ -2434,7 +2434,7 @@ apk_add_makedeps() {
 
 # build and install dependencies
 builddeps() {
-	local pkg= i=
+	local i=
 	[ -n "$nodeps" ] && return 0
 
 	msg "Analyzing dependencies..."
@@ -2836,11 +2836,10 @@ deps() {
 }
 
 undeps() {
-	local _quiet="$@"
-	$SUDO_APK del $_quiet $apk_opt_wait \
+	$SUDO_APK del $apk_opt_wait \
 		.makedepends-$pkgname || :
 	if [ -n "$CBUILDROOT" ]; then
-		$SUDO_APK del $_quiet \
+		$SUDO_APK del \
 			--root "$CBUILDROOT" $apk_opt_wait \
 			--no-scripts .hostdepends-$pkgname || :
 	fi
@@ -3016,7 +3015,6 @@ tmpdir=${tmpdir:-"$startdir/tmp"}
 repo=${startdir%/*}
 repo=${repo##*/}
 
-aportsgit=${APORTSDIR:-${startdir}}
 repo_template=$startdir/../.rootbld-repositories
 
 SRCDEST=${SRCDEST:-$startdir}
