@@ -58,7 +58,8 @@ init_tests \
 	abuild_usr_merge \
 	abuild_symlink_depends \
 	abuild_pc_providers \
-	abuild_pc_depends
+	abuild_pc_depends \
+	abuild_split_vars_reset
 
 export ABUILD_SHAREDIR=$(atf_get_srcdir)/..
 export ABUILD_CONF=/dev/null
@@ -1790,4 +1791,48 @@ EOF
 		-o match:"depend = pkgconf" \
 		-o not-match:"pc:" \
 		grep '^depend = ' pkg/.control.noreq/.PKGINFO
+}
+
+abuild_split_vars_reset_body() {
+	init_keys
+	mkdir testsplitvars
+	cd testsplitvars
+	cat >APKBUILD<<- '__EOF__'
+		# Maintainer: Natanael Copa <ncopa@alpinelinux.org>
+		pkgname=testsplit
+		pkgver=1.0
+		pkgrel=0
+		pkgdesc="desc"
+		url="https://gitlab.alpinelinux.org/alpine/aports"
+		arch="noarch"
+		license="MIT"
+		subpackages="foo bar"
+
+		package() {
+			mkdir -p "$pkgdir"
+		}
+
+		foo() {
+			pkgdesc="foo $pkgdesc"
+			mkdir -p "$subpkgdir"
+		}
+
+		bar() {
+			pkgdesc="bar $pkgdesc"
+			mkdir -p "$subpkgdir"
+		}
+	__EOF__
+	abuild rootpkg
+
+	atf_check \
+		-o match:"pkgdesc = desc" \
+		grep '^pkgdesc = ' pkg/.control.testsplit/.PKGINFO
+
+	atf_check \
+		-o match:"pkgdesc = foo desc" \
+		grep '^pkgdesc = ' pkg/.control.foo/.PKGINFO
+
+	atf_check \
+		-o match:"pkgdesc = bar desc" \
+		grep '^pkgdesc = ' pkg/.control.bar/.PKGINFO
 }
