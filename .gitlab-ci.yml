@@ -6,6 +6,7 @@ tests:
     name: alpinelinux/abuild-ci
   stage: verify
   script:
+    - doas apk upgrade
     - make
     - make check
     - make install DESTDIR=/tmp/abuild
@@ -18,6 +19,7 @@ tests-pigz:
     name: alpinelinux/abuild-ci
   stage: verify
   script:
+    - doas apk upgrade
     - doas apk add pigz
     - make
     - make check

@@ -33,3 +33,6 @@
 # uncomment to create .orig files when patches don't align. May change
 # build output
 #patch_args_cfg="--backup-if-mismatch"
+
+# uncomment to disable SOURCE_DATE_EPOCH retrieval and fasten up the build process
+#SOURCE_DATE_EPOCH=0

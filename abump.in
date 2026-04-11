@@ -82,7 +82,7 @@ fixes #${fixes#\#}
 			-e "s/^pkgrel=[^ ]*/pkgrel=0/" \
 			APKBUILD
 
-		$ABUILD $abuild_opts checksum all
+		$ABUILD $abuild_opts checksum $abuild_main
 		checkapk
 
 		git add APKBUILD
@@ -102,13 +102,14 @@ fixes #${fixes#\#}
 usage() {
 	cat <<-__EOF__
 		$program $program_version - bump pkgver in APKBUILDs
-		Usage: $program [-s CVE-1,CVE-2,...] [-m MESSAGE] [-f ISSUE] [-b|--branch] [-k|--keep] PKGNAME-1.2.3 ...
+		Usage: $program [-s CVE-1,CVE-2,...] [-m MESSAGE] [-f ISSUE] [-b|--branch] [-k|--keep] [-r|--rootbld] PKGNAME-1.2.3 ...
 		Options:
 		  -s, --security CVE1,CVE-2,...  Security update
 		  -m, --message MESSAGE          Message to include in the commit message body
 		  -f, --fixes ISSUE              Fixes ISSUE
 		  -b, --branch                   Create a git branch from HEAD before normal operation
 		  -k, --keep                     Run abuild with -k to keep existing packages
+		  -r, --rootbld                  Build in a clean chroot using 'abuild rootbld'
 		  -q, --quiet
 		  -h, --help                     Show this help
 
@@ -120,8 +121,9 @@ cvelist=
 commit_message=
 fixes=
 branch=
+abuild_main=all
 
-args=$(getopt -o f:s:m:bkqh --long fixes:,security:,message:,branch,keep,quiet,help \
+args=$(getopt -o f:s:m:bkrqh --long fixes:,security:,message:,branch,keep,rootbld,quiet,help \
 	-n "$program" -- "$@")
 if [ $? -ne 0 ]; then
 	usage >&2
@@ -135,6 +137,7 @@ while true; do
 		-f|--fixes) fixes="$2"; shift;;
 		-b|--branch) branch=1;;
 		-k|--keep) keep="-k";;
+		-r|--rootbld) abuild_main=rootbld;;
 		-q|--quiet) quiet=1;; # suppresses msg
 		-h|--help) usage; exit 0;;
 		--) shift; break;;

@@ -129,10 +129,7 @@ set_source_date() {
 }
 
 default_cleanup_srcdir() {
-	if options_has "chmod-clean" && test -d "$srcdir"; then
-		chmod -R +w "$srcdir"
-	fi
-	rm -rf "$srcdir"
+	abuild-rm -rf "$srcdir"
 }
 
 cleanup_srcdir() {
@@ -152,9 +149,9 @@ cleanup() {
 				msg "Cleaning up build chroot"
 				abuild-rmtemp "$BUILD_ROOT"
 			fi;;
-		pkgdir) msg "Cleaning up pkgdir"; rm -rf "$pkgbasedir";;
+		pkgdir) msg "Cleaning up pkgdir"; abuild-rm -rf "$pkgbasedir";;
 		srcdir) msg "Cleaning up srcdir"; cleanup_srcdir;;
-		tmpdir) msg "Cleaning up tmpdir"; rm -rf "$tmpdir";;
+		tmpdir) msg "Cleaning up tmpdir"; abuild-rm -rf "$tmpdir";;
 		deps)
 			if [ -n "$uninstall_after" ]; then
 				msg "Uninstalling dependencies..."
@@ -194,12 +191,6 @@ default_validate() {
 	# give 0 as it is always valid and give the pkgrel
 	$APK version --check --quiet 0-r"$pkgrel" || \
 		die "$pkgrel is not a valid pkgrel"
-	# digit+letter+digit passes the apk2 version check
-	case $pkgver in
-		*[0-9][a-z][0-9]*)
-			die "the digit+letter+digit version format is invalid. Use suffixes instead"
-			;;
-	esac
 
 	[ -z "$pkgdesc" ] && die "Missing pkgdesc in APKBUILD"
 	[ -z "$url" ] && die "Missing url in APKBUILD"
@@ -1113,8 +1104,6 @@ check_depver() {
 
 prepare_metafiles() {
 	local name=${subpkgname:-$pkgname}
-	[ -z "${name##* *}" ] && die "package name contains spaces"
-	local pkg="$name-$pkgver-r$pkgrel.apk"
 	local pkginfo="$controldir"/.PKGINFO
 	local i size
 
@@ -1186,7 +1175,7 @@ prepare_metafiles() {
 			local s=${i%=*}
 			[ "$name" != "${s%.*}" ] && continue
 			if head -n 1 "$startdir/$s" | grep -E '^#!\s*/bin/sh' >/dev/null ; then
-				msg "Script found. /bin/sh added as a dependency for $pkg"
+				msg "Script found. /bin/sh added as a dependency"
 				deps="$deps /bin/sh"
 				break
 			fi
@@ -1722,7 +1711,7 @@ scan_python3_dependency() {
 		fi
 		local pyver="${site_pkg_dir##*usr/lib/python}"
 		pyver="${pyver%%/*}"
-		if [ -n "$pyver" ] && [ "${subpkgname:-$pkgname}" != python3 ]; then
+		if [ -n "$pyver" ] && [ "${subpkgname:-$pkgname}" != python3 ] && [ "${subpkgname:-$pkgname}" != "python$pyver" ]; then
 			echo "python3~$pyver" \
 				>> "$controldir"/.needs-python3
 		fi
@@ -1921,7 +1910,7 @@ update_abuildrepo_index() {
 		if [ -f APKINDEX.tar.gz ]; then
 			oldindex="--index APKINDEX.tar.gz"
 		fi
-		( $APK index $ABUILD_APK_INDEX_OPTS --no-warnings --quiet $oldindex --output APKINDEX.tar.gz.$$ \
+		( $APK index --no-warnings --quiet $oldindex --output APKINDEX.tar.gz.$$ \
 			--description "$DESCRIPTION" --rewrite-arch $i *.apk && \
 		  msg "Signing the index..." && \
 		  abuild-sign -q APKINDEX.tar.gz.$$ && \
@@ -2231,7 +2220,7 @@ check_fakeroot() {
 # build and package in fakeroot
 rootpkg() {
 	cd "$startdir"
-	rm -rf "$pkgdir"
+	abuild-rm -rf "$pkgdir"
 
 	do_fakeroot "$abuild_path" $forceroot $color_opt $keep_build $verbose \
 		set_source_date \
@@ -2489,6 +2478,8 @@ rootbld_qemu_arch() {
 	arm*) qarch="arm" ;;
 	x86)  qarch="i386" ;;
 	loongarch*) qarch="loongarch" ;;
+	sh*eb) qarch="sh4eb" ;;
+	sh*) qarch="sh4" ;;
 	*)    qarch="$CBUILD_ARCH" ;;
 	esac
 
@@ -2505,7 +2496,9 @@ rootbld() {
 		return
 	fi
 
-	$APK info -eq abuild-rootbld || die "rootbld: abuild-rootbld package not installed"
+	if ! command -v bwrap >/dev/null || ! command -v envsubst >/dev/null; then
+		die "rootbld: requires bubblewrap and envsubst (try installing abuild-rootbld)"
+	fi
 
 	[ $CBUILD = $CHOST ] || die "rootbld: set CBUILD=$CHOST to build for $CHOST"
 
@@ -2517,8 +2510,6 @@ rootbld() {
 		if ! [ -f "/proc/sys/fs/binfmt_misc/qemu-$qarch" ]; then
 			warning "rootbld: binfmt registration missing for $qarch binaries"
 		fi
-		# Old versions of apk have cache conflicts
-		$APK info -eq 'cmd:apk>=2.14.1' || cachedir=""
 	fi
 
 	logcmd "chroot building building $repo/$pkgname-$pkgver-r$pkgrel"
@@ -2568,6 +2559,7 @@ rootbld() {
 		buildhost=${gitref/./-}
 	fi
 
+	local repo_list="$BUILD_ROOT"/etc/apk/repositories
 	[ -s "$repo_template" ] || die "rootbld: $repo_template does not exist"
 	(
 		for key in $($git config --list --name-only); do
@@ -2583,7 +2575,12 @@ rootbld() {
 			echo "$repository"
 			echo "$REPODEST/${repository##*/}"
 		done
-	) < "$repo_template" > "$BUILD_ROOT/etc/apk/repositories"
+	) < "$repo_template" > "$repo_list"
+
+	local repository
+	while read -r repository; do
+		msg "Using repository $repository"
+	done < "$repo_list"
 
 	calcdeps
 
@@ -2656,6 +2653,7 @@ rootbld() {
 		--setenv ABUILD_LAST_COMMIT "$ABUILD_LAST_COMMIT" \
 		--setenv PATH ${USE_CCACHE:+/usr/lib/ccache/bin:}/bin:/usr/bin:/sbin:/usr/sbin \
 		--setenv FAKEROOTDONTTRYCHOWN 1 \
+		--setenv JOBS "$JOBS" \
 		--unsetenv CBUILD \
 		/usr/bin/abuild $force $verbose rootbld_actions
 	update_abuildrepo_index
@@ -2759,8 +2757,7 @@ deplist_has() {
 }
 
 options_has() {
-	[ -n "${subpkgname:-pkgname}" ] &&
-	list_has "${subpkgname:-pkgname}::$1" $options ||
+	list_has "${subpkgname:-$pkgname}::$1" $options ||
 	list_has "$1" $options
 }
 
