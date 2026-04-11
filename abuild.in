@@ -447,7 +447,7 @@ default_fetch() {
 		fi
 
 		if [ "$sumalgo" != none ]; then
-			if ! echo "$1 $file" | ${sumalgo}sum -c; then
+			if ! echo "$1  $file" | ${sumalgo}sum -c; then
 				if is_remote $s; then
 					csum="${1:0:8}"
 
@@ -3062,6 +3062,7 @@ export GOCACHE="${GOCACHE:-"$tmpdir/go"}"
 export GOMODCACHE="${GOCACHE:-"$tmpdir/gomod"}"
 export GOTMPDIR="${GOTMPDIR:-"$tmpdir"}"
 export CARGO_HOME="${CARGO_HOME:-"$tmpdir/cargo"}"
+export HARECACHE="${HARECACHE:-"$tmpdir/hare-cache"}"
 
 if [ -n "$subpkgname" ]; then
 	# If we are handling a sub package then reset subpackages and install
