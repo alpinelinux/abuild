@@ -2523,8 +2523,7 @@ rootbld() {
 
 	[ $CBUILD = $CHOST ] || die "rootbld: set CBUILD=$CHOST to build for $CHOST"
 
-	local qarch cachedir=""
-	[ -d /etc/apk/cache ] && cachedir=/etc/apk/cache
+	local qarch
 	if ! [ $CBUILD_ARCH = "$($APK --print-arch)" ]; then
 		# cross-building, so check for binfmt registration
 		qarch="$(rootbld_qemu_arch)"
@@ -2612,10 +2611,25 @@ rootbld() {
 		ln -s usr/bin usr/sbin usr/lib "$BUILD_ROOT"/
 	fi
 
-	$SUDO_APK add --initdb --update \
+	if [ -z "${ABUILD_PACKAGE_CACHE+x}" ]; then
+		ABUILD_PACKAGE_CACHE="${XDG_CACHE_HOME:-$HOME/.cache}/apk"
+	fi
+
+	if [ -z "$ROOTBLD_APK" ]; then
+		ROOTBLD_APK=$APK
+		if [ "$(id -u)" -ne 0 ]; then
+			ROOTBLD_APK="$ROOTBLD_APK --usermode"
+		fi
+	fi
+
+	set --
+	if [ -n "$ABUILD_PACKAGE_CACHE" ]; then
+		mkdir -p "$ABUILD_PACKAGE_CACHE"
+		set -- --cache-dir "$ABUILD_PACKAGE_CACHE"
+	fi
+	$ROOTBLD_APK add "$@" --initdb --update \
 		--arch $CBUILD_ARCH \
 		--root "$BUILD_ROOT" \
-		${cachedir:+--cache-dir $cachedir} \
 		abuild alpine-base $hostdeps $builddeps
 
 	# busybox adduser/addgroup check if uid is 0 so we need to generate the files manually

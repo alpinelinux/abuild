@@ -138,6 +138,10 @@ other related operations.
 
 # ENVIRONMENT
 
+*ABUILD_PACKAGE_CACHE*
+	Cache directory used by rootbld. When set to an empty string the cache
+	is disabled. Defaults to *${XDG_CACHE_HOME:-$HOME/.cache}/apk*
+
 *APKBUILD*
 	Override path to *APKBUILD* file.
 
