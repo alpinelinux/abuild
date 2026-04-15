@@ -46,7 +46,7 @@ init_tests \
 	abuild_cleanoldpkg \
 	abuild_clean \
 	abuild_path_with_spaces \
-	abuild_pyc_error \
+	abuild_pyc_warn \
 	abuild_pyc \
 	abuild_setcap_binary \
 	abuild_setcap_binary_with_option \
@@ -1226,7 +1226,7 @@ abuild_path_with_spaces_body() {
 		abuild -d
 }
 
-abuild_pyc_error_body() {
+abuild_pyc_warn_body() {
 	init_keys
 
 	mkdir -p pycachetest
@@ -1248,7 +1248,7 @@ abuild_pyc_error_body() {
 		}
 	EOF
 
-	atf_check -s exit:1 -e match:"ERROR.*pyc*" abuild rootpkg
+	atf_check -e match:"WARNING.*pyc*" abuild rootpkg
 }
 
 abuild_pyc_body() {
