@@ -143,7 +143,7 @@ cleanup() {
 		bldroot)
 			if [ "$BUILD_ROOT" ]; then
 				msg "Cleaning up build chroot"
-				abuild-rmtemp "$BUILD_ROOT"
+				abuild-rm -rf "$BUILD_ROOT"
 			fi;;
 		pkgdir) msg "Cleaning up pkgdir"; abuild-rm -rf "$pkgbasedir";;
 		srcdir) msg "Cleaning up srcdir"; cleanup_srcdir;;

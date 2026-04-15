@@ -7,7 +7,7 @@ abuild
 abuild-fetch
 abuild-gzsplit
 abuild-keygen
-abuild-rmtemp
+abuild-rm
 abuild-sign
 abuild-sudo
 abuild-tar
