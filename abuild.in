@@ -1305,6 +1305,10 @@ prepare_pkgconfig_provides() {
 		set -- "$@" "${i%.pc}"
 	done
 
+	if [ -z "${1+x}" ]; then
+		return 0
+	fi
+
 	PKG_CONFIG_PATH="$dir"/usr/lib/pkgconfig:"$dir"/usr/share/pkgconfig \
 	PKG_CONFIG_MAXIMUM_TRAVERSE_DEPTH=1 pkg-config --print-provides "$@" |
 	while IFS=' =' read -r i v; do
