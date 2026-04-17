@@ -2551,7 +2551,7 @@ rootbld() {
 		"$BUILD_ROOT/tmp/distfiles" "$BUILD_ROOT/home/user/packages/$repo" \
 		"$BUILD_ROOT/tmp/pkg" "$BUILD_ROOT/tmp/src" \
 		"$BUILD_ROOT/tmp/tmp" "$BUILD_ROOT/usr/bin" \
-		"$REPODEST" "$SRCDEST" "$BUILD_ROOT/home/user/.ccache" \
+		"$REPODEST/$repo" "$SRCDEST" "$BUILD_ROOT/home/user/.ccache" \
 		"$BUILD_ROOT/${PACKAGER_PRIVKEY%/*}"
 	touch -- "$BUILD_ROOT/$PACKAGER_PRIVKEY"
 
