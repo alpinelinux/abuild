@@ -18,7 +18,6 @@ apkbuild-cpan
 apkbuild-gem-resolver
 apkbuild-pypi
 apkgrel
-buildlab
 checkapk
 devbuild
 functions.sh
