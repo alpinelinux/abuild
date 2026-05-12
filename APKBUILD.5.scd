@@ -94,7 +94,7 @@ The following variables must be set in all *APKBUILD* files:
 
 *license*
 	Specifies the license under which the package is distributed. The
-	value provided must match a SPDX license identifier.
+	value provided must match a SPDX license expression.
 
 *source*
 	Specifies the location of both local and remote source files

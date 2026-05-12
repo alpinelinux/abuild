@@ -57,7 +57,7 @@ the generated APKBUILD file will not contain any build instructions.
 
 *-l* _LICENSE_
 	Specifies the license under which the new package is distributed. This
-	should match an SPDX Identifier.
+	should match an SPDX license expression.
 
 *-m*
 	Specifies that the package uses Meson. Meson will be added to
