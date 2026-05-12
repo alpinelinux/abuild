@@ -1022,6 +1022,9 @@ check_license() {
 	local IFS="$IFS()"
 	local i; for i in $license; do
 		list_has "$i" "" AND OR WITH && continue
+		case "$i" in
+			LicenseRef-*|AdditionRef-*) continue ;;
+		esac
 		if ! grep -q -x -F "$i" "$license_list"; then
 			ret=1
 			warning "\"$i\" is not a known license"
