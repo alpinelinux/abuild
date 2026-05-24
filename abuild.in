@@ -2426,13 +2426,13 @@ builddeps() {
 	msg "Analyzing dependencies..."
 	calcdeps
 
-	# find which deps are missing
-	local mbd mhd missing
-	mbd=$(get_missing_deps "" $builddeps) || return 1
-	mhd=$(get_missing_deps "--root $CBUILDROOT" $hostdeps) || return 1
-	missing=$(echo $mbd $mhd)
-
 	if [ -z "$install_deps" ]; then
+		# find which deps are missing
+		local mbd mhd missing
+		mbd=$(get_missing_deps "" $builddeps) || return 1
+		mhd=$(get_missing_deps "--root $CBUILDROOT" $hostdeps) || return 1
+		missing=$(echo $mbd $mhd)
+
 		# if we dont have any missing deps we are done now
 		[ -z "$missing" ] && return 0
 		error "Missing dependencies (use -r to autoinstall them): $missing"
