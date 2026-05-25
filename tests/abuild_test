@@ -1521,7 +1521,7 @@ abuild_deps_body() {
 		-e match:'apk add.*--root.*hostdep' \
 		abuild deps
 
-	# Check shell_escape
+	# Check quoting
 	atf_check \
 		-e match:"apk add .*--repository It's \\\\b'\"\"'  \"escaped\"/.*" \
 		abuild -P "It's \b'\"\"'  \"escaped\"" deps

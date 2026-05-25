@@ -34,10 +34,6 @@ doc_threshold=$((2 * 1024 * 1024)) # 2 MiB
 
 umask 022
 
-shell_escape() {
-	printf '%s\n' "'${1//\'/\'\\\'\'}'"
-}
-
 # run optional log command for remote logging
 logcmd() {
 	${ABUILD_LOG_CMD:-true} "$@"
@@ -2411,16 +2407,15 @@ get_missing_deps() {
 }
 
 apk_add_makedeps() {
-	local prefix=$1 repo_args
+	local prefix="$1"
 	shift
 
-	repo_args="--repository $(shell_escape "$REPODEST/$repo")"
-	[ -s "$repo_template" ] && while read r; do
-		repo_args="$repo_args --repository $(shell_escape "$REPODEST/${r##*/}")"
+	set -- "$@" --repository "$REPODEST/$repo"
+	[ -s "$repo_template" ] && while read -r r; do
+		set -- "$@" --repository "$REPODEST/${r##*/}"
 	done < "$repo_template"
 
-	eval "$SUDO_APK" add "$apk_opt_wait" "$repo_args" \
-		--virtual .${prefix}depends-$pkgname "\$@" || return
+	$SUDO_APK add $apk_opt_wait --virtual ".${prefix}depends-$pkgname" "$@"
 }
 
 # build and install dependencies
