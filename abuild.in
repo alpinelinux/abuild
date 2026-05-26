@@ -2559,7 +2559,7 @@ rootbld() {
 	touch -- "$BUILD_ROOT/$PACKAGER_PRIVKEY"
 
 	# Avoid exporting {src,pkgbase,tmp}dir
-	cat - /etc/abuild.conf <<-EOF > "$BUILD_ROOT"/etc/abuild.conf
+	cat - "$ABUILD_CONF" <<-EOF > "$BUILD_ROOT"/etc/abuild.conf
 		srcdir=/tmp/src
 		pkgbasedir=/tmp/pkg
 		tmpdir=/tmp/tmp
