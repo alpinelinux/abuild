@@ -10,7 +10,7 @@ license='(GPL-3.0-only
 
  GPL-3.0-or-later AND
 		 BSD-4-Clause) AND
-	MIT
+	MIT OR LicenseRef-foo WITH AdditionRef-bar
 '
 
 prepare() {

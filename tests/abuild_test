@@ -670,7 +670,7 @@ abuild_multiline_license_body() {
 	cp -Ra "$testrepo"/test-licenses .
 	cd test-licenses
 	abuild rootpkg
-	atf_check -o match:'^license = \(GPL-3.0-only OR GPL-3.0-or-later AND BSD-4-Clause\) AND MIT$' \
+	atf_check -o match:'^license = \(GPL-3.0-only OR GPL-3.0-or-later AND BSD-4-Clause\) AND MIT OR LicenseRef-foo WITH AdditionRef-bar$' \
 		cat pkg/.control.test-licenses/.PKGINFO
 }
 
