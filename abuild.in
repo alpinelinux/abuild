@@ -652,7 +652,7 @@ mkusers() {
 # helper to update config.sub to a recent version
 update_config_sub() {
 	find . -name config.sub | (local changed=false; while read f; do
-		if ! sh "$f" loongarch64-alpine-linux-musl 2>/dev/null; then
+		if ! sh "$f" loongarch64-alpine-linux-musl >/dev/null 2>&1; then
 			msg "Updating $f"
 			cp "$sharedir"/${f##*/} "$f" || return 1
 			changed=true
