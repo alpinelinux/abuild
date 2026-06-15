@@ -59,7 +59,8 @@ init_tests \
 	abuild_symlink_depends \
 	abuild_pc_providers \
 	abuild_pc_depends \
-	abuild_split_vars_reset
+	abuild_split_vars_reset \
+	abuild_update_config_sub
 
 export ABUILD_SHAREDIR=$(atf_get_srcdir)/..
 export ABUILD_CONF=/dev/null
@@ -1835,4 +1836,62 @@ abuild_split_vars_reset_body() {
 	atf_check \
 		-o match:"pkgdesc = bar desc" \
 		grep '^pkgdesc = ' pkg/.control.bar/.PKGINFO
+}
+
+abuild_update_config_sub_body() {
+	init_keys
+	mkdir testupdateconfigsub
+	cd testupdateconfigsub
+	cat > APKBUILD <<- '__EOF__'
+		# Maintainer: Natanael Copa <ncopa@alpinelinux.org>
+		pkgname=testupdateconfigsub
+		pkgver=1.0
+		pkgrel=0
+		pkgdesc="desc"
+		url="https://gitlab.alpinelinux.org/alpine/aports"
+		arch="noarch"
+		license="MIT"
+		builddir="$srcdir"
+
+		prepare() {
+			default_prepare
+			update_config_sub
+		}
+
+		package() {
+			mkdir -p "$pkgdir"
+		}
+	__EOF__
+
+	mkdir src
+	cat > src/config.sub <<- '__EOF__'
+	#!/there/is/no/standard/bin/sh
+	case "$1" in
+	*-alpine-linux-musl*)
+		printf '%s\n' "$1"
+		exit 0
+		;;
+	esac
+	exit 1
+	__EOF__
+
+	atf_check -s exit:1 \
+		-e match:"No update needed for ./config.sub" \
+		abuild prepare
+
+	mkdir src/foo
+	cat > src/foo/config.sub <<- '__EOF__'
+	#!/bin/sh
+	exit 1
+	__EOF__
+
+	atf_check -s exit:0 \
+		-e match:"No update needed for ./config.sub" \
+		-e match:"Updating ./foo/config.sub" \
+		abuild prepare
+
+	atf_check -s exit:1 \
+		-e match:"No update needed for ./config.sub" \
+		-e match:"No update needed for ./foo/config.sub" \
+		abuild prepare
 }
