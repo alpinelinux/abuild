@@ -164,6 +164,7 @@ cleanup() {
 
 die() {
 	trap - EXIT HUP
+	set +e # Ignore print failure
 	error "$@"
 	cleanup $ERROR_CLEANUP
 	exit 1
