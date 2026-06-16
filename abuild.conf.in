@@ -30,9 +30,8 @@
 #GOMODCACHE=${GOPATH:-$HOME/go}/pkg/mod
 #CARGO_HOME=$HOME/.cargo
 
-# uncomment to create .orig files when patches don't align. May change
-# build output
-#patch_args_cfg="--backup-if-mismatch"
+# uncomment to avoid creating .orig files when patches don't align
+#patch_args_cfg="--no-backup-if-mismatch"
 
 # uncomment to disable SOURCE_DATE_EPOCH retrieval and fasten up the build process
 #SOURCE_DATE_EPOCH=0
