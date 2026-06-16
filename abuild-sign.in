@@ -28,6 +28,7 @@ do_sign() {
 		i=$(readlink -f $f)
 		[ -d "$i" ] && i="$i/APKINDEX.tar.gz"
 		repo="${i%/*}"
+		trap 'exit 1' HUP
 		trap 'die "failed to sign $i"' EXIT
 		set -e
 		cd "$repo"
@@ -47,7 +48,7 @@ do_sign() {
 		mv "$tmpsigned" "$i"
 		msg "Signed $i"
 		set +e
-		trap - EXIT
+		trap - EXIT HUP
 	done
 }
 

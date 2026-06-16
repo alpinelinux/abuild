@@ -163,7 +163,7 @@ cleanup() {
 }
 
 die() {
-	trap - EXIT
+	trap - EXIT HUP
 	error "$@"
 	cleanup $ERROR_CLEANUP
 	exit 1
@@ -679,6 +679,7 @@ runpart() {
 	local part=$1
 	is_function "$part" || die "No such function $part"
 	[ -n "$DEBUG" ] && msg "$part"
+	trap 'exit 1' HUP
 	trap "die '$part failed'" EXIT
 	case "$part" in
 		prepare|build|package|check)
@@ -691,7 +692,7 @@ runpart() {
 			;;
 	esac
 	$part
-	trap - EXIT
+	trap - EXIT HUP
 }
 
 have_patches() {
