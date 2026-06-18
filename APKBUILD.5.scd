@@ -204,6 +204,9 @@ file.
 	When multiple subpackages are specified their split functions are
 	executed in the order in which they occur in *subpackages*.
 
+	When used the _$pkgname-dbg_ subpackage should be the first one
+	and _$pkgname-static_ should be placed before _$pkgname-dev_.
+
 *triggers*
 	Specifies trigger scripts used by the specified (sub)packages. A
 	trigger script is a shell script that is called whenever monitored
