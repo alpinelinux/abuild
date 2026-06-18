@@ -37,7 +37,7 @@ get_privkey_file() {
 		return 0
 	fi
 	msg "Generating public/private rsa key pair for abuild"
-	echo -n "Enter file in which to save the key [$privkey]: "
+	printf 'Enter file in which to save the key [%s]: ' "$privkey"
 
 	read line
 	if [ -n "$line" ]; then
