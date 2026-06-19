@@ -177,6 +177,11 @@ verify_pkgname() {
 	return 0
 }
 
+ensure_valid_filename() {
+	local invalid="${1//[A-Za-z0-9+@~._-]/}"
+	[ -z "$invalid" ] || die "Forbidden character(s) in filename $1: $invalid"
+}
+
 # check if apkbuild is valid
 default_validate() {
 	local i= j= found
@@ -242,6 +247,7 @@ default_validate() {
 		if ! subpackages_has "$n" && [ "$n" != "$pkgname" ]; then
 			die "$i: install script does not match pkgname or any subpackage"
 		fi
+		ensure_valid_filename "$i"
 		[ -e "$startdir/$i" ] || die "install script $i is missing"
 		for j in chown chmod chgrp; do
 			if grep -q $j "$startdir"/$i; then
@@ -264,6 +270,7 @@ default_validate() {
 			warning "You should not have \$triggers in source"
 		fi
 
+		ensure_valid_filename "$f"
 		[ -e "$startdir"/$f ] || die "trigger script $f is missing"
 	done
 	for i in $source; do
@@ -272,6 +279,7 @@ default_validate() {
 		fi
 
 		j=$(filename_from_uri "$i")
+		ensure_valid_filename "$j"
 
 		# verify that our source does not have git tag version
 		# name as tarball (typically github)
