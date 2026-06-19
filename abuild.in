@@ -950,7 +950,7 @@ prepare_subpackages() {
 		postcheck "$pkgbasedir/$subpkgname" "$subpkgname"
 	done
 	subpkg_unset
-	postcheck "$pkgdir" "$pkgname" || return 1
+	postcheck "$pkgdir" "$pkgname"
 	# post check for /usr/share/locale
 	if [ -d "$pkgdir"/usr/share/locale ]; then
 		warning "Found /usr/share/locale"
