@@ -826,32 +826,32 @@ postcheck() {
 	fi
 	# look for /etc/init.d and /etc/conf.d
 	if [ -e "$dir"/etc/init.d -o -e "$dir"/etc/conf.d ] \
-			&& ! is_openrc_pkg "$name"; then
+			&& [ "${name%-openrc}" = "$name" ]; then
 		warning "Found OpenRC directory (/etc/conf.d or /etc/init.d) but name doesn't end with -openrc"
 	fi
 	# look for /usr/lib/systemd
 	if [ -e "$dir"/usr/lib/systemd ] \
-			&& ! is_systemd_pkg "$name"; then
+			&& [ "${name%-systemd}" = "$name" ] && [ "$name" != systemd ]; then
 		warning "Found systemd directory (/usr/lib/systemd) but it's not in a systemd package"
 	fi
 	# look for /usr/lib/udev
 	if [ -e "$dir"/usr/lib/udev ] \
-			&& ! is_udev_pkg "$name"; then
+			&& [ "${name%-udev}" = "$name" ] && [ "$name" != udev ]; then
 		warning "Found udev directory (/usr/lib/udev) but it's not in a -udev package"
 	fi
 	# look for /usr/share/doc
 	if [ -e "$dir"/usr/share/doc ] \
-			&& ! is_doc_pkg "$name"; then
+			&& [ "${name%-doc}" = "$name" ]; then
 		warning "Found /usr/share/doc but package name doesn't end with -doc"
 	fi
 	# look for /usr/share/devhelp
 	if [ -e "$dir"/usr/share/devhelp ] \
-			&& ! is_devhelp_pkg "$name"; then
+			&& [ "${name%-devhelp}" = "$name" ]; then
 		warning "Found /usr/share/devhelp but package name doesn't end with -devhelp"
 	fi
 	# look for /usr/share/man
 	if [ -e "$dir"/usr/share/man ]; then
-		if ! is_doc_pkg "$name"; then
+		if [ "${name%-doc}" = "$name" ]; then
 			warning "Found /usr/share/man but package name doesn't end with -doc"
 		fi
 		# check for uncompressed man pages
@@ -1402,41 +1402,6 @@ dir_has_arch_binaries() {
 	return 1
 }
 
-# returns true if this is the -dev package
-is_dev_pkg() {
-	test "${1%-dev}" != "$1"
-}
-
-# returns true if this is the -static package
-is_static_pkg() {
-	test "${1%-static}" != "$1"
-}
-
-# returns true if this is the -doc package
-is_doc_pkg() {
-	test "${1%-doc}" != "$1"
-}
-
-# returns true if this is the -devhelp package
-is_devhelp_pkg() {
-	test "${1%-devhelp}" != "$1"
-}
-
-# returns true if this is the -openrc package
-is_openrc_pkg() {
-	test "${1%-openrc}" != "$1"
-}
-
-# returns true if this is the -systemd package
-is_systemd_pkg() {
-	test "${1%-systemd}" != "$1" || test "systemd" = "$1"
-}
-
-# returns true if this is the -udev package
-is_udev_pkg() {
-	test "${1%-udev}" != "$1" || test "udev" = "$1"
-}
-
 # check that noarch is set if needed
 archcheck() {
 	options_has "!archcheck" && return 0
@@ -1444,7 +1409,7 @@ archcheck() {
 		[ "${subpkgarch:-$pkgarch}" != "noarch" ] && return 0
 		error "Arch specific binaries found so arch must not be set to \"noarch\""
 		return 1
-	elif [ "${subpkgarch:-$pkgarch}" != "noarch" ] && ! is_dev_pkg "$subpkgname" && ! is_static_pkg "$subpkgname"; then
+	elif [ "${subpkgarch:-$pkgarch}" != "noarch" ] && [ "${subpkgname%-dev}" = "$subpkgname" ] && [ "${subpkgname%-static}" = "$subpkgname" ]; then
 		# we dont want -dev package go to noarch
 		warning "No arch specific binaries found so arch should probably be set to \"noarch\""
 	fi
@@ -1825,7 +1790,7 @@ create_apks() {
 		local datadir="$pkgbasedir"/$subpkgname
 
 		# See https://gitlab.alpinelinux.org/alpine/tsc/-/issues/16
-		if ! options_has "bigdocs" && is_doc_pkg "$subpkgname" && [ "$size" -gt "$doc_threshold" ]; then
+		if ! options_has "bigdocs" && [ "${subpkgname%-doc}" != "$subpkgname" ] && [ "$size" -gt "$doc_threshold" ]; then
 			warning "The -doc subpackage is unusually large, consider splitting it"
 		fi
 
