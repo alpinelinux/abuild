@@ -272,21 +272,21 @@ default_validate() {
 			warning "You should not have \$install in source"
 			continue
 		fi
-		case "$i" in
-			*::*) i=${i%%::*};;
-		esac
-		list_has ${i##*/} ${sha512sums:-$sha256sums} \
-			|| die "${i##*/} is missing in checksums"
+
+		j=$(filename_from_uri "$i")
 
 		# verify that our source does not have git tag version
 		# name as tarball (typically github)
-		if is_remote "$i" && [ "${i#*::}" = "$i" ]; then
-			case ${i##*/} in
+		if is_remote "$i"; then
+			case $j in
 			v$pkgver.tar.*|$pkgver.tar.*)
-				die "source ${i##*/} needs to be renamed to avoid possible collisions"
+				die "source $j needs to be renamed to avoid possible collisions"
 				;;
 			esac
 		fi
+
+		list_has $j ${sha512sums:-$sha256sums} \
+			|| die "$j is missing in checksums"
 	done
 
 	if [ -z "$sha512sums" ] && [ -n "$sha256sums" ]; then
