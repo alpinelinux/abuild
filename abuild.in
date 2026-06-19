@@ -262,7 +262,6 @@ default_validate() {
 
 		if source_has "$f"; then
 			warning "You should not have \$triggers in source"
-			continue
 		fi
 
 		[ -e "$startdir"/$f ] || die "trigger script $f is missing"
@@ -270,7 +269,6 @@ default_validate() {
 	for i in $source; do
 		if install_has "$i"; then
 			warning "You should not have \$install in source"
-			continue
 		fi
 
 		j=$(filename_from_uri "$i")
