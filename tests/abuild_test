@@ -20,6 +20,7 @@ init_tests \
 	abuild_py_dependency_scan_versioned_python \
 	abuild_py_dependency_scan_conflict \
 	abuild_rpaths \
+	abuild_strip \
 	abuild_reject_init_with_improper_shebang \
 	abuild_valid_pkgnames \
 	abuild_invalid_pkgnames \
@@ -477,6 +478,99 @@ abuild_rpaths_body() {
 		cat pkg/.control.pkg/.rpaths
 	ABUILD_RPATH='/home/builder' atf_check -s exit:1 -o ignore \
 		-e match:"ERROR:.*: Has /home/... in rpath" abuild rootpkg
+}
+
+abuild_strip_body() {
+	init_keys
+
+	mkdir -p bin
+	cat > bin/scanelf <<-EOF
+		#!/bin/sh
+		for i; do
+			[ "\$i" = --osabi ] || continue
+			echo ET_DYN NONE ./usr/bin/*
+			break
+		done
+	EOF
+	chmod +x bin/scanelf
+	cat > bin/strip <<-EOF
+		#!/bin/sh
+		[ "\$1" = -o ] || exit 1
+		echo "\${0##*/}" > "\$2"
+	EOF
+	chmod +x bin/strip
+	ln -s strip bin/powerpc-chimera-linux-musl-strip
+	ln -s strip bin/powerpc-alpine-linux-musl-strip
+	PATH="$PWD/bin:$PATH"
+
+	mkdir -p testrepo/pkg
+	cd testrepo/pkg
+	cat > APKBUILD <<- 'EOF'
+		maintainer="Natanael Copa <ncopa@alpinelinux.org>"
+		pkgname="pkg"
+		pkgver=1.0
+		pkgrel=0
+		pkgdesc="Dummy test package"
+		url="https://gitlab.alpinelinux.org/alpine/aports"
+		arch="all"
+		license="MIT"
+		options="!check !tracedeps !textrels !archcheck"
+		subpackages="
+			pkg-default:_s
+			pkg-noarch:_s:noarch
+			pkg-all:_s:all
+			pkg-cbuild:_s:$CBUILD
+			pkg-cbuild-arch:_s:$CBUILD_ARCH
+			pkg-chost:_s:$CHOST
+			pkg-carch:_s:$CARCH
+			pkg-ctarget:_s:$CTARGET
+			pkg-ctarget-arch:_s:$CTARGET_ARCH
+			"
+
+		package() {
+			mkdir -p "$pkgdir"/usr/bin
+			touch "$pkgdir"/usr/bin/$pkgname
+		}
+
+		_s() {
+			mkdir -p "$subpkgdir"/usr/bin
+			touch "$subpkgdir"/usr/bin/$subpkgname
+		}
+	EOF
+	abuild rootpkg || atf_fail "abuild failed"
+	atf_check -s exit:0 \
+		-o inline:'strip\n' \
+		sort -u pkg/*/usr/bin/*
+
+	CBUILD=x86_64 CHOST=ppc abuild rootpkg || atf_fail "abuild failed"
+	atf_check -s exit:0 \
+		-o inline:'strip\n' \
+		sort -u pkg/pkg-cbuild*/usr/bin/*
+	atf_check -s exit:0 \
+		-o inline:'powerpc-alpine-linux-musl-strip\n' \
+		sort -u pkg/pkg/usr/bin/* pkg/pkg-[!c]*/usr/bin/* pkg/pkg-c[!b]*/usr/bin/*
+
+	CBUILD=powerpc-alpine-linux-musl CHOST=powerpc-chimera-linux-musl abuild rootpkg || atf_fail "abuild failed"
+	atf_check -s exit:0 \
+		-o inline:'strip\n' \
+		sort -u pkg/pkg-cbuild/usr/bin/*
+	atf_check -s exit:0 \
+		-o inline:'powerpc-chimera-linux-musl-strip\n' \
+		sort -u pkg/pkg/usr/bin/* pkg/pkg-[!c]*/usr/bin/* pkg/pkg-c[!b]*/usr/bin/* \
+		pkg/pkg-cbuild-arch/usr/bin/*
+
+	CBUILD=x86_64 CHOST=powerpc-alpine-linux-musl CTARGET=powerpc-chimera-linux-musl \
+	abuild rootpkg || atf_fail "abuild failed"
+	atf_check -s exit:0 \
+		-o inline:'strip\n' \
+		sort -u pkg/pkg-cbuild*/usr/bin/*
+	atf_check -s exit:0 \
+		-o inline:'powerpc-alpine-linux-musl-strip\n' \
+		sort -u pkg/pkg/usr/bin/* pkg/pkg-[!c]*/usr/bin/* pkg/pkg-c[!bt]*/usr/bin/* \
+		pkg/pkg-ctarget-arch/usr/bin/*
+	atf_check -s exit:0 \
+		-o inline:'powerpc-chimera-linux-musl-strip\n' \
+		sort -u pkg/pkg-ctarget/usr/bin/*
 }
 
 abuild_reject_init_with_improper_shebang_body() {
