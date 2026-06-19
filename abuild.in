@@ -581,10 +581,12 @@ subpkg_set() {
 	subpkgarch=${_splitarch#*:}
 	subpkgtriplet=$CHOST
 	if [ "$subpkgarch" = "$_splitarch" -o -z "$subpkgarch" ]; then
-		case "$subpkgname" in
-		*-doc | *-openrc | *-lang | *sh-completion | *-pyc | *-nftrules | *-systemd | *-udev) subpkgarch="noarch" ;;
-		*) subpkgarch="$pkgarch" ;;
-		esac
+		subpkgarch="$pkgarch"
+		if [ "$subpkgname" != "$pkgname" ]; then
+			case "$subpkgname" in
+			*-doc | *-openrc | *-lang | *sh-completion | *-pyc | *-nftrules | *-systemd | *-udev) subpkgarch="noarch" ;;
+			esac
+		fi
 	else
 		case "$subpkgarch" in
 		noarch|"$CARCH") ;;
