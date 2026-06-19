@@ -869,6 +869,22 @@ postcheck() {
 	if [ -n "$i" ] && [ "${name%-pyc}" = "$name" ]; then
 		warning "Found __pycache__ but package name doesn't end with -pyc"
 	fi
+	if [ -e "$dir"/usr/share/locale ] && [ "${name%-lang}" = "$name" ]; then
+		warning "Found /usr/share/locale but package name doesn't end with -lang"
+	fi
+	if [ -e "$dir"/usr/share/bash-completion ] && [ "${name%-bash-completion}" = "$name" ]; then
+		warning "Found /usr/share/bash-completion but package name doesn't end with -bash-completion"
+	fi
+	if [ -e "$dir"/usr/share/zsh/site-functions ] && [ "${name%-zsh-completion}" = "$name" ]; then
+		warning "Found /usr/share/zsh/site-functions but package name doesn't end with -zsh-completion"
+	fi
+	if [ -e "$dir"/usr/share/fish/completions ]; then
+		warning "Found /usr/share/fish/completions"
+		warning2 "fish completions for programs should be located in /usr/share/fish/vendor_completions.d"
+	fi
+	if [ -e "$dir"/usr/share/fish/vendor_completions.d ] && [ "${name%-fish-completion}" = "$name" ]; then
+		warning "Found /usr/share/fish/vendor_completions.d but package name doesn't end with -fish-completion"
+	fi
 
 	# check that we don't have any files names with newline
 	i=$(find "$dir" -name $'*\n*')
@@ -951,28 +967,6 @@ prepare_subpackages() {
 	done
 	subpkg_unset
 	postcheck "$pkgdir" "$pkgname"
-	# post check for /usr/share/locale
-	if [ -d "$pkgdir"/usr/share/locale ]; then
-		warning "Found /usr/share/locale"
-		warning2 "Maybe add \$pkgname-lang to subpackages?"
-	fi
-	# post check for shell completions
-	if [ -d "$pkgdir"/usr/share/bash-completion ]; then
-		warning "Found /usr/share/bash-completion"
-		warning2 "Add \$pkgname-bash-completion to subpackages"
-	fi
-	if [ -d "$pkgdir"/usr/share/zsh/site-functions ]; then
-		warning "Found /usr/share/zsh/site-functions"
-		warning2 "Add \$pkgname-zsh-completion to subpackages"
-	fi
-	if [ -d "$pkgdir"/usr/share/fish/completions ]; then
-		warning "Found /usr/share/fish/completions"
-		warning2 "fish completions for programs should be located in /usr/share/fish/vendor_completions.d"
-	fi
-	if [ -d "$pkgdir"/usr/share/fish/vendor_completions.d ]; then
-		warning "Found /usr/share/fish/completions"
-		warning2 "Add \$pkgname-fish-completion to subpackages"
-	fi
 }
 
 default_lang() {
