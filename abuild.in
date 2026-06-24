@@ -2622,7 +2622,7 @@ rootbld() {
 	fi
 
 	if [ -z "$ROOTBLD_APK" ]; then
-		ROOTBLD_APK=$APK
+		ROOTBLD_APK="$APK --no-interactive"
 		if [ "$(id -u)" -ne 0 ]; then
 			ROOTBLD_APK="$ROOTBLD_APK --usermode"
 		fi
