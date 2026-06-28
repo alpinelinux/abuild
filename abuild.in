@@ -1623,7 +1623,8 @@ scan_shared_objects() {
 	msg "Scanning shared objects"
 	# lets tell all the .so files this package provides in .provides-so
 	local etype soname file
-	scanelf --nobanner --soname $opt "$@" | while read etype soname file; do
+	rm -f "$controldir"/.provides-so-fin
+	scanelf --nobanner --soname $opt "$@" | { while read etype soname file; do
 		# if soname field is missing, soname will be the filepath
 		sover=0
 		if [ -z "$file" ]; then
@@ -1652,11 +1653,16 @@ scan_shared_objects() {
 			;;
 		esac
 		list_has "$soname" $somask && continue
+		$APK version --check --quiet "$sover" || die "$file: library version $sover is invalid"
 		echo "$sonameprefix$soname $sover"
 	# use awk to filter out dupes that has sover = 0
-	done | awk '{ if (so[$1] == 0) so[$1] = $2; }
+	done; touch "$controldir"/.provides-so-fin; } | awk '{ if (so[$1] == 0) so[$1] = $2; }
 		END { for (i in so) print("so:" i "=" so[i]); }' \
 		| sort -u > "$controldir"/.provides-so
+
+	if ! [ -f "$controldir"/.provides-so-fin ]; then
+		exit 1
+	fi
 
 	# verify that we dont have any duplicates
 	dupes="$(cut -d'=' -f1 "$controldir"/.provides-so | uniq -d)"
