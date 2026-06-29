@@ -1565,7 +1565,7 @@ trace_apk_deps() {
 	touch "$dir"/.provides-dummy
 	sed 's/^/provides = /' "$dir"/.provides-* | sort -u >> "$dir"/.PKGINFO
 
-	for i in "$dir"/.needs-symlinks "$dir"/.needs-python3 "$dir"/.needs-debug; do
+	for i in "$dir"/.needs-symlinks "$dir"/.needs-python3; do
 		[ -f "$i" ] && cat "$i"
 	done | sed 's/^/depend = /' | sort -u >> "$dir"/.PKGINFO
 
@@ -1739,24 +1739,6 @@ scan_python3_dependency() {
 	done
 }
 
-# find the packages containing the binaries corresponding to the debug files
-scan_debuginfo_targets() {
-	local root=$3/usr/lib/debug pkgdir name
-	[ -d "$root" ] || return 0
-
-	find "$root" -name "*.debug" | while read path; do
-		path=${path#$root}
-		path=${path%.debug}
-		for pkgdir in "$pkgbasedir"/*; do
-			if [ -x "$pkgdir$path" ]; then
-				name="${pkgdir#$pkgbasedir/}"
-				echo "!$name<$pkgver-r$pkgrel"
-				echo "!$name>$pkgver-r$pkgrel"
-			fi
-		done
-	done > "$dir"/.needs-debug
-}
-
 #find pkg-config dependencies
 scan_pkgconfig_depends() {
 	local controldir="$2" datadir="$3"
@@ -1811,7 +1793,6 @@ create_apks() {
 			scan_shared_objects "$subpkgname" "$dir" "$datadir"
 			scan_symlink_targets "$subpkgname" "$dir" "$datadir"
 			scan_python3_dependency "$subpkgname" "$dir" "$datadir"
-			scan_debuginfo_targets "$subpkgname" "$dir" "$datadir"
 			scan_pkgconfig_depends "$subpkgname" "$dir" "$datadir"
 		fi
 	done
