@@ -108,7 +108,7 @@ want_check() {
 
 set_source_date() {
 	# dont error out if APKBUILD is not in git
-	if ! $git -C "$startdir" rev-parse --show-toplevel >/dev/null 2>&1; then
+	if ! $git -C "$startdir" rev-parse 2>/dev/null; then
 		git=true
 	fi
 	# set time stamp for reproducible builds
