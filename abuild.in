@@ -1921,17 +1921,31 @@ update_abuildrepo_index() {
 		cd "$REPODEST/$repo/$i"
 
 		msg "Updating the $repo/$i repository index..."
-		local oldindex=
+		local oldindex= oldv3index=
 		if [ -f APKINDEX.tar.gz ]; then
 			oldindex="--index APKINDEX.tar.gz"
 		fi
-		( $APK index --no-warnings --quiet $oldindex --output APKINDEX.tar.gz.$$ \
-			--description "$DESCRIPTION" --rewrite-arch $i *.apk && \
-		  msg "Signing the index..." && \
-		  abuild-sign -q APKINDEX.tar.gz.$$ && \
-		  chmod 644 APKINDEX.tar.gz.$$ && \
-		  mv APKINDEX.tar.gz.$$ APKINDEX.tar.gz \
-		) || (rm -f APKINDEX.tar.gz.$$ ; die "Failed to create index")
+		if [ -f Packages.adb ]; then
+			oldv3index="--index Packages.adb"
+		fi
+		{
+			$APK index --no-warnings --quiet $oldindex --output APKINDEX.tar.gz.$$ \
+				--description "$DESCRIPTION" --rewrite-arch $i ./*.apk &&
+			msg "Signing the index..." &&
+			abuild-sign -q APKINDEX.tar.gz.$$ &&
+			chmod 644 APKINDEX.tar.gz.$$ &&
+			mv APKINDEX.tar.gz.$$ APKINDEX.tar.gz &&
+			if [ -n "$ABUILD_V3_INDEX" ]; then
+				msg "Creating v3 index..." &&
+				$APK mkndx --sign-key "$PACKAGER_PRIVKEY" --quiet $oldv3index --output Packages.adb.$$ \
+					--description "$DESCRIPTION" --pkgname-spec "$i/\${name}-\${version}.apk" ./*.apk &&
+				mv Packages.adb.$$ Packages.adb &&
+				{ [ -e "$i" ] || ln -s . "$i"; } # Allow ndx URLs to keep working with --pkgname-spec
+			fi
+		} || {
+			rm -f Packages.adb.$$ APKINDEX.tar.gz.$$
+			die "Failed to create index"
+		}
 	done
 	cd "$oldpwd"
 }
