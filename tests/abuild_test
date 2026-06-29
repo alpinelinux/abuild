@@ -319,7 +319,7 @@ abuild_subpkg_dep_leak_body() {
 			mkdir -p "\$subpkgdir"
 		}
 	EOF
-	abuild clean unpack prepare build rootpkg
+	abuild -dK
 
 	grep 'depend = tar' pkg/.control.subpkg-dep-leak/.PKGINFO \
 		|| atf_fail "subpkg-dep-leak should depend on tar"
@@ -356,7 +356,7 @@ abuild_subpkg_libs_body() {
 			touch "\$pkgdir"/usr/lib/libfoo.so.1
 		}
 	EOF
-	abuild clean unpack prepare build rootpkg || atf_fail "abuild failed"
+	abuild -dK || atf_fail "abuild failed"
 	if ! [ -e pkg/pkg-libs/usr/lib/libfoo.so.1 ]; then
 		find pkg
 		atf_fail "libfoo.so.1 was not moved"
@@ -367,7 +367,7 @@ abuild_subpkg_libs_body() {
 abuild_py_providers_creation_body() {
 	cp -Ra "$testrepo" .
 	cd testrepo/py3\ foo\ and\ bar
-	abuild rootpkg || atf_fail "abuild failed"
+	abuild -dK || atf_fail "abuild failed"
 	atf_check -s exit:0 \
 		-o match:"provides = py3.9:foo=1.0.0-r0" \
 		cat pkg/.control.py3-foo-and-bar/.PKGINFO
@@ -376,7 +376,7 @@ abuild_py_providers_creation_body() {
 abuild_py_dependency_scan_body() {
 	cp -Ra "$testrepo" .
 	cd testrepo/py3\ foo\ and\ bar
-	abuild rootpkg || atf_fail "abuild failed"
+	abuild -dK || atf_fail "abuild failed"
 	atf_check -s exit:0 \
 		-o match:"depend = python3~3.9" \
 		cat pkg/.control.py3-foo-and-bar/.PKGINFO
@@ -406,7 +406,7 @@ abuild_py_dependency_scan_versioned_python_body() {
 		}
 	EOF
 
-	abuild rootpkg || atf_fail "abuild failed"
+	abuild -dK || atf_fail "abuild failed"
 	atf_check -s exit:0 \
 		-o not-match:"depend = python3~3.12" \
 		cat pkg/.control.python3.12/.PKGINFO
@@ -418,7 +418,7 @@ abuild_py_dependency_scan_conflict_body() {
 	cd testrepo/py3-conflicting-python-versions
 	atf_check -s exit:1 \
 		-e match:"ERROR.*package contains python3 modules for conflicting python3 versions" \
-		abuild rootpkg
+		abuild -d
 }
 
 abuild_rpaths_body() {
@@ -453,17 +453,17 @@ abuild_rpaths_body() {
 			touch "\$pkgdir"/usr/lib/libfoo.so.1
 		}
 	EOF
-	ABUILD_RPATH='/usr/lib/foo' abuild rootpkg || atf_fail "abuild failed"
+	ABUILD_RPATH='/usr/lib/foo' abuild -dKf || atf_fail "abuild failed"
 	atf_check -s exit:0 \
 		-o match:"/usr/lib/foo" \
 		cat pkg/.control.pkg/.rpaths
-	ABUILD_RPATH='$ORIGIN/bar:${ORIGIN}/../baf' pkgbasedir=$PWD/pkg abuild rootpkg || atf_fail "abuild failed"
+	ABUILD_RPATH='$ORIGIN/bar:${ORIGIN}/../baf' pkgbasedir=$PWD/pkg abuild -dKf || atf_fail "abuild failed"
 	atf_check -s exit:0 \
 		-o match:"/usr/lib/pkg/bar" \
 		-o match:"/usr/lib/pkg/../baf" \
 		cat pkg/.control.pkg/.rpaths
 	ABUILD_RPATH='/home/builder' atf_check -s exit:1 -o ignore \
-		-e match:"ERROR:.*: Has /home/... in rpath" abuild rootpkg
+		-e match:"ERROR:.*: Has /home/... in rpath" abuild -df
 }
 
 abuild_strip_body() {
@@ -522,12 +522,12 @@ abuild_strip_body() {
 			touch "$subpkgdir"/usr/bin/$subpkgname
 		}
 	EOF
-	abuild rootpkg || atf_fail "abuild failed"
+	abuild -dKf || atf_fail "abuild failed"
 	atf_check -s exit:0 \
 		-o inline:'strip\n' \
 		sort -u pkg/*/usr/bin/*
 
-	CBUILD=x86_64 CHOST=ppc abuild rootpkg || atf_fail "abuild failed"
+	CBUILD=x86_64 CHOST=ppc abuild -dKf || atf_fail "abuild failed"
 	atf_check -s exit:0 \
 		-o inline:'strip\n' \
 		sort -u pkg/pkg-cbuild*/usr/bin/*
@@ -535,7 +535,7 @@ abuild_strip_body() {
 		-o inline:'powerpc-alpine-linux-musl-strip\n' \
 		sort -u pkg/pkg/usr/bin/* pkg/pkg-[!c]*/usr/bin/* pkg/pkg-c[!b]*/usr/bin/*
 
-	CBUILD=powerpc-alpine-linux-musl CHOST=powerpc-chimera-linux-musl abuild rootpkg || atf_fail "abuild failed"
+	CBUILD=powerpc-alpine-linux-musl CHOST=powerpc-chimera-linux-musl abuild -dKf || atf_fail "abuild failed"
 	atf_check -s exit:0 \
 		-o inline:'strip\n' \
 		sort -u pkg/pkg-cbuild/usr/bin/*
@@ -545,7 +545,7 @@ abuild_strip_body() {
 		pkg/pkg-cbuild-arch/usr/bin/*
 
 	CBUILD=x86_64 CHOST=powerpc-alpine-linux-musl CTARGET=powerpc-chimera-linux-musl \
-	abuild rootpkg || atf_fail "abuild failed"
+	abuild -dKf || atf_fail "abuild failed"
 	atf_check -s exit:0 \
 		-o inline:'strip\n' \
 		sort -u pkg/pkg-cbuild*/usr/bin/*
@@ -741,7 +741,7 @@ abuild_pkgver_digit_letter_digit_body() {
 abuild_multiline_license_body() {
 	cp -Ra "$testrepo"/test-licenses .
 	cd test-licenses
-	abuild rootpkg
+	abuild -dK
 	atf_check -o match:'^license = \(GPL-3.0-only OR GPL-3.0-or-later AND BSD-4-Clause\) AND MIT OR LicenseRef-foo WITH AdditionRef-bar$' \
 		cat pkg/.control.test-licenses/.PKGINFO
 }
@@ -887,7 +887,7 @@ abuild_package_size_body() {
 		#!/bin/sh
 		echo 1
 	EOF
-	abuild rootpkg
+	abuild -dK
 	local i size
 	for i in \
 		empty-noscript:0 \
@@ -928,7 +928,7 @@ abuild_keepdirs_body() {
 			mkdir -p "\$pkgdir"/usr/bin
 		}
 	EOF
-	abuild rootpkg || atf_fail "abuild rootpkg failed"
+	abuild -dK || atf_fail "abuild failed"
 	test -d pkg/test-keepdirs/usr/bin || atf_fail "$i failed"
 }
 
@@ -1010,7 +1010,7 @@ abuild_amove_body() {
 		}
 
 	EOF
-	abuild rootpkg || atf_fail "abuild rootpkg failed"
+	abuild -dK || atf_fail "abuild failed"
 	for i in \
 			test-amove-file/etc/file \
 			test-amove-etc/etc/test-amove.conf \
@@ -1059,7 +1059,7 @@ abuild_doc_body() {
 			install -Dt "\$pkgdir"/usr/share/doc/foo readme
 		}
 	EOF
-	abuild build rootpkg || atf_fail "abuild rootpkg failed"
+	abuild -dK || atf_fail "abuild failed"
 	find pkg
 	for i in \
 			foo/usr/bin/foo \
@@ -1102,7 +1102,7 @@ abuild_dev_body() {
 			ln -s libfoo.so.1 "\$pkgdir"/usr/lib/libfoo.so
 		}
 	EOF
-	abuild build rootpkg || atf_fail "abuild rootpkg failed"
+	abuild -dK || atf_fail "abuild failed"
 	find pkg
 	for i in \
 			foo/usr/bin/foo \
@@ -1134,7 +1134,7 @@ abuild_devhelp_warn_body() {
 		}
 	EOF
 	atf_check -e match:"WARNING:" \
-		abuild rootpkg
+		abuild -d
 }
 
 abuild_devhelp_body() {
@@ -1160,7 +1160,7 @@ abuild_devhelp_body() {
 	EOF
 	atf_check -e not-match:"WARNING:" \
 		-o match:'->' \
-		abuild rootpkg
+		abuild -d
 }
 
 abuild_check_maintainer_body() {
@@ -1205,7 +1205,7 @@ abuild_cleanoldpkg_body() {
 					mkdir -p "\$pkgdir"
 				}
 			EOF
-			CARCH=$arch atf_check -e not-empty abuild clean unpack rootpkg
+			CARCH=$arch atf_check -e not-empty abuild -d
 		done
 	done
 
@@ -1273,7 +1273,7 @@ abuild_clean_body() {
 			chmod 0 "\$subpkgdir"/subpkgdir
 		}
 	EOF
-	abuild clean unpack prepare build rootpkg
+	abuild -dK
 
 	abuild -K clean
 
@@ -1327,7 +1327,7 @@ abuild_pyc_warn_body() {
 		}
 	EOF
 
-	atf_check -e match:"WARNING.*pyc*" abuild rootpkg
+	atf_check -e match:"WARNING.*pyc*" abuild -d
 }
 
 abuild_pyc_body() {
@@ -1352,7 +1352,7 @@ abuild_pyc_body() {
 		}
 	EOF
 
-	atf_check -o match:"->" -e not-match:"WARNING.*pyc*" abuild rootpkg
+	atf_check -o match:"->" -e not-match:"WARNING.*pyc*" abuild -dK
 	atf_check -o match:"__pycache__" find pkg/foo-pyc -name '__pycache__'
 	# verify install_if is correct
 	atf_check -o match:"foo=1.0-r0" -o match:"pyc" \
@@ -1408,7 +1408,7 @@ abuild_command_provides_body() {
 			chmod +x "\$subpkgdir/usr/bin/foo"
 		}
 	EOF
-	abuild rootpkg
+	abuild -dK
 
 	atf_check \
 		-o match:"provides = cmd:foo=1.0-r0" \
@@ -1448,7 +1448,7 @@ abuild_gocache_dir_body() {
 	unset GOCACHE
 	atf_check -s exit:0 \
 		-o match:"dir:.*/tmp/go" \
-		abuild prepare build
+		abuild unpack prepare build
 }
 
 abuild_cargo_home_dir_body() {
@@ -1477,7 +1477,7 @@ abuild_cargo_home_dir_body() {
 	unset CARGO_HOME
 	atf_check -s exit:0 \
 		-o match:"dir:.*/tmp/cargo" \
-		abuild prepare build
+		abuild unpack prepare build
 }
 
 abuild_fish_comp_split_body() {
@@ -1505,11 +1505,11 @@ abuild_fish_comp_split_body() {
 	# test that there is a warning for the legacy dir existing
 	atf_check -s exit:0 \
 		-e match:"fish completions for programs should be located in /usr/share/fish/vendor_completions.d" \
-		abuild prepare build rootpkg
+		abuild -dK
 
 	# now add the correct subpackage
 	echo 'subpackages="$pkgname-subpkg-fish-completion"' >> APKBUILD
-	abuild clean prepare build rootpkg
+	abuild -dKf
 
 	if ! [ -d pkg/fish-split-dir-subpkg-fish-completion/usr/share/fish/completions ]; then
 		atf_fail "missing old dir"
@@ -1680,7 +1680,7 @@ abuild_symlink_depends_body() {
 			ln -s ../baz "$subpkgdir"/links/
 		}
 	EOF
-	abuild rootpkg
+	abuild -dK
 
 	atf_check \
 		-o match:"depend = testsymlink=1.0-r0" \
@@ -1781,7 +1781,7 @@ Version:
 EOF
 		}
 	__EOF__
-	abuild rootpkg
+	abuild -dK
 
 	atf_check \
 		-o match:"provides = pc:pkg=1.0" \
@@ -1857,7 +1857,7 @@ Provides: unver, fixed = 0.1, bound = 1.2.3.rc5, conflict, private
 EOF
 		}
 	__EOF__
-	abuild rootpkg
+	abuild -dK
 
 	atf_check \
 		-o match:"depend = pkgconf" \
@@ -1904,7 +1904,7 @@ abuild_split_vars_reset_body() {
 			mkdir -p "$subpkgdir"
 		}
 	__EOF__
-	abuild rootpkg
+	abuild -dK
 
 	atf_check \
 		-o match:"pkgdesc = desc" \
@@ -2015,36 +2015,36 @@ abuild_so_providers_body() {
 			touch "\$pkgdir"/usr/lib/\$ABUILD_FILENAME
 		}
 	EOF
-	ABUILD_FILENAME='libfoo.so.1.0.8' ABUILD_SONAME='libfoo.so.1' abuild rootpkg || atf_fail "abuild failed"
+	ABUILD_FILENAME='libfoo.so.1.0.8' ABUILD_SONAME='libfoo.so.1' abuild -dKf || atf_fail "abuild failed"
 	atf_check \
 		-o match:"provides = so:libfoo.so.1=1.0.8" \
 		grep '^provides = ' pkg/.control.pkg/.PKGINFO
-	ABUILD_FILENAME='libfoo.so.1.0.8' ABUILD_SONAME='' abuild rootpkg || atf_fail "abuild failed"
+	ABUILD_FILENAME='libfoo.so.1.0.8' ABUILD_SONAME='' abuild -dKf || atf_fail "abuild failed"
 	atf_check \
 		-o match:"provides = so:libfoo.so.1.0.8=1.0.8" \
 		grep '^provides = ' pkg/.control.pkg/.PKGINFO
-	ABUILD_FILENAME='libfoo.so' ABUILD_SONAME='' abuild rootpkg || atf_fail "abuild failed"
+	ABUILD_FILENAME='libfoo.so' ABUILD_SONAME='' abuild -dKf || atf_fail "abuild failed"
 	atf_check \
 		-o match:"provides = so:libfoo.so=0" \
 		grep '^provides = ' pkg/.control.pkg/.PKGINFO
-	ABUILD_FILENAME='libfoo.so' ABUILD_SONAME='libfoo.so.1.0.8' abuild rootpkg || atf_fail "abuild failed"
+	ABUILD_FILENAME='libfoo.so' ABUILD_SONAME='libfoo.so.1.0.8' abuild -dKf || atf_fail "abuild failed"
 	atf_check \
 		-o match:"provides = so:libfoo.so.1.0.8=0" \
 		grep '^provides = ' pkg/.control.pkg/.PKGINFO
 
-	ABUILD_FILENAME='foo/libfoo.so' ABUILD_SONAME='libfoo.so.1.0.8' abuild rootpkg || atf_fail "abuild failed"
+	ABUILD_FILENAME='foo/libfoo.so' ABUILD_SONAME='libfoo.so.1.0.8' abuild -dKf || atf_fail "abuild failed"
 	atf_check -s exit:1 \
 		grep '^provides = ' pkg/.control.pkg/.PKGINFO
 	ldpath=/usr/lib/bar:/usr/lib/foo \
-	ABUILD_FILENAME='foo/libfoo.so.1.0.8' ABUILD_SONAME='libfoo.so.1' abuild rootpkg || atf_fail "abuild failed"
+	ABUILD_FILENAME='foo/libfoo.so.1.0.8' ABUILD_SONAME='libfoo.so.1' abuild -dKf || atf_fail "abuild failed"
 	atf_check \
 		-o match:"provides = so:libfoo.so.1=1.0.8" \
 		grep '^provides = ' pkg/.control.pkg/.PKGINFO
 
 	ABUILD_FILENAME='libfoo.so.1.0.8.git' ABUILD_SONAME='libfoo.so.1' \
 	atf_check -s exit:1 -e match:"libfoo.so.1.0.8.git: library version 1.0.8.git is invalid" \
-		abuild rootpkg
-	ABUILD_FILENAME='libfoo.so.1.0.8.git' ABUILD_SONAME='libfoo.so.1' somask=libfoo.so.1 abuild rootpkg || atf_fail "abuild failed"
+		abuild -dKf
+	ABUILD_FILENAME='libfoo.so.1.0.8.git' ABUILD_SONAME='libfoo.so.1' somask=libfoo.so.1 abuild -dKf || atf_fail "abuild failed"
 	atf_check -s exit:1 \
 		grep '^provides = ' pkg/.control.pkg/.PKGINFO
 }
