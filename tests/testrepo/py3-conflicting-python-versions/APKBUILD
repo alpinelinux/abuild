@@ -4,6 +4,7 @@ pkgver=1.0.0
 pkgrel=0
 pkgdesc="dummy package for test"
 url="https://alpinelinux.org"
+arch="all"
 license="MIT"
 builddir="$srcdir"
 

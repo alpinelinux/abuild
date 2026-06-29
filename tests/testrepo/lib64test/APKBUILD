@@ -1,14 +1,14 @@
 # Maintainer: Natanael Copa <ncopa@alpinelinux.org>
-pkgname="lib64test"
-pkgver="1.0"
+pkgname=lib64test
+pkgver=1.0
 pkgrel=0
 pkgdesc="Dummy test package"
 url="https://gitlab.alpinelinux.org/alpine/aports"
 arch="noarch"
 license="MIT"
 subpackages="$pkgname-dev $pkgname-doc"
-source=""
-builddir="$srcdir/$pkgname-$pkgver"
+builddir="$srcdir"
+options="!check"
 
 prepare() {
 	mkdir -p "$builddir"
@@ -19,10 +19,6 @@ build() {
 	touch usr/include/$pkgname.h
 	touch usr/bin/$pkgname
 	touch usr/share/man/man1/$pkgname.1
-}
-
-check() {
-	true
 }
 
 package() {

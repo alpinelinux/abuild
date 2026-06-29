@@ -1,22 +1,16 @@
 # Maintainer: Natanael Copa <ncopa@alpinelinux.org>
-pkgname="invalid-filename"
-pkgver="1.0"
+pkgname=invalid-filename
+pkgver=1.0
 pkgrel=0
 pkgdesc="Dummy test package that fails to build"
 url="https://gitlab.alpinelinux.org/alpine/aports"
 arch="noarch"
 license="MIT"
-
-prepare() {
-	mkdir -p "$builddir"
-}
+builddir="$srcdir"
+options="!check"
 
 build() {
 	touch $'bad\nfile'
-}
-
-check() {
-	true
 }
 
 package() {

@@ -1,18 +1,13 @@
 # Maintainer: Natanael Copa <ncopa@alpinelinux.org>
-pkgname="pkg-path-with-spaces"
-pkgver="1.0"
+pkgname=pkg-path-with-spaces
+pkgver=1.0
 pkgrel=0
 pkgdesc="Dummy test package to test building with spaces in path"
 url="https://gitlab.alpinelinux.org/alpine/aports"
 arch="all"
 license="MIT"
 source="hello.c"
-builddir="$srcdir/$pkgname-1.0"
-
-prepare() {
-	mkdir -p "$builddir"
-	cp "$srcdir"/*.c "$builddir"
-}
+builddir="$srcdir"
 
 build() {
 	$CC -o hello hello.c

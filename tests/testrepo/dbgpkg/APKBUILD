@@ -1,6 +1,6 @@
 # Maintainer: Natanael Copa <ncopa@alpinelinux.org>
-pkgname="dbgpkg"
-pkgver="1.0"
+pkgname=dbgpkg
+pkgver=1.0
 pkgrel=0
 pkgdesc="Dummy test package to test -dbg"
 url="https://gitlab.alpinelinux.org/alpine/aports"
@@ -8,12 +8,7 @@ arch="all"
 license="MIT"
 subpackages="$pkgname-dbg"
 source="hello.c"
-builddir="$srcdir/dbgpkg-1.0"
-
-prepare() {
-	mkdir -p "$builddir"
-	cp "$srcdir"/*.c "$builddir"
-}
+builddir="$srcdir"
 
 build() {
 	$CC -o hello hello.c

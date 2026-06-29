@@ -1,25 +1,14 @@
 # Maintainer: Natanael Copa <ncopa@alpinelinux.org>
-pkgname="large-doc-subpkg"
-pkgver="1.0"
+pkgname=large-doc-subpkg
+pkgver=1.0
 pkgrel=0
 pkgdesc="Dummy test package to check if large doc subpackages cause a warning to be emitted"
 url="https://gitlab.alpinelinux.org/alpine/aports"
 arch="noarch"
 license="MIT"
 subpackages="$pkgname-doc"
-source=""
-
-prepare() {
-	mkdir -p "$builddir"
-}
-
-build() {
-	true
-}
-
-check() {
-	true
-}
+builddir="$srcdir"
+options="$options !check"
 
 package() {
 	mkdir -p "$pkgdir/usr/bin"

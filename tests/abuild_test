@@ -114,23 +114,23 @@ abuild_build_fail_body() {
 	mkdir buildfail
 	cat >buildfail/APKBUILD <<-EOF
 		# Maintainer: Joe User <juser@example.com>
-		pkgname="buildfail"
-		pkgver="1.0"
+		pkgname=buildfail
+		pkgver=1.0
 		pkgrel=0
 		pkgdesc="Dummy test package that fails to build"
 		url="https://gitlab.alpinelinux.org/alpine/aports"
 		arch="noarch"
 		license="MIT"
 		subpackages="\$pkgname-dev \$pkgname-doc"
-		source=""
-		prepare() {
-			mkdir -p "\$builddir"
-		}
+		builddir="\$srcdir"
+		options="!check"
+
 		build() {
 			false
 		}
+
 		package() {
-			true
+			mkdir -p "\$pkgdir"
 		}
 	EOF
 	cd buildfail
@@ -145,22 +145,20 @@ abuild_invalid_filename_body() {
 	cd invalid-filename
 	cat >APKBUILD <<-EOF
 		# Maintainer: Joe User <juser@example.com>
-		pkgname="invalid-filename"
-		pkgver="1.0"
+		pkgname=invalid-filename
+		pkgver=1.0
 		pkgrel=0
 		pkgdesc="Dummy test package that fails to build"
 		url="https://gitlab.alpinelinux.org/alpine/aports"
 		arch="noarch"
 		license="MIT"
-		prepare() {
-			mkdir -p "\$builddir"
-		}
+		builddir="\$srcdir"
+		options="!check"
+
 		build() {
 			touch $'bad\nfile'
 		}
-		check() {
-			true
-		}
+
 		package() {
 			mkdir -p "\$pkgdir"
 			cp -R * "\$pkgdir"/
@@ -177,22 +175,18 @@ abuild_usr_lib64_body() {
 	cd lib64test
 	cat >APKBUILD <<-EOF
 		# Maintainer: Joe User <juser@example.com>
-		pkgname="lib64test"
-		pkgver="1.0"
+		pkgname=lib64test
+		pkgver=1.0
 		pkgrel=0
 		pkgdesc="Dummy test package"
 		url="https://gitlab.alpinelinux.org/alpine/aports"
 		arch="noarch"
 		license="MIT"
-		source=""
-		prepare() {
-			mkdir -p "\$builddir"
-		}
+		builddir="\$srcdir"
+		options="\$options !check"
+
 		build() {
 			mkdir -p usr/lib64
-		}
-		check() {
-			true
 		}
 
 		package() {
@@ -283,8 +277,8 @@ abuild_reproducible_body() {
 abuild_checksum_generation_body() {
 	mkdir foo
 	cat > foo/APKBUILD <<-EOF
-		pkgname="foo"
-		pkgver="1.0"
+		pkgname=foo
+		pkgver=1.0
 		source="test.txt"
 	EOF
 	echo "foo" > foo/test.txt
@@ -298,8 +292,8 @@ abuild_checksum_generation_body() {
 abuild_checksum_duplicates_body() {
 	mkdir -p foo/dir1 foo/dir2
 	cat > foo/APKBUILD <<-EOF
-		pkgname="foo"
-		pkgver="1.0"
+		pkgname=foo
+		pkgver=1.0
 		source="dir1/testfile dir2/testfile"
 	EOF
 	echo "first" > foo/dir1/testfile
@@ -315,7 +309,7 @@ abuild_subpkg_dep_leak_body() {
 	cd testrepo/subpkg-dep-leak
 	cat > APKBUILD <<-EOF
 		# Maintainer: Natanael Copa <ncopa@alpinelinux.org>
-		pkgname="subpkg-dep-leak"
+		pkgname=subpkg-dep-leak
 		pkgver=1.0
 		pkgrel=0
 		pkgdesc="Dummy test package with subpackages and dependencies"
@@ -324,6 +318,7 @@ abuild_subpkg_dep_leak_body() {
 		depends="tar scanelf"
 		license="MIT"
 		subpackages="\$pkgname-subpkg"
+		builddir="\$srcdir"
 		options="!check"
 
 		package() {
@@ -357,7 +352,7 @@ abuild_subpkg_libs_body() {
 	cd testrepo/pkg
 	cat > APKBUILD <<-EOF
 		maintainer="Natanael Copa <ncopa@alpinelinux.org>"
-		pkgname="pkg"
+		pkgname=pkg
 		pkgver=1.0
 		pkgrel=0
 		pkgdesc="Dummy test package"
@@ -365,6 +360,7 @@ abuild_subpkg_libs_body() {
 		arch="noarch"
 		license="MIT"
 		subpackages="\$pkgname-libs"
+		builddir="\$srcdir"
 		options="!check"
 
 		package() {
@@ -412,9 +408,12 @@ abuild_py_dependency_scan_versioned_python_body() {
 		pkgrel=0
 		pkgdesc="dummy python package for test"
 		url="https://python.org"
+		arch="noarch"
 		license="MIT"
 		builddir="\$srcdir"
+		options="!check"
 		_sitedir=usr/lib/python3.12/site-packages
+
 		package() {
 			mkdir -p "\$pkgdir"/\$_sitedir/foo
 			touch "\$pkgdir"/\$_sitedir/foo/__init__.py
@@ -457,13 +456,14 @@ abuild_rpaths_body() {
 	cd testrepo/pkg
 	cat > APKBUILD <<-EOF
 		maintainer="Natanael Copa <ncopa@alpinelinux.org>"
-		pkgname="pkg"
+		pkgname=pkg
 		pkgver=1.0
 		pkgrel=0
 		pkgdesc="Dummy test package"
 		url="https://gitlab.alpinelinux.org/alpine/aports"
 		arch="all"
 		license="MIT"
+		builddir="\$srcdir"
 		options="!check !strip !textrels !archcheck"
 
 		package() {
@@ -511,7 +511,7 @@ abuild_strip_body() {
 	cd testrepo/pkg
 	cat > APKBUILD <<- 'EOF'
 		maintainer="Natanael Copa <ncopa@alpinelinux.org>"
-		pkgname="pkg"
+		pkgname=pkg
 		pkgver=1.0
 		pkgrel=0
 		pkgdesc="Dummy test package"
@@ -530,6 +530,7 @@ abuild_strip_body() {
 			pkg-ctarget:_s:$CTARGET
 			pkg-ctarget-arch:_s:$CTARGET_ARCH
 			"
+		builddir="$srcdir"
 
 		package() {
 			mkdir -p "$pkgdir"/usr/bin
@@ -582,17 +583,19 @@ abuild_reject_init_with_improper_shebang_body() {
 	cd invalid-initd
 	cat >APKBUILD<<-EOF
 		# Maintainer: Natanael Copa <ncopa@alpinelinux.org>
-		pkgname="invalid-initd"
-		pkgver="1.0"
+		pkgname=invalid-initd
+		pkgver=1.0
 		pkgrel=0
 		pkgdesc="Dummy test package"
 		url="https://gitlab.alpinelinux.org/alpine/aports"
 		arch="noarch"
 		license="MIT"
-		subpackages=""
 		source="test.initd"
-		prepare() {
-			mkdir -p "\$builddir"
+		builddir="\$srcdir"
+		options="!check"
+
+		package() {
+			mkdir -p "\$pkgdir"
 		}
 	EOF
 	cat >test.initd<<-EOF
@@ -787,19 +790,20 @@ abuild_git_ceiling_body() {
 	cd git-pkg
 	cat >APKBUILD<<-EOF
 		# Maintainer: Joe User <juser@example.com>
-		pkgname="git-pkg"
-		pkgver="1.0"
+		pkgname=git-pkg
+		pkgver=1.0
 		pkgrel=0
 		pkgdesc="Dummy test package"
 		url="https://gitlab.alpinelinux.org/alpine/aports"
 		arch="noarch"
 		license="MIT"
-		prepare() {
-			mkdir -p "\$builddir"
-		}
+		builddir="\$srcdir"
+		options="!check"
+
 		build() {
 			git status
 		}
+
 		package() {
 			mkdir -p "\$pkgdir"
 		}
@@ -817,13 +821,13 @@ abuild_package_size_body() {
 	cd test-size
 	cat > APKBUILD <<-EOF
 		# Maintainer: Test User 123 <123@example.com>
-		pkgname="test-size"
-		pkgver="1.0"
+		pkgname=test-size
+		pkgver=1.0
 		pkgrel=0
-		pkgdesc='Dummy test package that has no files'
-		url='https://gitlab.alpinelinux.org/alpine/aports'
-		arch='noarch'
-		license='MIT'
+		pkgdesc="Dummy test package that has no files"
+		url="https://gitlab.alpinelinux.org/alpine/aports"
+		arch="noarch"
+		license="MIT"
 		install="\$pkgname-empty-script.post-install"
 		triggers="\$pkgname-empty-trigger.trigger=/"
 		subpackages="
@@ -839,6 +843,8 @@ abuild_package_size_body() {
 			\$pkgname-symlink:_symlink
 			\$pkgname-symlink-follow:_symlink_follow
 		"
+		builddir="\$srcdir"
+		options="!check"
 
 		# Test if multi line bc output is handle properly
 		export BC_LINE_LENGTH=1
@@ -940,14 +946,15 @@ abuild_keepdirs_body() {
 	cd test-amove
 	cat > APKBUILD <<-EOF
 		# Maintainer: Test User 123 <123@example.com>
-		pkgname="test-keepdirs"
-		pkgver="1.0"
+		pkgname=test-keepdirs
+		pkgver=1.0
 		pkgrel=0
-		pkgdesc='Dummy test package - keepdirs'
-		url='https://gitlab.alpinelinux.org/alpine/aports'
-		arch='noarch'
-		license='MIT'
-		options='keepdirs'
+		pkgdesc="Dummy test package - keepdirs"
+		url="https://gitlab.alpinelinux.org/alpine/aports"
+		arch="noarch"
+		license="MIT"
+		builddir="\$srcdir"
+		options="!check keepdirs"
 
 		package() {
 			mkdir -p "\$pkgdir"/usr/bin
@@ -964,13 +971,13 @@ abuild_amove_body() {
 	cd test-amove
 	cat > APKBUILD <<-EOF
 		# Maintainer: Test User 123 <123@example.com>
-		pkgname="test-amove"
-		pkgver="1.0"
+		pkgname=test-amove
+		pkgver=1.0
 		pkgrel=0
-		pkgdesc='Dummy test package - amove'
-		url='https://gitlab.alpinelinux.org/alpine/aports'
-		arch='noarch'
-		license='MIT'
+		pkgdesc="Dummy test package - amove"
+		url="https://gitlab.alpinelinux.org/alpine/aports"
+		arch="noarch"
+		license="MIT"
 		subpackages="\$pkgname-file:_file
 			\$pkgname-etc:_etc
 			\$pkgname-bin:_bin
@@ -979,6 +986,8 @@ abuild_amove_body() {
 			\$pkgname-var:_var
 			\$pkgname-usr:_usr
 			\$pkgname-space:_space"
+		builddir="\$srcdir"
+		options="!check"
 
 		package() {
 			mkdir -p "\$pkgdir"/etc \
@@ -1058,14 +1067,16 @@ abuild_doc_body() {
 	cd foo
 	cat > APKBUILD <<-EOF
 		# Maintainer: Test User 123 <123@example.com>
-		pkgname="foo"
-		pkgver="1.0"
+		pkgname=foo
+		pkgver=1.0
 		pkgrel=0
-		pkgdesc='Dummy test package - doc'
-		url='https://gitlab.alpinelinux.org/alpine/aports'
-		arch='noarch'
-		license='MIT'
+		pkgdesc="Dummy test package - doc"
+		url="https://gitlab.alpinelinux.org/alpine/aports"
+		arch="noarch"
+		license="MIT"
 		subpackages="\$pkgname-doc"
+		builddir="\$srcdir"
+		options="!check"
 
 		build() {
 			touch foo foo.1 readme
@@ -1104,14 +1115,16 @@ abuild_dev_body() {
 	cd foo
 	cat > APKBUILD <<-EOF
 		# Maintainer: Test User 123 <123@example.com>
-		pkgname="foo"
-		pkgver="1.0"
+		pkgname=foo
+		pkgver=1.0
 		pkgrel=0
-		pkgdesc='Dummy test package - dev'
-		url='https://gitlab.alpinelinux.org/alpine/aports'
-		arch='noarch'
-		license='MIT'
+		pkgdesc="Dummy test package - dev"
+		url="https://gitlab.alpinelinux.org/alpine/aports"
+		arch="noarch"
+		license="MIT"
 		subpackages="\$pkgname-dev"
+		builddir="\$srcdir"
+		options="!check"
 
 		build() {
 			touch foo foo.h libfoo.so.1
@@ -1142,13 +1155,15 @@ abuild_devhelp_warn_body() {
 	cd foo
 	cat > APKBUILD <<-EOF
 		# Maintainer: Test User 123 <123@example.com>
-		pkgname="foo"
-		pkgver="1.0"
+		pkgname=foo
+		pkgver=1.0
 		pkgrel=0
-		pkgdesc='Dummy test package that has devhelp'
-		url='https://gitlab.alpinelinux.org/alpine/aports'
-		arch='noarch'
-		license='MIT'
+		pkgdesc="Dummy test package that has devhelp"
+		url="https://gitlab.alpinelinux.org/alpine/aports"
+		arch="noarch"
+		license="MIT"
+		builddir="\$srcdir"
+		options="!check"
 
 		package() {
 			mkdir -p "\$pkgdir"/usr/share/devhelp/book
@@ -1165,14 +1180,16 @@ abuild_devhelp_body() {
 	cd foo
 	cat > APKBUILD <<-EOF
 		# Maintainer: Test User 123 <123@example.com>
-		pkgname="foo"
-		pkgver="1.0"
+		pkgname=foo
+		pkgver=1.0
 		pkgrel=0
-		pkgdesc='Dummy test package that has devhelp'
-		url='https://gitlab.alpinelinux.org/alpine/aports'
-		arch='noarch'
-		license='MIT'
+		pkgdesc="Dummy test package that has devhelp"
+		url="https://gitlab.alpinelinux.org/alpine/aports"
+		arch="noarch"
+		license="MIT"
 		subpackages="\$pkgname-devhelp"
+		builddir="\$srcdir"
+		options="!check"
 
 		package() {
 			mkdir -p "\$pkgdir"/usr/share/devhelp/book
@@ -1212,14 +1229,16 @@ abuild_cleanoldpkg_body() {
 		for v in 0.9 1.0 1.1; do
 			cat > APKBUILD <<-EOF
 				# Maintainer: Test User 123 <123@example.com>
-				pkgname="foo"
-				pkgver="$v"
+				pkgname=foo
+				pkgver=$v
 				pkgrel=0
-				pkgdesc='Dummy test package - dev'
-				url='https://gitlab.alpinelinux.org/alpine/aports'
-				arch='noarch'
-				license='MIT'
-				options='!check'
+				pkgdesc="Dummy test package - dev"
+				url="https://gitlab.alpinelinux.org/alpine/aports"
+				arch="noarch"
+				license="MIT"
+				builddir="\$srcdir"
+				options="!check"
+
 				package() {
 					mkdir -p "\$pkgdir"
 				}
@@ -1262,7 +1281,7 @@ abuild_clean_body() {
 	cd testrepo/clean
 	cat > APKBUILD <<-EOF
 		# Maintainer: Natanael Copa <ncopa@alpinelinux.org>
-		pkgname="clean"
+		pkgname=clean
 		pkgver=1.0
 		pkgrel=0
 		pkgdesc="Dummy test package"
@@ -1272,6 +1291,7 @@ abuild_clean_body() {
 		options="!check"
 		subpackages="\$pkgname-subpkg"
 		builddir="\$srcdir"
+		options="!check"
 
 		build() {
 			mkdir -p "\$srcdir"/srcdir/a
@@ -1332,14 +1352,15 @@ abuild_pyc_warn_body() {
 	cd pycachetest
 	cat >APKBUILD <<-EOF
 		# Maintainer: Joe User <juser@example.com>
-		pkgname="pycachetest"
-		pkgver="1.0"
+		pkgname=pycachetest
+		pkgver=1.0
 		pkgrel=0
 		pkgdesc="Dummy test package"
 		url="https://gitlab.alpinelinux.org/alpine/aports"
 		arch="noarch"
 		license="MIT"
-		source=""
+		builddir="\$srcdir"
+		options="!check"
 
 		package() {
 			mkdir -p "\$pkgdir"/usr/lib/python3.11/site-packages/test/__pycache__/
@@ -1357,15 +1378,16 @@ abuild_pyc_body() {
 	cd foo
 	cat >APKBUILD <<-EOF
 		# Maintainer: Joe User <juser@example.com>
-		pkgname="foo"
-		pkgver="1.0"
+		pkgname=foo
+		pkgver=1.0
 		pkgrel=0
 		pkgdesc="Dummy test package"
 		url="https://gitlab.alpinelinux.org/alpine/aports"
 		arch="noarch"
 		license="MIT"
-		source=""
 		subpackages="\$pkgname-pyc"
+		builddir="\$srcdir"
+		options="!check"
 
 		package() {
 			mkdir -p "\$pkgdir"/usr/lib/python3.11/site-packages/test/__pycache__/
@@ -1414,7 +1436,9 @@ abuild_command_provides_body() {
 		arch="noarch"
 		license="MIT"
 		subpackages="noprovides"
-		options="noprovides::!tracedeps"
+		builddir="\$srcdir"
+		options="!check noprovides::!tracedeps"
+
 		package() {
 			mkdir -p "\$pkgdir/usr/bin"
 			printf "%s\n" '#!/bin/sh' >"\$pkgdir/usr/bin/foo"
@@ -1450,21 +1474,21 @@ abuild_gocache_dir_body() {
 	cd gocache-dir
 	cat >APKBUILD<<-EOF
 		# Maintainer: Joe User <juser@example.com>
-		pkgname="gocache-dir"
-		pkgver="1.0"
+		pkgname=gocache-dir
+		pkgver=1.0
 		pkgrel=0
 		pkgdesc="Dummy test package"
 		url="https://gitlab.alpinelinux.org/alpine/aports"
 		arch="noarch"
 		license="MIT"
-		prepare() {
-			mkdir -p "\$builddir"
-		}
+		builddir="\$srcdir"
+		options="!check"
+
 		build() {
 			echo "dir:\$GOCACHE"
 		}
 		package() {
-			:
+			mkdir -p "\$pkgdir"
 		}
 	EOF
 
@@ -1480,21 +1504,21 @@ abuild_cargo_home_dir_body() {
 	cd cargo-home-dir
 	cat >APKBUILD<<-EOF
 		# Maintainer: Joe User <juser@example.com>
-		pkgname="cargo-home-dir"
-		pkgver="1.0"
+		pkgname=cargo-home-dir
+		pkgver=1.0
 		pkgrel=0
 		pkgdesc="Dummy test package"
 		url="https://gitlab.alpinelinux.org/alpine/aports"
 		arch="noarch"
 		license="MIT"
-		prepare() {
-			mkdir -p "\$builddir"
-		}
+		builddir="\$srcdir"
+		options="!check"
+
 		build() {
 			echo "dir:\$CARGO_HOME"
 		}
 		package() {
-			:
+			mkdir -p "\$pkgdir"
 		}
 	EOF
 
@@ -1510,16 +1534,16 @@ abuild_fish_comp_split_body() {
 	cd fish-split-dir
 	cat >APKBUILD<<-EOF
 		# Maintainer: Joe User <juser@example.com>
-		pkgname="fish-split-dir"
-		pkgver="1.0"
+		pkgname=fish-split-dir
+		pkgver=1.0
 		pkgrel=0
 		pkgdesc="Dummy test package"
 		url="https://gitlab.alpinelinux.org/alpine/aports"
 		arch="noarch"
 		license="MIT"
-		prepare() {
-			mkdir -p "\$builddir"
-		}
+		builddir="\$srcdir"
+		options="!check"
+
 		package() {
 			mkdir -p "\$pkgdir"/usr/share/fish/completions/
 			mkdir -p "\$pkgdir"/usr/share/fish/vendor_completions.d/
@@ -1571,8 +1595,8 @@ abuild_deps_body() {
 	cd testdeps
 	cat >APKBUILD <<-EOF
 		# Maintainer: Joe User <juser@example.com>
-		pkgname="testdeps"
-		pkgver="1.0"
+		pkgname=testdeps
+		pkgver=1.0
 		pkgrel=0
 		pkgdesc="Dummy test package"
 		url="https://gitlab.alpinelinux.org/alpine/aports"
@@ -1583,6 +1607,15 @@ abuild_deps_body() {
 		checkdepends="checkdep"
 		makedepends_host="hostdep"
 		makedepends_build="builddep"
+		builddir="\$srcdir"
+
+		check() {
+			true
+		}
+
+		package() {
+			mkdir -p "\$pkgdir"
+		}
 	EOF
 
 	export SUDO_APK=abuild-apk
@@ -1631,13 +1664,14 @@ abuild_usr_merge_body() {
 	cd usrmergetest
 	cat >APKBUILD <<-EOF
 		# Maintainer: Joe User <juser@example.com>
-		pkgname="usrmergetest"
-		pkgver="1.0"
+		pkgname=usrmergetest
+		pkgver=1.0
 		pkgrel=0
 		pkgdesc="Dummy test package"
 		url="https://gitlab.alpinelinux.org/alpine/aports"
 		arch="noarch"
 		license="MIT"
+		builddir="\$srcdir"
 		options="!check"
 
 		package() {
@@ -1668,7 +1702,8 @@ abuild_symlink_depends_body() {
 		arch="noarch"
 		license="MIT"
 		subpackages="bar:_dir baz:_dir baz-2:_dir absolute relative multiple duplicate notrace:absolute"
-		options="notrace::!tracedeps"
+		builddir="$srcdir"
+		options="!check notrace::!tracedeps"
 
 		package() {
 			mkdir -p "$pkgdir/foo"
@@ -1743,6 +1778,8 @@ abuild_pc_providers_body() {
 		arch="noarch"
 		license="MIT"
 		subpackages="name provides share dot_rc nover"
+		builddir="$srcdir"
+		options="!check"
 
 		package() {
 			mkdir -p "$pkgdir"/usr/lib/pkgconfig
@@ -1841,6 +1878,8 @@ abuild_pc_depends_body() {
 		arch="noarch"
 		license="MIT"
 		subpackages="noreq dummy"
+		builddir="$srcdir"
+		options="!check"
 
 		package() {
 			mkdir -p "$pkgdir"/usr/lib/pkgconfig
@@ -1906,6 +1945,8 @@ abuild_split_vars_reset_body() {
 		arch="noarch"
 		license="MIT"
 		subpackages="foo bar"
+		builddir="$srcdir"
+		options="!check"
 
 		package() {
 			mkdir -p "$pkgdir"
@@ -1950,6 +1991,7 @@ abuild_update_config_sub_body() {
 		arch="noarch"
 		license="MIT"
 		builddir="$srcdir"
+		options="!check"
 
 		prepare() {
 			default_prepare
@@ -2020,7 +2062,7 @@ abuild_so_providers_body() {
 	cd testrepo/pkg
 	cat > APKBUILD <<-EOF
 		maintainer="Natanael Copa <ncopa@alpinelinux.org>"
-		pkgname="pkg"
+		pkgname=pkg
 		pkgver=1.0
 		pkgrel=0
 		pkgdesc="Dummy test package"

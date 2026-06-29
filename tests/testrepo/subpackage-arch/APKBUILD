@@ -1,17 +1,14 @@
 # Maintainer: Natanael Copa <ncopa@alpinelinux.org>
 pkgname=${TESTNAME-test-pkgname}
-pkgver="${TESTPKGVER-1.0}"
+pkgver=${TESTPKGVER-1.0}
 pkgrel=0
 pkgdesc="Dummy subpackage arch"
 url="https://gitlab.alpinelinux.org/alpine/aports"
 arch="noarch"
 license="MIT"
 subpackages="$pkgname-$TESTSUBARCH:_sub:$TESTSUBARCH"
-options="!archcheck"
-
-check() {
-	true
-}
+builddir="$srcdir"
+options="!check"
 
 package() {
 	mkdir -p "$pkgdir"

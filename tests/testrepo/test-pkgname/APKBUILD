@@ -1,6 +1,6 @@
 # Maintainer: Natanael Copa <ncopa@alpinelinux.org>
 pkgname=${TESTNAME-test-pkgname}
-pkgver="${TESTPKGVER-1.0}"
+pkgver=${TESTPKGVER-1.0}
 pkgrel=0
 pkgdesc="Dummy test package that fails to build"
 url="https://gitlab.alpinelinux.org/alpine/aports"
@@ -10,22 +10,11 @@ provides="${TESTPROVIDES-provided}"
 subpackages="${TESTSUBNAME-$pkgname-sub}:_sub"
 depends="$TESTDEPENDS"
 makedepends="$TESTMAKEDEPENDS"
-
-prepare() {
-	mkdir -p "$builddir"
-}
-
-build() {
-	touch foo
-}
-
-check() {
-	true
-}
+builddir="$srcdir"
+options="!check"
 
 package() {
 	mkdir -p "$pkgdir"
-	cp -R * "$pkgdir"/
 }
 
 _sub() {

@@ -43,7 +43,7 @@ abump_simple_bump_body() {
 	echo "first" > foo-1.0.txt
 	cat > APKBUILD <<-EOF
 		# Maintainer: Test user <user@example.com>
-		pkgname="foo"
+		pkgname=foo
 		pkgver=1.0
 		pkgrel=0
 		pkgdesc="dummy package for test"
@@ -51,9 +51,11 @@ abump_simple_bump_body() {
 		license="MIT"
 		arch="noarch"
 		source="foo-\$pkgver.txt"
+		builddir="\$srcdir"
 		options="!check"
+
 		package() {
-			install -D "\$srcdir"/foo-\$pkgver.txt "\$pkgdir"/foo
+			install -D foo-\$pkgver.txt "\$pkgdir"/foo
 		}
 	EOF
 	abuild checksum
@@ -88,7 +90,7 @@ abump_isolates_apkbuild_body() {
 	echo "first" > bar-1.0.txt
 	cat > APKBUILD <<-"EOF"
 		# Maintainer: Test user <user@example.com>
-		pkgname="bar"
+		pkgname=bar
 		pkgver=1.0
 		pkgrel=0
 		pkgdesc="dummy package for test"
@@ -96,13 +98,14 @@ abump_isolates_apkbuild_body() {
 		license="MIT"
 		arch="noarch"
 		source="bar-$pkgver.txt"
+		builddir="$srcdir"
 		options="!check"
 
 		export BUILDFLAGS="${BUILDFLAGS:-"repo=$repo"}"
 
 		package() {
 			echo "BUILDFLAGS: $BUILDFLAGS"
-			install -D "$srcdir"/bar-$pkgver.txt "$pkgdir"/bar
+			install -D bar-$pkgver.txt "$pkgdir"/bar
 		}
 	EOF
 	abuild checksum
