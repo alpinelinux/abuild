@@ -61,7 +61,8 @@ init_tests \
 	abuild_pc_providers \
 	abuild_pc_depends \
 	abuild_split_vars_reset \
-	abuild_update_config_sub
+	abuild_update_config_sub \
+	abuild_so_providers
 
 export ABUILD_SHAREDIR=$(atf_get_srcdir)/..
 export ABUILD_CONF=/dev/null
@@ -1991,4 +1992,78 @@ abuild_update_config_sub_body() {
 		-e match:"No update needed for ./config.sub" \
 		-e match:"No update needed for ./foo/config.sub" \
 		abuild prepare
+}
+
+abuild_so_providers_body() {
+	init_keys
+
+	mkdir -p bin
+	cat > bin/scanelf <<-EOF
+		#!/bin/sh
+		for i; do
+			if [ "\$i" = "--soname" ]; then
+				for i; do
+					[ -d "\$i" ] || continue
+					for i in "\$i"/*; do
+						[ -f "\$i" ] || continue
+						echo ET_DYN "\$ABUILD_SONAME" "\$i"
+					done
+				done
+				break
+			fi
+		done
+	EOF
+	chmod +x bin/scanelf
+	PATH="$PWD/bin:$PATH"
+
+	mkdir -p testrepo/pkg
+	cd testrepo/pkg
+	cat > APKBUILD <<-EOF
+		maintainer="Natanael Copa <ncopa@alpinelinux.org>"
+		pkgname="pkg"
+		pkgver=1.0
+		pkgrel=0
+		pkgdesc="Dummy test package"
+		url="https://gitlab.alpinelinux.org/alpine/aports"
+		arch="all"
+		license="MIT"
+		options="!check !strip !textrels !archcheck"
+
+		package() {
+			mkdir -p "\$(dirname "\$pkgdir"/usr/lib/\$ABUILD_FILENAME)"
+			touch "\$pkgdir"/usr/lib/\$ABUILD_FILENAME
+		}
+	EOF
+	ABUILD_FILENAME='libfoo.so.1.0.8' ABUILD_SONAME='libfoo.so.1' abuild rootpkg || atf_fail "abuild failed"
+	atf_check \
+		-o match:"provides = so:libfoo.so.1=1.0.8" \
+		grep '^provides = ' pkg/.control.pkg/.PKGINFO
+	ABUILD_FILENAME='libfoo.so.1.0.8' ABUILD_SONAME='' abuild rootpkg || atf_fail "abuild failed"
+	atf_check \
+		-o match:"provides = so:libfoo.so.1.0.8=1.0.8" \
+		grep '^provides = ' pkg/.control.pkg/.PKGINFO
+	ABUILD_FILENAME='libfoo.so' ABUILD_SONAME='' abuild rootpkg || atf_fail "abuild failed"
+	atf_check \
+		-o match:"provides = so:libfoo.so=0" \
+		grep '^provides = ' pkg/.control.pkg/.PKGINFO
+	ABUILD_FILENAME='libfoo.so' ABUILD_SONAME='libfoo.so.1.0.8' abuild rootpkg || atf_fail "abuild failed"
+	atf_check \
+		-o match:"provides = so:libfoo.so.1.0.8=0" \
+		grep '^provides = ' pkg/.control.pkg/.PKGINFO
+
+	ABUILD_FILENAME='foo/libfoo.so' ABUILD_SONAME='libfoo.so.1.0.8' abuild rootpkg || atf_fail "abuild failed"
+	atf_check -s exit:1 \
+		grep '^provides = ' pkg/.control.pkg/.PKGINFO
+	ldpath=/usr/lib/bar:/usr/lib/foo \
+	ABUILD_FILENAME='foo/libfoo.so.1.0.8' ABUILD_SONAME='libfoo.so.1' abuild rootpkg || atf_fail "abuild failed"
+	atf_check \
+		-o match:"provides = so:libfoo.so.1=1.0.8" \
+		grep '^provides = ' pkg/.control.pkg/.PKGINFO
+
+	ABUILD_FILENAME='libfoo.so.1.0.8.git' ABUILD_SONAME='libfoo.so.1' \
+	atf_check -s exit:1 -e match:"libfoo.so.1.0.8.git: library version 1.0.8.git is invalid" \
+		abuild rootpkg
+	ABUILD_FILENAME='libfoo.so.1.0.8.git' ABUILD_SONAME='libfoo.so.1' somask=libfoo.so.1 abuild rootpkg || atf_fail "abuild failed"
+	atf_check -s exit:1 \
+		grep '^provides = ' pkg/.control.pkg/.PKGINFO
 }
