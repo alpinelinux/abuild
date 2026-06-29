@@ -126,13 +126,19 @@ if [ $# -eq 0 ]; then
 fi
 
 # normalize $@ into paths to APKBUILDs
-[ "$(echo "$@" | wc -l)" -eq 1 ] || die "can't handle paths with embedded newlines"
-args=$(for a; do p=$(any_buildscript "$a") || die "can't find APKBUILD for $a"; echo "$p"; done)
-[ $? -eq 0 ] || exit 1
-oldifs=$IFS
-IFS=$'\n'
-set -- $args
-IFS=$oldifs
+[ -n "$APORTSDIR" ] || unset APORTSDIR
+for a; do
+	if [ -d "$a" ]; then
+		a="$a/APKBUILD"
+	elif ! [ -f "$a" ] && [ -n "${APORTSDIR=$(git rev-parse --show-toplevel 2>/dev/null || :)}" ]; then
+		for a in "$APORTSDIR/$a/APKBUILD" "$APORTSDIR"/*/"$a/APKBUILD"; do
+			[ -f "$a" ] && break
+		done
+	fi
+	[ -f "$a" ] || die "can't find APKBUILD for $name"
+	set -- "$@" "$a"
+	shift
+done
 
 do_verify "$@" || exit 1
 $cmd "$@"
