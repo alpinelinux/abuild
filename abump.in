@@ -41,8 +41,11 @@ do_bump() {
 		if [ "${name#*/}" != "$name" ] && ! [ -d "$APORTSDIR/${name%/*}" ]; then
 			die "'$p' should be of form 'foo-1.2.3' or 'main/foo-1.2.3'"
 		fi
-		a=$(aports_buildscript "$name" ) \
-			|| die "can't find APKBUILD for $name"
+
+		for a in "$APORTSDIR/$name/APKBUILD" "$APORTSDIR"/*/"$name/APKBUILD"; do
+			[ -f "$a" ] && break
+		done
+		[ -f "$a" ] || die "can't find APKBUILD for $name"
 
 		# sourcing APKBUILDs should not affect the environment of abump
 		# so do that in a subshell, along with any checks that need the
@@ -156,8 +159,11 @@ if [ $# -eq 0 ]; then
 	exit 2
 fi
 
-[ -n "$APORTSDIR" ] || error "can't locate \$APORTSDIR"
-git rev-parse 2>/dev/null || die "not in a git tree"
+if [ -n "$APORTSDIR" ]; then
+	git rev-parse 2>/dev/null || die "not in a git tree"
+else
+	APORTSDIR=$(git rev-parse --show-toplevel 2>/dev/null) || die "can't locate \$APORTSDIR"
+fi
 if [ "$branch" = 1 ]; then
 	git checkout -b "bump-$1"
 fi
