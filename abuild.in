@@ -1628,6 +1628,9 @@ scan_shared_objects() {
 		# if soname field is missing, soname will be the filepath
 		sover=0
 		if [ -z "$file" ]; then
+			case "$soname" in
+			"$datadir"/usr/lib/debug/*.debug) continue;;
+			esac
 			file="$soname"
 			soname=${soname##*/}
 		fi
