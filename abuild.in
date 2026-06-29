@@ -108,7 +108,7 @@ want_check() {
 
 set_source_date() {
 	# dont error out if APKBUILD is not in git
-	if ! $git rev-parse --show-toplevel >/dev/null 2>&1; then
+	if ! $git -C "$startdir" rev-parse --show-toplevel >/dev/null 2>&1; then
 		git=true
 	fi
 	# set time stamp for reproducible builds
@@ -989,18 +989,18 @@ lang() {
 
 # echo '-dirty' if git is not clean
 git_dirty() {
-	[ $($git status -s -- "$startdir" | wc -l) -eq 0 ] || echo "-dirty"
+	[ $($git -C "$startdir" status -s -- "$startdir" | wc -l) -eq 0 ] || echo "-dirty"
 }
 
 # echo last commit hash id
 git_last_commit() {
-	$git ls-files --error-unmatch "$APKBUILD" >/dev/null 2>&1 \
-		&& $git rev-list -n 1 HEAD -- "$startdir"
+	$git -C "$startdir" ls-files --error-unmatch "$APKBUILD" >/dev/null 2>&1 \
+		&& $git -C "$startdir" rev-list -n 1 HEAD -- "$startdir"
 }
 
 # date of last commit
 git_last_commit_epoch() {
-	$git log -1 --format=%cd --date=unix $1 -- "$startdir"
+	$git -C "$startdir" log -1 --format=%cd --date=unix $1 -- "$startdir"
 }
 
 get_maintainer() {
@@ -1913,7 +1913,7 @@ update_abuildrepo_index() {
 	subpkg_unset
 
 	if [ -z "$DESCRIPTION" ]; then
-		DESCRIPTION="$repo $(cd $startdir && $git describe 2>/dev/null || true)"
+		DESCRIPTION="$repo $($git -C "$startdir" describe 2>/dev/null || true)"
 	fi
 
 	local oldpwd="$PWD"
@@ -2587,7 +2587,7 @@ rootbld() {
 	fi
 
 	local version="edge" buildhost="edge" gitref
-	if gitref="$(expr "$($git symbolic-ref --short HEAD)" : '\([0-9]\+\(\.[0-9]\+\)*\)-')"; then
+	if gitref="$(expr "$($git -C "$startdir" symbolic-ref --short HEAD)" : '\([0-9]\+\(\.[0-9]\+\)*\)-')"; then
 		version=v${gitref}
 		buildhost=${gitref/./-}
 	fi
@@ -2597,10 +2597,10 @@ rootbld() {
 	(
 		echo "$REPODEST/$repo"
 
-		for key in $($git config --list --name-only); do
+		for key in $($git -C "$startdir" config --list --name-only); do
 			k=${key#abuild.}
 			[ $k != $key ] && \
-				eval "export $k=\"$($git config --get $key)\""
+				eval "export $k=\"$($git -C "$startdir" config --get $key)\""
 		done
 
 		export mirror version
