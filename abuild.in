@@ -2554,7 +2554,10 @@ rootbld() {
 
 	msg "Preparing build chroot..."
 
-	BUILD_ROOT=$(mktemp -d /var/tmp/abuild.XXXXXXXXXX)
+	BUILD_ROOT=$(
+		umask 0077
+		mktemp -d /var/tmp/abuild.XXXXXXXXXX
+	)
 
 	mkdir -p "$BUILD_ROOT/proc" "$BUILD_ROOT/etc/apk/keys" \
 		"$BUILD_ROOT/home/user/.abuild" "$BUILD_ROOT/home/user/aports" \
