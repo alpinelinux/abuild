@@ -2436,8 +2436,8 @@ builddeps() {
 	if [ -z "$install_deps" ]; then
 		# find which deps are missing
 		local mbd mhd missing
-		mbd=$(get_missing_deps "" $builddeps) || return 1
-		mhd=$(get_missing_deps "--root $CBUILDROOT" $hostdeps) || return 1
+		mbd=$(get_missing_deps "" $builddeps)
+		mhd=$(get_missing_deps "--root $CBUILDROOT" $hostdeps)
 		missing=$(echo $mbd $mhd)
 
 		# if we dont have any missing deps we are done now
@@ -2449,8 +2449,8 @@ builddeps() {
 	uninstall_after=".makedepends-$pkgname $uninstall_after"
 	# make a --simulate run first to detect missing deps
 	# apk-tools --virtual is no goot at reporting those.
-	deps "--quiet --simulate" || return 1
-	deps || return 1
+	deps "--quiet --simulate"
+	deps
 }
 
 # replace the sha512sums in the APKBUILD
@@ -2833,16 +2833,17 @@ triggers_has() {
 }
 
 deps() {
-	[ -z "$hostdeps" -a -z "$builddeps" ] && calcdeps
+	if [ -z "$hostdeps" ] && [ -z "$builddeps" ]; then
+		calcdeps
+	fi
 
 	local _quiet="$1"
 	[ -z "$_quiet" ] && msg "Installing for build:$builddeps"
-	apk_add_makedeps make $_quiet $builddeps || return 1
+	apk_add_makedeps make $_quiet $builddeps
 	if [ -n "$CBUILDROOT" ]; then
 		[ -z "$_quiet" ] && msg "Installing for host:$hostdeps"
 		apk_add_makedeps host $_quiet --no-scripts \
-			--root "$CBUILDROOT" $hostdeps \
-			|| return 1
+			--root "$CBUILDROOT" $hostdeps
 	fi
 }
 
