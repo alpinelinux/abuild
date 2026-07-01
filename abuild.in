@@ -2447,9 +2447,6 @@ builddeps() {
 	fi
 
 	uninstall_after=".makedepends-$pkgname $uninstall_after"
-	# make a --simulate run first to detect missing deps
-	# apk-tools --virtual is no goot at reporting those.
-	deps "--quiet --simulate"
 	deps
 }
 
@@ -2837,12 +2834,11 @@ deps() {
 		calcdeps
 	fi
 
-	local _quiet="$1"
-	[ -z "$_quiet" ] && msg "Installing for build:$builddeps"
-	apk_add_makedeps make $_quiet $builddeps
+	msg "Installing for build:$builddeps"
+	apk_add_makedeps make $builddeps
 	if [ -n "$CBUILDROOT" ]; then
-		[ -z "$_quiet" ] && msg "Installing for host:$hostdeps"
-		apk_add_makedeps host $_quiet --no-scripts \
+		msg "Installing for host:$hostdeps"
+		apk_add_makedeps host --no-scripts \
 			--root "$CBUILDROOT" $hostdeps
 	fi
 }
