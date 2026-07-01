@@ -136,6 +136,12 @@ file.
 *makedepends*
 	Specifies build dependencies for the package.
 
+*makedepends_build*
+	Build dependencies for the *CBUILD* machine, installed without *--root*.
+
+*makedepends_host*
+	Build dependencies for the *CHOST* machine, installed into *CBUILDROOT*.
+
 *maintainer*
 	The name and email of the package maintainer in RFC 2822 format.
 	E.g.: _maintainer="Joe Q. Public <john.q.public@example.com>"_
