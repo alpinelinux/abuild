@@ -2950,7 +2950,6 @@ usage() {
 		  fetch       Fetch sources to \$SRCDEST
 		  index       Regenerate indexes in \$REPODEST
 		  listpkg     List target packages
-		  package     Install project into \$pkgdir
 		  prepare     Apply patches
 		  rootbld     Build package in clean chroot
 		  rootpkg     Run 'package', the split functions and create apks as fakeroot

@@ -103,9 +103,6 @@ other related operations.
 *listpkg*
 	List target packages
 
-*package*
-	Install project into
-
 *prepare*
 	Apply patches
 
