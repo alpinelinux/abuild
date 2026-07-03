@@ -2939,7 +2939,7 @@ usage() {
 		 -v  Verbose: show every command as it is run (very noisy)
 
 		Commands:
-		  build       Compile and install package into \$pkgdir
+		  build       Compile package in \$builddir
 		  check       Run any defined tests concerning the package
 		  checksum    Generate checksum to be included in APKBUILD
 		  clean       Remove temp build and install dirs

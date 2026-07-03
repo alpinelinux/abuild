@@ -71,7 +71,7 @@ other related operations.
 	unpack prepare mkusers build check rootpkg*.
 
 *build*
-	Compile and install package into *$pkgdir*.
+	Compile package in $builddir
 
 *check*
 	Run any defined tests concerning the package
