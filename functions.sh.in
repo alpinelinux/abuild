@@ -117,7 +117,13 @@ readconfig() {
 	[ -f "$ABUILD_DEFCONF" ] && . "$ABUILD_DEFCONF"
 	: ${ABUILD_CONF:=$sysconfdir/abuild.conf}
 	[ -f "$ABUILD_CONF" ] && . "$ABUILD_CONF"
-	ABUILD_USERDIR=${_ABUILD_USERDIR-${ABUILD_USERDIR:-$HOME/.abuild}}
+	if [ -n "${_ABUILD_USERDIR+x}" ] || [ -n "$ABUILD_USERDIR" ]; then
+		ABUILD_USERDIR=${_ABUILD_USERDIR-$ABUILD_USERDIR}
+	elif ! [ -d "${XDG_CONFIG_HOME:-$HOME/.config}/abuild" ] && [ -d "$HOME/.abuild" ]; then
+		ABUILD_USERDIR=$HOME/.abuild
+	else
+		ABUILD_USERDIR=${XDG_CONFIG_HOME:-$HOME/.config}/abuild
+	fi
 	: ${ABUILD_USERCONF:=$ABUILD_USERDIR/abuild.conf}
 	[ -f "$ABUILD_USERCONF" ] && . "$ABUILD_USERCONF"
 	APORTSDIR=${_APORTSDIR-$APORTSDIR}

@@ -7,12 +7,12 @@
 #USE_CCACHE=1
 
 # where downloaded files are stored
-#SRCDEST=/var/cache/distfiles
+#SRCDEST=${XDG_CACHE_HOME:-$HOME/.cache}/abuild
 
 # uncomment line below to store built packages in other location
 # The package will be stored as $REPODEST/$repo/$arch/$pkgname-$pkgver-r$pkgrel.apk
 # where $repo is the name of the parent directory of $startdir.
-#REPODEST=$HOME/packages/
+#REPODEST=${XDG_DATA_HOME:-$HOME/.local/share}/abuild
 
 # PACKAGER and MAINTAINER are used by newapkbuild when creating new aports for
 # the APKBUILD's "Contributor:" and "Maintainer:" comments, respectively.
