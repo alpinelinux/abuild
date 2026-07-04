@@ -155,15 +155,15 @@ other related operations.
 	Path to sysroot. Primarily used for cross-compilation.
 
 *CBUILD*
-	Architecture or hostspec of the machine compiling the packages.
+	Architecture or triplet of the machine compiling the packages.
 
 *CHOST*
-	Architecture or hostspec of the machine where packages will run.
+	Architecture or triplet of the machine where packages will run.
 
 *CTARGET*
-	Architecture or hostspec of packages that will be produced by the package
+	Architecture or triplet of packages that will be produced by the package
 	being compiled. E.g.: when compiling a compiler, the architecture or
-	hostspec of the binaries produced by that compiler.
+	triplet of the binaries produced by that compiler.
 
 *PACKAGER*
 	Name and email of the packages in RFC5322 format.
