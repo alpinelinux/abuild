@@ -11,7 +11,7 @@ use URI;
 use Text::Wrap qw(wrap $columns);
 use File::Basename qw(dirname);
 
-our $packager = undef;
+our $maintainer = undef;
 my %pkgmap = ();
 my %licenses = ();
 
@@ -216,16 +216,16 @@ sub write_apkbuild {
     my $pkgreal = $distdata->{info}{name};
     my $srcurl = get_source($distdata);
 
-    unless ($authors or defined $packager) {
-        $packager = `
+    unless ($authors or defined $maintainer) {
+        $maintainer = `
             . "\${ABUILD_SHAREDIR:-@sharedir@}/functions.sh"
-            printf %s "\$PACKAGER"
+            printf %s "\$MAINTAINER"
         `;
-        die "Unable to determine packager" if $? != 0;
+        die "Unable to determine maintainer" if $? != 0;
     }
 
     my %repl = (
-	authors  => ($authors or "# Contributor: $packager\n# Maintainer: $packager"),
+	authors  => ($authors or "# Contributor: $maintainer\n# Maintainer: $maintainer"),
         pkgname  => ($pkgname or map_pypi_to_apk($pkgreal)),
         pkgreal  => $pkgreal,
         pkgver   => $distdata->{info}{version},
