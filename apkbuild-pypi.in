@@ -225,7 +225,7 @@ sub write_apkbuild {
     }
 
     my %repl = (
-	authors  => ($authors or "# Contributor: $maintainer\n# Maintainer: $maintainer"),
+	authors  => ($authors or "# Maintainer: $maintainer"),
         pkgname  => ($pkgname or map_pypi_to_apk($pkgreal)),
         pkgreal  => $pkgreal,
         pkgver   => $distdata->{info}{version},
