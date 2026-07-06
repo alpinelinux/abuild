@@ -14,9 +14,10 @@
 # where $repo is the name of the parent directory of $startdir.
 #REPODEST=${XDG_DATA_HOME:-$HOME/.local/share}/abuild
 
-# PACKAGER and MAINTAINER are used by newapkbuild when creating new aports for
-# the APKBUILD's "Contributor:" and "Maintainer:" comments, respectively.
+# included in build .apk files and used by abuild-keygen to derive default filename
 #PACKAGER="Your Name <your@email.address>"
+
+# default contributor/maintainer for generated APKBUILDs
 #MAINTAINER="$PACKAGER"
 
 # what to clean up after a successful build
