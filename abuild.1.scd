@@ -166,7 +166,7 @@ other related operations.
 	triplet of the binaries produced by that compiler.
 
 *PACKAGER*
-	Name and email of the packages in RFC5322 format.
+	Name and email of the packager in RFC5322 format.
 	E.g.: *John Doe <john@example.com>*.
 
 *PACKAGER_PRIVKEY*
