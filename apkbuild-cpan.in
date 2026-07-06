@@ -198,7 +198,7 @@ sub write_apkbuild {
     my %repl = (
         authors => (
             $authors
-              or "# Contributor: $maintainer\n# Maintainer: $maintainer"
+              or "# Maintainer: $maintainer"
         ),
         pkgname  => map_cpan_to_apk( $moddata->{distribution} ),
         pkgreal  => $pkgreal,
