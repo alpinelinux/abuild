@@ -281,7 +281,7 @@ newaport() {
 
 	# Generate header with standard variables
 	cat >APKBUILD<<__EOF__
-# Contributor:${PACKAGER:+" "}${PACKAGER}
+# Contributor:${MAINTAINER:+" "}${MAINTAINER}
 # Maintainer:${MAINTAINER:+" "}${MAINTAINER}
 pkgname=$pkgname
 pkgver=$pv
