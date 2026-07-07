@@ -11,7 +11,7 @@ use URI;
 use Text::Wrap qw(wrap $columns);
 use File::Basename qw(dirname);
 
-our $packager = '';
+our $packager = undef;
 my %pkgmap = ();
 my %licenses = ();
 
@@ -215,6 +215,14 @@ sub write_apkbuild {
 
     my $pkgreal = $distdata->{info}{name};
     my $srcurl = get_source($distdata);
+
+    unless ($authors or defined $packager) {
+        $packager = `
+            . "\${ABUILD_SHAREDIR:-@sharedir@}/functions.sh"
+            printf %s "\$PACKAGER"
+        `;
+        die "Unable to determine packager" if $? != 0;
+    }
 
     my %repl = (
 	authors  => ($authors or "# Contributor: $packager\n# Maintainer: $packager"),
@@ -462,12 +470,6 @@ sub update_builddir {
         print $fh $apk;
     }
 }
-
-my $abuild_conf = read_assignments_from_file('/etc/abuild.conf');
-$packager = $abuild_conf->{PACKAGER} if $abuild_conf->{PACKAGER};
-
-my $user_abuild_conf = read_assignments_from_file($ENV{"HOME"} . "/.abuild/abuild.conf");
-$packager = $user_abuild_conf->{PACKAGER} if $user_abuild_conf->{PACKAGER};
 
 sub usage {
     say <<'EOF';
