@@ -249,7 +249,7 @@ newaport() {
 		depends="perl"
 	fi
 
-	if [ -z "$checkdepends" ] && [ "$buildtype" = "python"* ]; then
+	if [ -z "$checkdepends" ] && [ "$buildtype" = "python" ]; then
 		checkdepends="py3-pytest"
 	fi
 
