@@ -711,7 +711,7 @@ abuild_validate_depends_body() {
 		atf_check -s exit:0 \
 		-e match:"Validating" \
 		abuild validate
-	TESTDEPENDS="foo~1.0 bar>~1.0 baz<~1"
+	TESTDEPENDS="foo~1.0 bar>~1.0 baz<~1" \
 		atf_check -s exit:0 \
 		-e match:"Validating" \
 		abuild validate
