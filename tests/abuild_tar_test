@@ -7,8 +7,6 @@ init_tests \
 	abuild_tar_cut \
 	abuild_tar_hash
 
-DATADIR=$(atf_get_srcdir)/testdata
-
 abuild_tar_help_body() {
 	atf_check -s exit:0 \
 		-o match:"usage:" \
