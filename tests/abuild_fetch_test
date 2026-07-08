@@ -60,10 +60,10 @@ abuild_fetch_curl_invocation_body() {
 abuild_fetch_curl_failure_body() {
 	create_fake_curl
 	# verify that fake curl works
-	CURL_EXITCODE=1 atf_check -s exit:$CURL_EXITCODE \
+	CURL_EXITCODE=1 atf_check -s exit:1 \
 		-o match:"Fake curl invoked" \
 		curl
-	CURL_EXITCODE=1 atf_check -s exit:$CURL_EXITCODE \
+	CURL_EXITCODE=1 atf_check -s exit:1 \
 		-o match:"Fake curl invoked" \
 		-e empty \
 		abuild-fetch -d "$PWD" https://example.com/non-existing
