@@ -127,7 +127,8 @@ fi
 
 # normalize $@ into paths to APKBUILDs
 [ -n "$APORTSDIR" ] || unset APORTSDIR
-for a; do
+for name; do
+	a=$name
 	if [ -d "$a" ]; then
 		a="$a/APKBUILD"
 	elif ! [ -f "$a" ] && [ -n "${APORTSDIR=$(git rev-parse --show-toplevel 2>/dev/null || :)}" ]; then
