@@ -66,7 +66,7 @@ init_tests \
 
 export ABUILD_SHAREDIR=$(atf_get_srcdir)/..
 export ABUILD_CONF=/dev/null
-export ABUILD_USERDIR="$HOME"/.abuild
+export ABUILD_USERDIR="$(atf_get_srcdir)/testdata/.abuild"
 export APK="apk --keys-dir $(atf_get_srcdir)/testdata/.abuild"
 export GIT_CONFIG_GLOBAL="$(atf_get_srcdir)/testdata/gitconfig"
 export REPODEST="$PWD"/packages
@@ -75,11 +75,6 @@ export CBUILD=x86_64-alpine-linux-musl
 unset CBUILD_ARCH CHOST CARCH CTARGET CTARGET_ARCH
 
 testrepo=$(atf_get_srcdir)/testrepo
-
-# copy keys
-init_keys() {
-	cp -Ra "$(atf_get_srcdir)"/testdata/.abuild "$PWD"
-}
 
 abuild_help_body() {
 	atf_check -s exit:0 \
@@ -100,7 +95,6 @@ abuild_version_body() {
 }
 
 abuild_simple_pkg_without_deps_body() {
-	init_keys
 	cp -R "$testrepo"/pkg1 .
 	cd pkg1
 	atf_check -s exit:0 -o ignore \
@@ -110,7 +104,6 @@ abuild_simple_pkg_without_deps_body() {
 }
 
 abuild_build_fail_body() {
-	init_keys
 	mkdir buildfail
 	cat >buildfail/APKBUILD <<-EOF
 		# Maintainer: Joe User <juser@example.com>
@@ -140,7 +133,6 @@ abuild_build_fail_body() {
 }
 
 abuild_invalid_filename_body() {
-	init_keys
 	mkdir invalid-filename
 	cd invalid-filename
 	cat >APKBUILD <<-EOF
@@ -170,7 +162,6 @@ abuild_invalid_filename_body() {
 }
 
 abuild_usr_lib64_body() {
-	init_keys
 	mkdir lib64test
 	cd lib64test
 	cat >APKBUILD <<-EOF
@@ -204,7 +195,6 @@ abuild_usr_lib64_body() {
 }
 
 abuild_dbg_subpackage_body() {
-	init_keys
 	cp -Ra "$testrepo" .
 	cd testrepo/dbgpkg
 	atf_check -s exit:0 \
@@ -250,7 +240,6 @@ abuild_dbg_subpackage_body() {
 }
 
 abuild_reproducible_body() {
-	init_keys
 	cp -Ra "$testrepo" .
 	cd testrepo/pkg1
 
@@ -347,7 +336,6 @@ abuild_subpkg_dep_leak_body() {
 }
 
 abuild_subpkg_libs_body() {
-	init_keys
 	mkdir -p testrepo/pkg
 	cd testrepo/pkg
 	cat > APKBUILD <<-EOF
@@ -377,7 +365,6 @@ abuild_subpkg_libs_body() {
 
 
 abuild_py_providers_creation_body() {
-	init_keys
 	cp -Ra "$testrepo" .
 	cd testrepo/py3\ foo\ and\ bar
 	abuild rootpkg || atf_fail "abuild failed"
@@ -387,7 +374,6 @@ abuild_py_providers_creation_body() {
 }
 
 abuild_py_dependency_scan_body() {
-	init_keys
 	cp -Ra "$testrepo" .
 	cd testrepo/py3\ foo\ and\ bar
 	abuild rootpkg || atf_fail "abuild failed"
@@ -398,7 +384,6 @@ abuild_py_dependency_scan_body() {
 
 # test that depend = python3~3.12 is not added on python3.12
 abuild_py_dependency_scan_versioned_python_body() {
-	init_keys
 	mkdir -p testrepo/python3.12
 	cd testrepo/python3.12
 	cat > APKBUILD <<-EOF
@@ -429,7 +414,6 @@ abuild_py_dependency_scan_versioned_python_body() {
 
 
 abuild_py_dependency_scan_conflict_body() {
-	init_keys
 	cp -Ra "$testrepo" .
 	cd testrepo/py3-conflicting-python-versions
 	atf_check -s exit:1 \
@@ -438,8 +422,6 @@ abuild_py_dependency_scan_conflict_body() {
 }
 
 abuild_rpaths_body() {
-	init_keys
-
 	mkdir -p bin
 	cat > bin/scanelf <<-EOF
 		#!/bin/sh
@@ -485,8 +467,6 @@ abuild_rpaths_body() {
 }
 
 abuild_strip_body() {
-	init_keys
-
 	mkdir -p bin
 	cat > bin/scanelf <<-EOF
 		#!/bin/sh
@@ -628,7 +608,6 @@ abuild_valid_pkgnames_body() {
 }
 
 abuild_invalid_pkgnames_body() {
-	init_keys
 	cp -Ra "$testrepo"/test-pkgname .
 	cd test-pkgname
 	TESTNAME="" atf_check -s exit:1 \
@@ -649,7 +628,6 @@ abuild_invalid_pkgnames_body() {
 }
 
 abuild_invalid_subpkgnames_body() {
-	init_keys
 	cp -Ra "$testrepo"/test-pkgname .
 	cd test-pkgname
 	TESTSUBNAME="" atf_check -s exit:1 \
@@ -661,7 +639,6 @@ abuild_invalid_subpkgnames_body() {
 }
 
 abuild_duplicate_subpkgname_body() {
-	init_keys
 	cp -Ra "$testrepo"/test-pkgname .
 	cd test-pkgname
 	TESTNAME="test-name" TESTSUBNAME="test-name" atf_check -s exit:1 \
@@ -673,7 +650,6 @@ abuild_duplicate_subpkgname_body() {
 }
 
 abuild_invalid_subpkg_version_body() {
-	init_keys
 	cp -Ra "$testrepo"/test-pkgname .
 	cd test-pkgname
 	TESTDEPVER="1.0-0" atf_check -s exit:1 \
@@ -682,7 +658,6 @@ abuild_invalid_subpkg_version_body() {
 }
 
 abuild_provide_pkgname_body() {
-	init_keys
 	cp -Ra "$testrepo"/test-pkgname .
 	cd test-pkgname
 	TESTNAME=provided atf_check -s exit:1 \
@@ -703,7 +678,6 @@ abuild_provide_pkgname_body() {
 }
 
 abuild_validate_depends_body() {
-	init_keys
 	cp -Ra "$testrepo"/test-pkgname .
 	cd test-pkgname
 	TESTDEPENDS="foo" TESTMAKEDEPENDS="bar" \
@@ -727,7 +701,6 @@ abuild_validate_depends_body() {
 }
 
 abuild_subpackage_arch_body() {
-	init_keys
 	cp -Ra "$testrepo" .
 	cd testrepo/subpackage-arch
 	arch="$(abuild -A)"
@@ -742,7 +715,6 @@ abuild_subpackage_arch_body() {
 }
 
 abuild_large_doc_subpackage_body() {
-	init_keys
 	cp -Ra "$testrepo"/large-doc-subpkg .
 	cd large-doc-subpkg
 	atf_check -s exit:0 -o ignore \
@@ -751,7 +723,6 @@ abuild_large_doc_subpackage_body() {
 }
 
 abuild_bigdocs_body() {
-	init_keys
 	cp -Ra "$testrepo"/large-doc-subpkg .
 	cd large-doc-subpkg
 	options=bigdocs atf_check -s exit:0 -o ignore \
@@ -784,7 +755,6 @@ abuild_license_spdx_body() {
 }
 
 abuild_git_ceiling_body() {
-	init_keys
 	git init
 	mkdir git-pkg
 	cd git-pkg
@@ -815,7 +785,6 @@ abuild_git_ceiling_body() {
 }
 
 abuild_package_size_body() {
-	init_keys
 	mkdir -p test-size
 
 	cd test-size
@@ -940,7 +909,6 @@ abuild_package_size_body() {
 }
 
 abuild_keepdirs_body() {
-	init_keys
 	mkdir -p test-amove
 
 	cd test-amove
@@ -965,7 +933,6 @@ abuild_keepdirs_body() {
 }
 
 abuild_amove_body() {
-	init_keys
 	mkdir -p test-amove
 
 	cd test-amove
@@ -1061,7 +1028,6 @@ abuild_amove_body() {
 }
 
 abuild_doc_body() {
-	init_keys
 	mkdir -p foo
 
 	cd foo
@@ -1109,7 +1075,6 @@ abuild_doc_body() {
 }
 
 abuild_dev_body() {
-	init_keys
 	mkdir -p foo
 
 	cd foo
@@ -1149,7 +1114,6 @@ abuild_dev_body() {
 }
 
 abuild_devhelp_warn_body() {
-	init_keys
 	mkdir -p foo
 
 	cd foo
@@ -1174,7 +1138,6 @@ abuild_devhelp_warn_body() {
 }
 
 abuild_devhelp_body() {
-	init_keys
 	mkdir -p foo
 
 	cd foo
@@ -1222,7 +1185,6 @@ abuild_check_maintainer_body() {
 }
 
 abuild_cleanoldpkg_body() {
-	init_keys
 	mkdir -p main/foo
 	cd main/foo
 	for arch in aarch64 x86_64; do
@@ -1336,7 +1298,6 @@ abuild_clean_body() {
 }
 
 abuild_path_with_spaces_body() {
-	init_keys
 	cp -Ra "$testrepo" .
 	cd testrepo/pkg\ path\ with\ spaces
 	atf_check -s exit:0 \
@@ -1346,8 +1307,6 @@ abuild_path_with_spaces_body() {
 }
 
 abuild_pyc_warn_body() {
-	init_keys
-
 	mkdir -p pycachetest
 	cd pycachetest
 	cat >APKBUILD <<-EOF
@@ -1372,8 +1331,6 @@ abuild_pyc_warn_body() {
 }
 
 abuild_pyc_body() {
-	init_keys
-
 	mkdir -p foo
 	cd foo
 	cat >APKBUILD <<-EOF
@@ -1403,7 +1360,6 @@ abuild_pyc_body() {
 }
 
 abuild_setcap_binary_body() {
-	init_keys
 	cp -Ra "$testrepo"/setcap .
 	cd setcap
 	atf_check -s exit:1 \
@@ -1413,7 +1369,6 @@ abuild_setcap_binary_body() {
 }
 
 abuild_setcap_binary_with_option_body() {
-	init_keys
 	cp -Ra "$testrepo"/setcap .
 	cd setcap
 	options=setcap atf_check -s exit:0 \
@@ -1423,7 +1378,6 @@ abuild_setcap_binary_with_option_body() {
 }
 
 abuild_command_provides_body() {
-	init_keys
 	mkdir testprovides
 	cd testprovides
 	cat >APKBUILD<<-EOF
@@ -1469,7 +1423,6 @@ abuild_command_provides_body() {
 }
 
 abuild_gocache_dir_body() {
-	init_keys
 	mkdir gocache-dir
 	cd gocache-dir
 	cat >APKBUILD<<-EOF
@@ -1499,7 +1452,6 @@ abuild_gocache_dir_body() {
 }
 
 abuild_cargo_home_dir_body() {
-	init_keys
 	mkdir cargo-home-dir
 	cd cargo-home-dir
 	cat >APKBUILD<<-EOF
@@ -1529,7 +1481,6 @@ abuild_cargo_home_dir_body() {
 }
 
 abuild_fish_comp_split_body() {
-	init_keys
 	mkdir fish-split-dir
 	cd fish-split-dir
 	cat >APKBUILD<<-EOF
@@ -1659,7 +1610,6 @@ abuild_deps_body() {
 }
 
 abuild_usr_merge_body() {
-	init_keys
 	mkdir usrmergetest
 	cd usrmergetest
 	cat >APKBUILD <<-EOF
@@ -1689,7 +1639,6 @@ abuild_usr_merge_body() {
 }
 
 abuild_symlink_depends_body() {
-	init_keys
 	mkdir testsymlink
 	cd testsymlink
 	cat >APKBUILD<<- 'EOF'
@@ -1765,7 +1714,6 @@ abuild_symlink_depends_body() {
 }
 
 abuild_pc_providers_body() {
-	init_keys
 	mkdir testsymlink
 	cd testsymlink
 	cat >APKBUILD<<- '__EOF__'
@@ -1865,7 +1813,6 @@ EOF
 }
 
 abuild_pc_depends_body() {
-	init_keys
 	mkdir testsymlink
 	cd testsymlink
 	cat >APKBUILD<<- '__EOF__'
@@ -1932,7 +1879,6 @@ EOF
 }
 
 abuild_split_vars_reset_body() {
-	init_keys
 	mkdir testsplitvars
 	cd testsplitvars
 	cat >APKBUILD<<- '__EOF__'
@@ -1978,7 +1924,6 @@ abuild_split_vars_reset_body() {
 }
 
 abuild_update_config_sub_body() {
-	init_keys
 	mkdir testupdateconfigsub
 	cd testupdateconfigsub
 	cat > APKBUILD <<- '__EOF__'
@@ -2037,8 +1982,6 @@ abuild_update_config_sub_body() {
 }
 
 abuild_so_providers_body() {
-	init_keys
-
 	mkdir -p bin
 	cat > bin/scanelf <<-EOF
 		#!/bin/sh
