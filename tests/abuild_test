@@ -1682,8 +1682,6 @@ abuild_symlink_depends_body() {
 	EOF
 	abuild rootpkg
 
-	set -x
-
 	atf_check \
 		-o match:"depend = testsymlink=1.0-r0" \
 		-o not-match:"depend = foo-notrace=1.0-r0" \
