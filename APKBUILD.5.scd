@@ -341,12 +341,12 @@ be overridden.
 	Specifies the directory where the built files will be
 	installed. Typically, you will call `make DESTDIR="$pkgdir" install`
 	or similar to install the files. The default value is _$startdir/pkg_
-	and you should not modify this variable.
+	but may be overwritten by the environment.
 
 *srcdir*
 	Specifies the directory where the files specified in *source*
 	are downloaded and unpacked. The default value is _$startdir/src_
-	and you should not need to modify this.
+	but may be overwritten by the environment.
 
 *startdir*
 	Specifies the directory where the *APKBUILD* file resides. This should
