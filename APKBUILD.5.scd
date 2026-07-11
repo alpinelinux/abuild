@@ -405,9 +405,8 @@ the exception of *package*, are not strictly required.
 	This function unpacks any archives in *source* to *srcdir*.
 
 *prepare*
-	Prepares the source in *srcdir* to be built. The default *prepare*
-	function ensures the build directories are set up correctly and
-	applies any _\*.patch_ files specified in *source*. You must call
+	Prepares the source in *srcdir* and *builddir* to be built. The default
+	implementation is a single call of *default_prepare*. You must call
 	*default_prepare* if you write a custom *prepare* function.
 
 	A custom *prepare* function may call *update_config_sub* or
@@ -428,6 +427,15 @@ the exception of *package*, are not strictly required.
 	a metapackage), you must use `mkdir -p "$pkgdir"` to skip the
 	package phase.
 
+## Predefined Functions
+
+The following functions are defined for you by abuild(1) and MUST NOT
+be overridden.
+
+*default_prepare*
+	Changes the working directory to *builddir* and applies all _\*.patch_,
+	_\*.patch.gz_ and _\*.patch.xz_ files specified in *source*.
+	Implementation may differ slightly.
 
 ## Install Scripts
 
