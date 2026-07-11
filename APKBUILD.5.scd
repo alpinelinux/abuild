@@ -354,11 +354,11 @@ be overridden.
 
 *subpkgname*
 	Specifies the name of the current subpackage. This variable is only
-	set inside subpackage functions.
+	set inside split functions.
 
 *subpkgdir*
 	Specifies the directory where the subpackage's files should be
-	placed. This variable is only set inside subpackage functions.
+	placed. This variable is only set inside split functions.
 
 
 ## Special Variables
