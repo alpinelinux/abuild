@@ -96,17 +96,17 @@ The following variables must be set in all *APKBUILD* files:
 	Specifies the license under which the package is distributed. The
 	value provided must match a SPDX license expression.
 
-*source*
-	Specifies the location of both local and remote source files
-	used to build the package. Typically, the remote source file(s)
-	or archive(s) is specified, followed by any local patches,
-	configuration files, or other necessary files.
-
 
 ## Optional Variables
 
 The following variables are not required, but may be set in any *APKBUILD*
 file.
+
+*source*
+	Specifies the location of both local and remote source files
+	used to build the package. Typically, the remote source file(s)
+	or archive(s) is specified, followed by any local patches,
+	configuration files, or other necessary files.
 
 *checkdepends*
 	Specifies test-time dependencies of the package. Common packages that
