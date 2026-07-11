@@ -352,6 +352,10 @@ be overridden.
 	Specifies the directory where the *APKBUILD* file resides. This should
 	generally not be used.
 
+*subpkgname*
+	Specifies the name of the current subpackage. This variable is only
+	set inside subpackage functions.
+
 *subpkgdir*
 	Specifies the directory where the subpackage's files should be
 	placed. This variable is only set inside subpackage functions.
