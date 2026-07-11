@@ -332,10 +332,10 @@ file.
 		*depends* and *provides* with shared library (.so), symlink
 		target dependencies and similar.
 
-## Automatic Variables
+## Predefined Variables
 
-The following variables are defined for you by abuild(1), but may be
-overridden if necessary.
+The following variables are defined for you by abuild(1) and MUST NOT
+be overridden.
 
 *pkgdir*
 	Specifies the directory where the built files will be
