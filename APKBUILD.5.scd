@@ -347,6 +347,11 @@ be overridden.
 	are downloaded and unpacked. The default value is _$startdir/src_
 	but may be overwritten by the environment.
 
+*tmpdir*
+	Specifies a directory that may be used for temporary files and is
+	automatically cleaned up. The default value is _$startdir/tmp_ but
+	may be overwritten by the environment.
+
 *startdir*
 	Specifies the directory where the *APKBUILD* file resides. This should
 	generally not be used.
