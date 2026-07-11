@@ -73,8 +73,7 @@ The following variables must be set in all *APKBUILD* files:
 *url*
 	Specifies the Web address of the package's upstream. This allows users
 	and future maintainers to find documentation, release information,
-	and contact information for the package. If no Web address is
-	available for the package, you must set *url* to an empty string ("").
+	and contact information for the package.
 
 *arch*
 	Specifies the architectures for which the package may be built. It
