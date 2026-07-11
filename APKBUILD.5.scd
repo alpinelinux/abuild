@@ -227,6 +227,13 @@ file.
 	_/usr/share/man_ or _/usr/local/share/man_ are created, modified,
 	or removed.
 
+*builddir*
+	Specifies the directory where the source code of the package will
+	be built.  The default value is _$srcdir/$pkgname-$pkgver_ which
+	is appropriate for most source distributions. If the source tarball
+	does not create a _$pkgname-$pkgver_ directory when it is unpacked,
+	you must override *builddir*.
+
 *options*
 	The *options* variable allows you to set parameters for the package
 	at build time. There are a number of valid options you may set,
@@ -325,18 +332,10 @@ file.
 		*depends* and *provides* with shared library (.so), symlink
 		target dependencies and similar.
 
-
 ## Automatic Variables
 
 The following variables are defined for you by abuild(1), but may be
 overridden if necessary.
-
-*builddir*
-	Specifies the directory where the source code of the package will
-	be built.  The default value is _$srcdir/$pkgname-$pkgver_ which
-	is appropriate for most source distributions. If the source tarball
-	does not create a _$pkgname-$pkgver_ directory when it is unpacked,
-	you must override *builddir*.
 
 *pkgdir*
 	Specifies the directory where the built files will be
