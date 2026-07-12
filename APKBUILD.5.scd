@@ -419,7 +419,8 @@ the exception of *package*, are not strictly required.
 
 *check*
 	Runs the package's test suite. This function must implemented unless
-	*!check* was specified in *options*.
+	*!check* was specified in *options*. Whether or not this function is
+	run should not effect the resulting package.
 
 *package*
 	Installs the package into *pkgdir*. Note that *pkgdir* is not
@@ -438,7 +439,8 @@ be overridden.
 	Implementation may differ slightly.
 
 *want_check*
-	Returns 0 if the *check* function will be run and 1 otherwise.
+	Returns 0 if the *check* function will be run and 1 otherwise. The
+	return value should not effect the resulting package.
 
 *amove*
 	Inside of split functions this moves the given files from *pkgdir* or
