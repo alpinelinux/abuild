@@ -24,7 +24,7 @@ The following variables must be set in all *APKBUILD* files:
 
 *pkgname*
 	Specifies the name of the package. This is typically the name of the
-	package upstream; however, note that all letters must be lowercased.
+	package upstream; however, note that all letters should be lowercased.
 
 	Libraries for scripting languages should have a prefix before the
 	library name describing the language. Such prefixes include _lua-_,
