@@ -437,6 +437,10 @@ be overridden.
 	_\*.patch.gz_ and _\*.patch.xz_ files specified in *source*.
 	Implementation may differ slightly.
 
+*want_check*
+	Returns 0 if the *check* function will be run and 1 otherwise.
+
+
 ## Install Scripts
 
 An install script is run when an action is taken on a package by apk(8). An
