@@ -5,11 +5,6 @@ APKBUILD(5)
 *APKBUILD* - metadata and instructions to build a package
 
 
-# SYNOPSIS
-
-/usr/src/packages/<repo>/<package>/APKBUILD
-
-
 # DESCRIPTION
 
 An *APKBUILD* file is used by tools such as abuild(1) to build a package for
