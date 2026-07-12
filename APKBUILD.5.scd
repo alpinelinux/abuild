@@ -440,6 +440,9 @@ be overridden.
 *want_check*
 	Returns 0 if the *check* function will be run and 1 otherwise.
 
+*amove*
+	Inside of split functions this moves the given files from *pkgdir* or
+	the current working directory to *subpkgdir*.
 
 ## Install Scripts
 
