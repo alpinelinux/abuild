@@ -70,21 +70,20 @@ amove() {
 	local olddir="$(pwd -L)"
 	cd "$pkgdir"
 
-	local ret=0 IFS="" pattern f d
-	for pattern; do
-		for f in ${pattern#"${pattern%%[!/]*}"}; do # let shell expand the pattern
-			[ -L "$f" ] || [ -e "$f" ] || {
-				ret=1
-				continue
-			}
-			# strip all trailing /
-			f=${f%"${f##*[!/]}"}
-			d=${f%/*}
-			[ "$d" = "$f" ] && d=.
-			mkdir -p "$subpkgdir/$d"
-			mv -v "$f" "$subpkgdir/$d"
-			rmdir -p "$d" 2>/dev/null || :
-		done
+	local ret=0 f d
+	for f; do
+		[ -L "$f" ] || [ -e "$f" ] || {
+			ret=1
+			continue
+		}
+		# strip all leading and trailing /
+		f=${f#"${f%%[!/]*}"}
+		f=${f%"${f##*[!/]}"}
+		d=${f%/*}
+		[ "$d" = "$f" ] && d=.
+		mkdir -p "$subpkgdir/$d"
+		mv -v "$f" "$subpkgdir/$d"
+		rmdir -p "$d" 2>/dev/null || :
 	done
 
 	cd "$olddir"
@@ -2061,7 +2060,7 @@ default_libs() {
 	depends="$depends_libs"
 	pkgdesc="$pkgdesc (libraries)"
 
-	amove 'lib/lib*.so.[0-9]*' 'usr/lib/lib*.so.[0-9]*' || :
+	amove lib/lib*.so.[0-9]* usr/lib/lib*.so.[0-9]* || :
 }
 
 libs() {
@@ -2179,7 +2178,7 @@ default_nftrules() {
 	pkgdesc="$pkgdesc (nftables ruleset)"
 	install_if="nftables-rulesets ${subpkgname%-nftrules}=$pkgver-r$pkgrel"
 
-	amove 'usr/share/nftables.avail/*.nft' || :
+	amove usr/share/nftables.avail/*.nft || :
 }
 
 nftrules() {
