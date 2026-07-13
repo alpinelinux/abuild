@@ -960,7 +960,7 @@ abuild_amove_body() {
 			mkdir -p "\$pkgdir"/etc \
 				"\$pkgdir"/usr/bin \
 				"\$pkgdir"/usr/sbin \
-				"\$pkgdir"/var/lib/\$pkgname \
+				"\$pkgdir"/var/nonexistent/\$pkgname \
 				"\$pkgdir"/usr/share
 			touch "\$pkgdir"/etc/file \
 				"\$pkgdir"/etc/\$pkgname.conf \
@@ -968,7 +968,7 @@ abuild_amove_body() {
 				"\$pkgdir"/usr/sbin/shello \
 				"\$pkgdir"/root \
 				"\$pkgdir"/usr/sbin/space' ' \
-				"\$pkgdir"/var/lib/\$pkgname/testfile \
+				"\$pkgdir"/var/nonexistent/\$pkgname/testfile \
 				"\$pkgdir"/usr/share/a \
 				"\$pkgdir"/usr/share/b
 			ln -s dangling "\$pkgdir"/symlink
@@ -997,7 +997,7 @@ abuild_amove_body() {
 		}
 		_var() {
 			# leading /
-			amove /var/lib
+			amove /var/nonexistent
 		}
 		_usr() {
 			# glob *
@@ -1018,7 +1018,7 @@ abuild_amove_body() {
 			test-amove-sbin/usr/sbin/shello \
 			test-amove-root/root \
 			test-amove-root/symlink \
-			test-amove-var/var/lib/test-amove/testfile \
+			test-amove-var/var/nonexistent/test-amove/testfile \
 			test-amove-usr/usr/share/a \
 			test-amove-usr/usr/share/b \
 			test-amove-space/usr/sbin/space' ' \
