@@ -72,13 +72,13 @@ amove() {
 
 	local ret=0 f d
 	for f; do
+		# strip all leading and trailing /
+		f=${f#"${f%%[!/]*}"}
+		f=${f%"${f##*[!/]}"}
 		[ -L "$f" ] || [ -e "$f" ] || {
 			ret=1
 			continue
 		}
-		# strip all leading and trailing /
-		f=${f#"${f%%[!/]*}"}
-		f=${f%"${f##*[!/]}"}
 		d=${f%/*}
 		[ "$d" = "$f" ] && d=.
 		mkdir -p "$subpkgdir/$d"
