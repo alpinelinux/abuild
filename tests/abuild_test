@@ -1831,7 +1831,6 @@ Name: pkg
 Description:
 Version: 1.0
 Requires: unver, fixed = 0.1, bound >= 1.2.3.rc5
-# TODO these should maybe not be traced
 Requires.private: private
 # Should not prevent install
 Conflicts: conflict
