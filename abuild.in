@@ -1340,43 +1340,22 @@ prepare_command_provides() {
 }
 
 prepare_py_provides() {
-	local dir="${subpkgdir:-$pkgdir}" py_providers=""
+	local d pyver
 	options_has "!tracedeps" && return 0
-	cd "$dir"
-
-	# Find all directories under site-packages, ignore __pycache__ and
-	# .egg-info packages, store the basename with the proper pyX.Y prefix
-	# one per-line
-	py_providers="$(find 'usr/lib/python'*/site-packages \
-		-mindepth 1 -maxdepth 1 \
-		\( -type f -iname '*.py' -o -type d \) \
-		-exec sh -c '
-		d="$1"
-
-		# Check if we were given a directory then check if there
-		# is a file called __init__.py inside, this is required
-		# to import modules, if there is no __init__.py then the
-		# installed directory is not actually a module, this is a
-		# special case for packages that use c-extensions and
-		# install their .c and .h files to $sitelib.
-		if [ -d "$d" ] && [ ! -f "$d"/__init__.py ]; then
-			exit 0
+	for d in "${subpkgdir:-$pkgdir}"/usr/lib/python*/site-packages/*; do
+		if [ -d "$d" ] && [ -f "$d"/__init__.py ]; then
+			: # Without __init__.py a directory is probably not an importable module
+		elif [ -f "$d" ] && [ "${d%.py}" != "$d" ]; then
+			d="${d%.py}"
+		else
+			continue
 		fi
 
-		# Find out which version of python we are building for
-		# this will find out by looking at the MAJOR and MINOR
-		# versions in /usr/lib/pythonMAJOR.MINOR
 		pyver="${d##*usr/lib/python}"
 		pyver="${pyver%%/*}"
 
-		# Strip the .py prefix if it exists
-		d="${d%%.py*}"
-
-		echo "py$pyver:${d##*/}"
-	' sh {} \; 2>/dev/null || :)"
-	local i; for i in $py_providers; do
-		echo "$i=$pkgver-r$pkgrel" >> "$controldir"/.provides-py
-	done
+		echo "py$pyver:${d##*/}=$pkgver-r$pkgrel"
+	done > "$controldir"/.provides-py
 }
 
 # check if dir has arch specific binaries
