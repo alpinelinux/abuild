@@ -693,6 +693,8 @@ runpart() {
 	trap "die '$part failed'" EXIT
 	case "$part" in
 		prepare|build|package|check)
+			set_source_date
+
 			# exclude aports from git repo discovery
 			export GIT_CEILING_DIRECTORIES="$startdir"
 
@@ -2189,7 +2191,6 @@ rootpkg() {
 	abuild-rm -rf "$pkgdir"
 
 	do_fakeroot "$abuild_path" $forceroot $color_opt $keep_build $verbose \
-		set_source_date \
 		package \
 		prepare_subpackages \
 		prepare_package \
