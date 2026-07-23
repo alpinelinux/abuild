@@ -2463,8 +2463,6 @@ rootbld() {
 		die "rootbld: requires bubblewrap and envsubst (try installing abuild-rootbld)"
 	fi
 
-	[ $CBUILD = $CHOST ] || die "rootbld: set CBUILD=$CHOST to build for $CHOST"
-
 	local qarch
 	if ! [ $CBUILD_ARCH = "$($APK --print-arch)" ]; then
 		# cross-building, so check for binfmt registration
@@ -2513,7 +2511,7 @@ rootbld() {
 	EOF
 
 	local dir
-	for dir in /usr/share/apk/keys/$CBUILD_ARCH /etc/apk/keys; do
+	for dir in /usr/share/apk/keys/$CBUILD_ARCH /usr/share/apk/keys/$CTARGET_ARCH /etc/apk/keys; do
 		cp $dir/* "$BUILD_ROOT/etc/apk/keys"
 	done
 
@@ -2570,7 +2568,7 @@ rootbld() {
 		fi
 	fi
 
-	set --
+	set -- # TODO --no-cache?
 	if [ -n "$ABUILD_PACKAGE_CACHE" ]; then
 		mkdir -p "$ABUILD_PACKAGE_CACHE"
 		set -- --cache-dir "$ABUILD_PACKAGE_CACHE"
@@ -2578,7 +2576,18 @@ rootbld() {
 	$ROOTBLD_APK add "$@" --initdb --update \
 		--arch $CBUILD_ARCH \
 		--root "$BUILD_ROOT" \
-		abuild alpine-base $hostdeps $builddeps
+		abuild alpine-base $builddeps
+
+	if cross_compiling || cross_creating; then
+		mkdir -p -- "$BUILD_ROOT/home/user/sysroot-$CTARGET_ARCH"
+		$ROOTBLD_APK add "$@" --initdb --update \
+			--no-scripts \
+			--arch $CTARGET_ARCH \
+			--root "$BUILD_ROOT/home/user/sysroot-$CTARGET_ARCH" \
+			--keys-dir "$BUILD_ROOT/etc/apk/keys" \
+			--repositories-file "$repo_list" \
+			$hostdeps
+	fi
 
 	# busybox adduser/addgroup check if uid is 0 so we need to generate the files manually
 	awk -F: -v pkggroups="$pkggroups" -v pkgusers="$pkgusers" -v root="$BUILD_ROOT" 'BEGIN {
@@ -2629,12 +2638,18 @@ rootbld() {
 		--hostname "build-$buildhost-$CARCH" \
 		--chdir "/home/user/aports/$repo/$pkgname" \
 		--clearenv \
+		--setenv CBUILD "$CBUILD" \
+		--setenv CBUILD_ARCH "$CBUILD_ARCH" \
+		--setenv CHOST "$CHOST" \
 		--setenv CARCH "$CARCH" \
+		--setenv CTARGET "$CTARGET" \
+		--setenv CTARGET_ARCH "$CTARGET_ARCH" \
 		--setenv APORTSDIR /home/user/aports \
 		--setenv HOME /home/user \
 		--setenv REPODEST /home/user/packages \
 		--setenv SRCDEST /tmp/distfiles \
 		--setenv ABUILD_USERDIR /home/user/.abuild \
+		${BOOTSTRAP:+--setenv BOOTSTRAP "$BOOTSTRAP"} \
 		${ABUILD_BOOTSTRAP:+--setenv ABUILD_BOOTSTRAP "$ABUILD_BOOTSTRAP"} \
 		${APORTS_BOOTSTRAP:+--setenv APORTS_BOOTSTRAP "$APORTS_BOOTSTRAP"} \
 		--setenv SOURCE_DATE_EPOCH "$SOURCE_DATE_EPOCH" \
@@ -2642,7 +2657,6 @@ rootbld() {
 		--setenv PATH ${USE_CCACHE:+/usr/lib/ccache/bin:}/bin:/usr/bin:/sbin:/usr/sbin \
 		--setenv FAKEROOTDONTTRYCHOWN 1 \
 		--setenv JOBS "$JOBS" \
-		--unsetenv CBUILD \
 		/usr/bin/abuild $force $verbose rootbld_actions
 	update_abuildrepo_index
 	cleanup $CLEANUP
