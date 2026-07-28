@@ -48,7 +48,7 @@ a "list" variable has it's elements seperated by space, tab and/or newline chara
 (same as the default *IFS* value). Unless otherwise specified the values
 of variables may vary depending on the value of predefined variables.
 
-An *APKBUILD* may set other variables but their name must ether start
+An *APKBUILD* may set other variables but their name must either start
 with an underscore, start with an uppercase character and be exported
 or be set with the *local* shell extension.
 
@@ -114,7 +114,7 @@ or be set with the *local* shell extension.
 	is highly recommended that you set this variable to "_all_" if the
 	software is portable.
 
-	*arch* may be ether a disallow list that includes one of _all_ or
+	*arch* may be either a disallow list that includes one of _all_ or
 	_noarch_ and the rest being architecture names prefixed with _!_.
 	E.g. _arch="all !ppc64le"_ means that the *APKBUILD* is allowed to be
 	built on all architectures except for ppc64le.
