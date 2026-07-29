@@ -585,9 +585,8 @@ abuild_reject_init_with_improper_shebang_body() {
 	abuild checksum
 
 	atf_check -s exit:1 \
-		-o match:"OK" \
 		-e match:"ERROR.*is not an openrc" \
-		abuild unpack
+		abuild validate
 }
 
 abuild_valid_pkgnames_body() {
