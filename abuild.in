@@ -1290,26 +1290,20 @@ pc_to_apk_ver() {
 prepare_pkgconfig_provides() {
 	local dir="${subpkgdir:-$pkgdir}" v i
 	options_has "!tracedeps" && return 0
-	cd "$dir"
 	set --
-	for i in usr/lib/pkgconfig/*.pc usr/share/pkgconfig/*.pc; do
-		if ! [ -e "$i" ]; then
-			continue
-		fi
-		i=${i##*/}
-		set -- "$@" "${i%.pc}"
+	for i in "$dir"/usr/lib/pkgconfig/*.pc "$dir"/usr/share/pkgconfig/*.pc; do
+		[ -f "$i" ] && set -- "$@" "$i"
 	done
+	[ -z "${1+x}" ] && return 0
 
-	if [ -z "${1+x}" ]; then
-		return 0
-	fi
-
-	PKG_CONFIG_PATH="$dir"/usr/lib/pkgconfig:"$dir"/usr/share/pkgconfig \
-	PKG_CONFIG_MAXIMUM_TRAVERSE_DEPTH=1 pkg-config --print-provides "$@" |
-	while IFS=' =' read -r i v; do
-		v=$(pc_to_apk_ver "$v")
-		echo "pc:$pcprefix$i=$v"
-	done > "$controldir"/.provides-pc
+	(
+		set -o pipefail
+		pkg-config --print-provides "$@" |
+		while IFS=' =' read -r i v; do
+			v=$(pc_to_apk_ver "$v")
+			echo "pc:$pcprefix$i=$v"
+		done > "$controldir"/.provides-pc
+	)
 }
 
 prepare_command_provides() {
@@ -1682,29 +1676,31 @@ scan_python3_dependency() {
 	done
 }
 
-#find pkg-config dependencies
+# find pkg-config dependencies
 scan_pkgconfig_depends() {
-	local controldir="$2" datadir="$3"
+	local controldir="$2" datadir="$3" i
 	local provides_pc="$controldir"/.provides-pc
-	[ -e "$provides_pc" ] || return 0
-	for i in $(sort -u "$provides_pc"); do
-		i=${i#pc:}
-		PKG_CONFIG_PATH="$datadir"/usr/lib/pkgconfig:"$datadir"/usr/share/pkgconfig \
-				pkg-config \
-				--print-requires \
-				--print-requires-private ${i%=*} \
-				| sed -E 's/\s*([<>=]+)\s*/\1/' \
-				| while read pc; do
+	set --
+	for i in "$datadir"/usr/lib/pkgconfig/*.pc "$datadir"/usr/share/pkgconfig/*.pc; do
+		[ -f "$i" ] && set -- "$@" "$i"
+	done
+	[ -z "${1+x}" ] && return 0
+
+	(
+		set -o pipefail
+		pkg-config --print-requires --print-requires-private "$@" |
+		sed -E 's/\s*([<>=]+)\s*/\1/' |
+		while IFS= read -r pc; do
 			local v="${pc##*[<>=]}"
 			if [ "$v" != "$pc" ]; then
 				pc=${pc%%"$v"}$(pc_to_apk_ver "$v")
 			fi
 			# only add files that are not self provided
 			if ! grep -q -w "^pc:${pc%%[<>=]*}" "$provides_pc"; then
-				echo "$pc" >> "$controldir"/.needs-pc
+				echo "$pc"
 			fi
-		done
-	done
+		done > "$controldir"/.needs-pc
+	)
 }
 
 # read size in bytes from stdin and show as human readable
