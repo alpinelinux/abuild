@@ -807,6 +807,19 @@ postcheck() {
 		error "Found /usr/lib/charset.alias"
 		e=1
 	fi
+
+	for i in "$dir"/etc/init.d/* "$dir"/etc/init.d/user/*; do
+		if ! [ -L "$i" ] && [ -f "$i" ] && ! [ -x "$i" ]; then
+			error "${i##"$dir"} must have executable bit set"
+			e=1
+		fi
+	done
+	for i in "$dir"/etc/conf.d/* "$dir"/etc/conf.d/user/*; do
+		if ! [ -L "$i" ] && [ -f "$i" ] && [ -x "$i" ]; then
+			warning "${i##"$dir"} should not have executable bit set"
+		fi
+	done
+
 	# look for /etc/init.d and /etc/conf.d
 	if [ -e "$dir"/etc/init.d -o -e "$dir"/etc/conf.d ] \
 			&& [ "${name%-openrc}" = "$name" ]; then
