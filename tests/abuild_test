@@ -1720,7 +1720,7 @@ abuild_pc_providers_body() {
 		url="https://gitlab.alpinelinux.org/alpine/aports"
 		arch="noarch"
 		license="MIT"
-		subpackages="name provides share dot_rc nover"
+		subpackages="name provides share dot_rc nover link conflict"
 		builddir="$srcdir"
 		options="!check"
 
@@ -1779,6 +1779,32 @@ Description:
 Version:
 EOF
 		}
+
+		link() {
+			mkdir -p "$subpkgdir"/usr/lib/pkgconfig
+			cat > "$subpkgdir"/usr/lib/pkgconfig/pkg.pc <<EOF
+Name: pkg
+Description:
+Version: 1.0
+EOF
+			ln -s pkg.pc "$subpkgdir"/usr/lib/pkgconfig/link.pc
+			# FIXME ln -s /usr/lib/pkgconfig/pkg.pc "$subpkgdir"/usr/lib/pkgconfig/abslink.pc
+		}
+
+		conflict() {
+			mkdir -p "$subpkgdir"/usr/lib/pkgconfig
+			cat > "$subpkgdir"/usr/lib/pkgconfig/pkg.pc <<EOF
+Name: pkg
+Description:
+Version: 1.0
+Conflicts: conflict
+EOF
+			cat > "$subpkgdir"/usr/lib/pkgconfig/conflict.pc <<EOF
+Name: pkg
+Description:
+Version: 1.0
+EOF
+		}
 	__EOF__
 	abuild -dK
 
@@ -1805,6 +1831,16 @@ EOF
 	atf_check \
 		-o match:"provides = pc:pkg=0" \
 		grep '^provides = ' pkg/.control.nover/.PKGINFO
+
+	atf_check \
+		-o match:"provides = pc:pkg=1.0" \
+		-o match:"provides = pc:link=1.0" \
+		grep '^provides = ' pkg/.control.link/.PKGINFO
+
+	atf_check \
+		-o match:"provides = pc:pkg=1.0" \
+		-o match:"provides = pc:conflict=1.0" \
+		grep '^provides = ' pkg/.control.conflict/.PKGINFO
 }
 
 abuild_pc_depends_body() {
@@ -1819,7 +1855,7 @@ abuild_pc_depends_body() {
 		url="https://gitlab.alpinelinux.org/alpine/aports"
 		arch="noarch"
 		license="MIT"
-		subpackages="noreq dummy"
+		subpackages="noreq self dummy"
 		builddir="$srcdir"
 		options="!check"
 
@@ -1839,6 +1875,21 @@ EOF
 		noreq() {
 			mkdir -p "$subpkgdir"/usr/lib/pkgconfig
 			cat > "$subpkgdir"/usr/lib/pkgconfig/pkg.pc <<EOF
+Name: pkg
+Description:
+Version: 1.0
+EOF
+		}
+
+		self() {
+			mkdir -p "$subpkgdir"/usr/lib/pkgconfig
+			cat > "$subpkgdir"/usr/lib/pkgconfig/pkg.pc <<EOF
+Name: pkg
+Description:
+Version: 1.0
+Requires: self
+EOF
+			cat > "$subpkgdir"/usr/lib/pkgconfig/self.pc <<EOF
 Name: pkg
 Description:
 Version: 1.0
@@ -1870,6 +1921,12 @@ EOF
 		-o match:"depend = pkgconf" \
 		-o not-match:"pc:" \
 		grep '^depend = ' pkg/.control.noreq/.PKGINFO
+
+
+	atf_check \
+		-o match:"depend = pkgconf" \
+		-o not-match:"pc:" \
+		grep '^depend = ' pkg/.control.self/.PKGINFO
 }
 
 abuild_split_vars_reset_body() {
