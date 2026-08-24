@@ -212,6 +212,18 @@ Build an APKBUILD and print coloured output:
 abuild -rc
 ```
 
+Build in an emulation (e.g.: with qemu+binfmt):
+
+```
+CBUILD=aarch64 abuild rootbld
+```
+
+Cross-build for armv7 (using a sysroot):
+
+```
+CHOST=armv7 abuild -r
+```
+
 # SEE ALSO
 
 newapkbuild(1), apk(8), APKBUILD(5), abuild.conf(5), buildrepo(1), ap(1), checkapk(1).
