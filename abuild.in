@@ -241,7 +241,7 @@ default_validate() {
 		local suff=${i##*.}
 		case "$suff" in
 		pre-install|post-install|pre-upgrade|post-upgrade|pre-deinstall|post-deinstall);;
-		*) die "$i: unknown install script suffix"
+		*) die "$i: unknown install script suffix" ;;
 		esac
 		if ! subpackages_has "$n" && [ "$n" != "$pkgname" ]; then
 			die "$i: install script does not match pkgname or any subpackage"
@@ -1571,6 +1571,7 @@ scan_shared_objects() {
 				if options_has "sover-namecheck"; then
 					continue
 				fi
+				;;
 			esac
 			;;
 		esac
@@ -2298,6 +2299,7 @@ calcdeps() {
 		else
 			builddeps=" build-base"
 		fi
+		;;
 	esac
 
 	# shall ccache be added?

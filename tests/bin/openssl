@@ -17,6 +17,7 @@ while [ $# -gt 0 ]; do
 		-in)
 			shift
 			infile="$1"
+			;;
 	esac
 	shift
 done
