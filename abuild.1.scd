@@ -10,7 +10,7 @@ abuild(1)
 
 # DESCRIPTION
 
-*abuild* builds an apk binary package based on an input APKBUILD(5), as well as
+*abuild* builds apk-tools packages based on an input APKBUILD(5), as well as
 other related operations.
 
 # OPTIONS
