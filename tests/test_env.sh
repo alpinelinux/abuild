@@ -1,7 +1,7 @@
 PATH=$(atf_get_srcdir)/..:$PATH
 
 init_tests() {
-	TESTS="$@"
+	TESTS="$*"
 	export TESTS
 	for t; do
 		atf_test_case $t
