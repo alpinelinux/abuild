@@ -20,7 +20,13 @@ static int find_section(const char *buf, size_t bufsize, const char *str) {
 int main(void)
 {
 	char obuf[8*1024], ibuf[8*1024];
-	z_stream zs;
+	z_stream zs = {
+		.next_in = Z_NULL,
+		.avail_in = 0,
+		.zalloc = Z_NULL,
+		.zfree = Z_NULL,
+		.opaque = Z_NULL,
+	};
 	int r = Z_OK, rc = 1, fd = -1;
 	size_t len;
 
