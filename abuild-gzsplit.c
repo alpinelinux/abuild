@@ -7,7 +7,7 @@
 #include <zlib.h>
 
 static int find_section(const char *buf, size_t bufsize, const char *str) {
-	int len = strlen(str);
+	size_t len = strlen(str);
 	const char *p;
 
 	if (len >= bufsize) return 0;
