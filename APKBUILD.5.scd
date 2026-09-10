@@ -53,7 +53,9 @@ with an underscore, start with an uppercase character and be exported
 or be set with the *local* shell extension.
 
 *maintainer*
-	The name and email of the *APKBUILD* maintainer in RFC 2822 format.
+	The name of the *APKBUILD* maintainer followed by an email address in
+	*<>*, similar to RFC2822. Using the value might require encoding the
+	display name with quotes, RFC2047 and/or RFC6532.
 	This may be set through a maintainer comment instead:
 
 	```

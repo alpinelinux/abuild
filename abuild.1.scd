@@ -166,7 +166,8 @@ other related operations.
 	triplet of the binaries produced by that compiler.
 
 *PACKAGER*
-	Name and email of the packager in RFC5322 format.
+	Name and email of the packager in RFC2822-like format (see APKBUILD(5)
+	*maintainer* for details).
 	E.g.: *John Doe <john@example.com>*.
 
 *PACKAGER_PRIVKEY*

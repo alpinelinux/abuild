@@ -344,7 +344,7 @@ default_validate() {
 	[ -n "$checkdepend" ] && spell_error checkdepend checkdepends
 	[ -n "$conflicts" ] && die "APKBUILD contains \$conflicts. Explicit conflicts should be added as '!pkgname' to depends"
 
-	check_maintainer || die "Provide a valid RFC822 maintainer address"
+	check_maintainer || die "Provide a valid maintainer"
 	[ $(grep '^# *Maintainer:' "$APKBUILD" | wc -l) -gt 1 ] \
 		&& die "More than one maintainer"
 	check_license || warning "Please use a valid SPDX license expression found at: https://spdx.org/licenses"
@@ -1004,12 +1004,13 @@ check_maintainer() {
 	if [ -z "$maintainer" ]; then
 		warning "No maintainer"
 	else
-		# try to check for a valid rfc822 address
+		# check for a RFC2822-like address
 		case "$maintainer" in
 			" "*|*" ") error "'$maintainer' has leading or trailing space"; return 1 ;;
 			\"*|*\") error "'$maintainer' has leading or trailing quote"; return 1 ;;
+			'=?'*) error "'$maintainer' has RFC2047 encoded name"; return 1 ;;
 			*\ \<*@*.*\>) ;;
-			*) error "'$maintainer' is not a valid rfc822 address"; return 1 ;;
+			*) error "Could not find email address in '$maintainer'"; return 1 ;;
 		esac
 	fi
 }
