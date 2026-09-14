@@ -1770,9 +1770,6 @@ create_apks() {
 		# data.tar.gz
 		set -- *
 		if [ "$1" != '*' ]; then
-			# normalize timestamps
-			find "$@" -exec touch -h -d "@$SOURCE_DATE_EPOCH" {} +
-
 			# explicitly sort package content
 			find "$@" -print0
 		fi | LC_ALL=C sort -z | apk_tar -T - --xattrs \
@@ -1785,7 +1782,6 @@ create_apks() {
 		# append the hash for data.tar.gz
 		sha256=$(sha256sum "$dir"/data.tar.gz | cut -f1 -d' ')
 		echo "datahash = $sha256" >> "$dir"/.PKGINFO
-		touch -h -d "@$SOURCE_DATE_EPOCH" "$dir"/.PKGINFO
 
 		# control.tar.gz
 		cd "$dir"

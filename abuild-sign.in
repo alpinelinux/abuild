@@ -35,10 +35,6 @@ do_sign() {
 		sig=".SIGN.$sigtype.$keyname"
 		$openssl dgst $dgstargs -sign "$privkey" -out "$sig" "$i"
 
-		if [ -n "$SOURCE_DATE_EPOCH" ]; then
-			touch -h -d "@$SOURCE_DATE_EPOCH" "$sig"
-		fi
-
 		tmptargz=$(mktemp)
 		apk_tar --owner=0 --group=0 --numeric-owner "$sig" | abuild-tar --cut | $gzip -n -9 > "$tmptargz"
 		tmpsigned=$(mktemp)
