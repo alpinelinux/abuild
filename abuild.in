@@ -1690,7 +1690,7 @@ scan_pkgconfig_depends() {
 			while (getline < provides)
 				skip[substr($0, 4, index($0, "=")-4)] = "";
 		} {
-			gsub(/\s/, "");
+			gsub(/[[:space:]]/, "");
 			if (match($0, /[<>=]/) == 0)
 				RSTART = length()+1;
 			if (!(substr($0, 0, RSTART-1) in skip))
