@@ -1915,7 +1915,7 @@ default_doc() {
 		elif [ "$inode" = "$prev_inode" ]; then
 			ln -s "${prev_name##*/}".gz "$name".gz
 		else
-			$gzip -n -9 -k "$name"
+			$gzip -n -9 < "$name" > "$name".gz
 			prev_name=$name
 			prev_inode=$inode
 		fi
