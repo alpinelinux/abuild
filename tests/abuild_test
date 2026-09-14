@@ -245,8 +245,8 @@ abuild_reproducible_body() {
 	cp -Ra "$testrepo" .
 	cd testrepo/pkg1
 
-	# set timestamp of APKBUILD to 1 min older than current time
-	touch -d @$(( $(date -u +%s) - 60)) APKBUILD
+	# set timestamp of APKBUILD to old time
+	TZ=UTC touch -d '2022-06-22 16:11:07' APKBUILD
 
 	arch=$(abuild -A)
 	pkgs=$(abuild listpkg)
