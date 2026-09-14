@@ -190,8 +190,9 @@ abuild_usr_lib64_body() {
 		-e match:"ERROR:.*: Packages must not put anything under /usr/lib64" \
 		abuild -d
 
-	options=lib64 atf_check -s exit:0 \
+	atf_check -s exit:0 \
 		-e match:"Build complete" \
+		env options=lib64 \
 		abuild -d
 }
 
@@ -463,8 +464,8 @@ abuild_rpaths_body() {
 		-o match:"/usr/lib/pkg/bar" \
 		-o match:"/usr/lib/pkg/../baf" \
 		cat pkg/.control.pkg/.rpaths
-	ABUILD_RPATH='/home/builder' atf_check -s exit:1 -o ignore \
-		-e match:"ERROR:.*: Has /home/... in rpath" abuild -df
+	atf_check -s exit:1 -o ignore -e match:"ERROR:.*: Has /home/... in rpath" \
+		env ABUILD_RPATH='/home/builder' abuild -df
 }
 
 abuild_strip_body() {
@@ -596,106 +597,125 @@ abuild_valid_pkgnames_body() {
 	atf_check -s exit:0 \
 		-e match:"Validating" \
 		abuild validate
-	TESTNAME=foo atf_check -s exit:0 \
+	atf_check -s exit:0 \
 		-e match:"Validating" \
+		env TESTNAME=foo \
 		abuild validate
-	TESTSUBNAME=foo atf_check -s exit:0 \
+	atf_check -s exit:0 \
 		-e match:"Validating" \
+		env TESTSUBNAME=foo \
 		abuild validate
-	TESTNAME="more_+-2.0-complicated" atf_check -s exit:0 \
+	atf_check -s exit:0 \
 		-e match:"Validating" \
+		env TESTNAME="more_+-2.0-complicated" \
 		abuild validate
 }
 
 abuild_invalid_pkgnames_body() {
 	cp -Ra "$testrepo"/test-pkgname .
 	cd test-pkgname
-	TESTNAME="" atf_check -s exit:1 \
+	atf_check -s exit:1 \
 		-e match:"Validating" \
+		env TESTNAME="" \
 		abuild validate
-	TESTNAME="-foo" atf_check -s exit:1 \
+	atf_check -s exit:1 \
 		-e match:"Validating" \
+		env TESTNAME="-foo" \
 		abuild validate
-	TESTNAME="foo with spaces" atf_check -s exit:1 \
+	atf_check -s exit:1 \
 		-e match:"Validating" \
+		env TESTNAME="foo with spaces" \
 		abuild validate
-	TESTNAME="width@at" atf_check -s exit:1 \
+	atf_check -s exit:1 \
 		-e match:"Validating" \
+		env TESTNAME="width@at" \
 		abuild validate
-	TESTNAME="width=equal" atf_check -s exit:1 \
+	atf_check -s exit:1 \
 		-e match:"Validating" \
+		env TESTNAME="width=equal" \
 		abuild validate
 }
 
 abuild_invalid_subpkgnames_body() {
 	cp -Ra "$testrepo"/test-pkgname .
 	cd test-pkgname
-	TESTSUBNAME="" atf_check -s exit:1 \
+	atf_check -s exit:1 \
 		-e match:"Validating" \
+		env TESTSUBNAME="" \
 		abuild validate
-	TESTSUBNAME="-foo" atf_check -s exit:1 \
+	atf_check -s exit:1 \
 		-e match:"Validating" \
+		env TESTSUBNAME="-foo" \
 		abuild validate
 }
 
 abuild_duplicate_subpkgname_body() {
 	cp -Ra "$testrepo"/test-pkgname .
 	cd test-pkgname
-	TESTNAME="test-name" TESTSUBNAME="test-name" atf_check -s exit:1 \
+	atf_check -s exit:1 \
 		-e match:"Validating" \
+		env TESTNAME="test-name" TESTSUBNAME="test-name" \
 		abuild validate
-	TESTSUBNAME="foo bar foo" atf_check -s exit:1 \
+	atf_check -s exit:1 \
 		-e match:"Validating" \
+		env TESTSUBNAME="foo bar foo" \
 		abuild validate
 }
 
 abuild_invalid_subpkg_version_body() {
 	cp -Ra "$testrepo"/test-pkgname .
 	cd test-pkgname
-	TESTDEPVER="1.0-0" atf_check -s exit:1 \
+	atf_check -s exit:1 \
 		-e match:"Invalid version" \
+		env TESTDEPVER="1.0-0" \
 		abuild -d all
 }
 
 abuild_provide_pkgname_body() {
 	cp -Ra "$testrepo"/test-pkgname .
 	cd test-pkgname
-	TESTNAME=provided atf_check -s exit:1 \
+	atf_check -s exit:1 \
 		-e match:"provides must not contain" \
+		env TESTNAME=provided \
 		abuild validate
-	TESTNAME=test TESTPROVIDES='test~1' atf_check -s exit:1 \
+	atf_check -s exit:1 \
 		-e match:"provides must not contain" \
+		env TESTNAME=test TESTPROVIDES='test~1' \
 		abuild validate
-	TESTNAME=test TESTPROVIDES='test=1' atf_check -s exit:1 \
+	atf_check -s exit:1 \
 		-e match:"provides must not contain" \
+		env TESTNAME=test TESTPROVIDES='test=1' \
 		abuild validate
-	TESTNAME=test TESTPROVIDES='test>1' atf_check -s exit:1 \
+	atf_check -s exit:1 \
 		-e match:"provides must not contain" \
+		env TESTNAME=test TESTPROVIDES='test>1' \
 		abuild validate
-	TESTNAME=test TESTPROVIDES='test<=1' atf_check -s exit:1 \
+	atf_check -s exit:1 \
 		-e match:"provides must not contain" \
+		env TESTNAME=test TESTPROVIDES='test<=1' \
 		abuild validate
 }
 
 abuild_validate_depends_body() {
 	cp -Ra "$testrepo"/test-pkgname .
 	cd test-pkgname
-	TESTDEPENDS="foo" TESTMAKEDEPENDS="bar" \
-		atf_check -s exit:0 \
+	atf_check -s exit:0 \
 		-e match:"Validating" \
+		env TESTDEPENDS="foo" TESTMAKEDEPENDS="bar" \
 		abuild validate
-	TESTDEPENDS="foo=1.0 bar>=1.0" TESTMAKEDEPENDS="baz<=1.0 x<2.0 z>1 !blah" \
-		atf_check -s exit:0 \
+	atf_check -s exit:0 \
 		-e match:"Validating" \
+		env TESTDEPENDS="foo=1.0 bar>=1.0" TESTMAKEDEPENDS="baz<=1.0 x<2.0 z>1 !blah" \
 		abuild validate
-	TESTDEPENDS="foo~1.0 bar>~1.0 baz<~1" \
-		atf_check -s exit:0 \
+	atf_check -s exit:0 \
 		-e match:"Validating" \
+		env TESTDEPENDS="foo~1.0 bar>~1.0 baz<~1" \
 		abuild validate
 
 	for i in "foo=bar" "foo=~1.0" "foo>1.0_invalid"; do \
-		TESTDEPENDS="$i" atf_check -s exit:1 \
+		atf_check -s exit:1 \
 			-e match:"Validating" \
+			env TESTDEPENDS="$i" \
 			abuild validate
 	done
 }
@@ -725,16 +745,17 @@ abuild_large_doc_subpackage_body() {
 abuild_bigdocs_body() {
 	cp -Ra "$testrepo"/large-doc-subpkg .
 	cd large-doc-subpkg
-	options=bigdocs atf_check -s exit:0 -o ignore \
+	atf_check -s exit:0 -o ignore \
 		-e not-match:"-doc subpackage is unusually large" \
-		abuild -d all
+		env options=bigdocs abuild -d all
 }
 
 abuild_pkgver_digit_letter_digit_body() {
 	cp -Ra "$testrepo"/test-pkgname .
 	cd test-pkgname
-	TESTPKGVER=1.0p1 atf_check -s exit:1 \
+	atf_check -s exit:1 \
 		-e match:'ERROR.*version' \
+		env TESTPKGVER=1.0p1 \
 		abuild validate
 }
 
@@ -749,8 +770,9 @@ abuild_multiline_license_body() {
 abuild_license_spdx_body() {
 	cp -Ra "$testrepo"/test-licenses .
 	cd test-licenses
-	TESTPKGVER=1.0_p1 atf_check -s exit:0 \
+	atf_check -s exit:0 \
 		-e not-match:'WARNING' \
+		env TESTPKGVER=1.0_p1 \
 		abuild validate
 }
 
@@ -1205,11 +1227,11 @@ abuild_cleanoldpkg_body() {
 					mkdir -p "\$pkgdir"
 				}
 			EOF
-			CARCH=$arch atf_check -e not-empty abuild -d
+			atf_check -e not-empty env CARCH=$arch abuild -d
 		done
 	done
 
-	CARCH=aarch64 atf_check -e match:"Cleaning" abuild cleanoldpkg
+	atf_check -e match:"Cleaning" env CARCH=aarch64 abuild cleanoldpkg
 
 	find "$REPODEST"
 
@@ -1371,9 +1393,10 @@ abuild_setcap_binary_body() {
 abuild_setcap_binary_with_option_body() {
 	cp -Ra "$testrepo"/setcap .
 	cd setcap
-	options=setcap atf_check -s exit:0 \
+	atf_check -s exit:0 \
 		-e not-match:"Found binary with extra capabilities" \
 		-e match:"Found setcap binary executable by others" \
+		env options=setcap \
 		abuild -d all
 }
 
@@ -1578,27 +1601,30 @@ abuild_deps_body() {
 		abuild deps
 
 	# dont install checkdep with ABUILD_BOOTSTRAP
-	ABUILD_BOOTSTRAP=1 atf_check \
+	atf_check \
 		-e not-match:"apk add.*checkdep" \
+		env ABUILD_BOOTSTRAP=1 \
 		abuild deps
 
 	# crosscompile:
 	#   install makedepends_build without --root
 	#   install makedepends_host with --root
-	CTARGET='s390x' CHOST='ppc64le' CBUILDROOT="$PWD/root" atf_check \
+	atf_check \
 		-e match:'Installing for build: build-base-s390x builddep' \
 		-e match:'Installing for host: hostdep' \
 		-e match:'apk add .*--virtual .makedepends-testdeps build-base-s390x builddep' \
 		-e not-match:'apk add.*--root.*builddep' \
 		-e match:'apk add .*--root.*hostdep' \
 		-e not-match:'apk add.*checkdep' \
+		env CTARGET='s390x' CHOST='ppc64le' CBUILDROOT="$PWD/root" \
 		abuild deps
 
 	# crosscompile, set only CHOST
-	CHOST='armhf' atf_check \
+	atf_check \
 		-e match:'apk add.*builddep' \
 		-e not-match:'apk add.*--root.*builddep' \
 		-e match:'apk add.*--root.*hostdep' \
+		env CHOST='armhf' \
 		abuild deps
 
 	# Check quoting
@@ -2117,8 +2143,8 @@ abuild_so_providers_body() {
 		-o match:"provides = so:libfoo.so.1=1.0.8" \
 		grep '^provides = ' pkg/.control.pkg/.PKGINFO
 
-	ABUILD_FILENAME='libfoo.so.1.0.8.git' ABUILD_SONAME='libfoo.so.1' \
 	atf_check -s exit:1 -e match:"libfoo.so.1.0.8.git: library version 1.0.8.git is invalid" \
+		env ABUILD_FILENAME='libfoo.so.1.0.8.git' ABUILD_SONAME='libfoo.so.1' \
 		abuild -dKf
 	ABUILD_FILENAME='libfoo.so.1.0.8.git' ABUILD_SONAME='libfoo.so.1' somask="libbar.so.2 	libfoo.so.1
 libbaz.so" abuild -dKf || atf_fail "abuild failed"

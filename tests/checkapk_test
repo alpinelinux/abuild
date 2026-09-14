@@ -24,10 +24,10 @@ checkapk_invalid_opt_body() {
 }
 
 checkapk_missing_abuild_conf_body() {
-	ABUILD_DEFCONF=/dev/null atf_check \
+	atf_check \
 		-s not-exit:0 \
 		-e match:"no abuild.conf found" \
-		checkapk
+		env ABUILD_DEFCONF=/dev/null checkapk
 }
 
 checkapk_missing_apkbuild_body() {

@@ -63,25 +63,26 @@ funcs_check_defconfig_body() {
 	unset CFLAGS
 
 	# test /usr/share/abuild/default.conf
-	ABUILD_DEFCONF="$PWD"/def.conf ABUILD_CONF=/dev/null ABUILD_USERCONF=/dev/null \
-		atf_check -o match:"defcflags" \
+	atf_check -o match:"defcflags" \
+		env ABUILD_DEFCONF="$PWD"/def.conf ABUILD_CONF=/dev/null ABUILD_USERCONF=/dev/null \
 		sh -e -c " . $FUNCS; echo \"\$CFLAGS\""
 
 	# test /etc/abuild.conf
-	ABUILD_DEFCONF=/dev/null ABUILD_CONF="$PWD"/etc.conf ABUILD_USERCONF=/dev/null \
-		atf_check \
+	atf_check \
 		-o match:"syscflags" \
+		env ABUILD_DEFCONF=/dev/null ABUILD_CONF="$PWD"/etc.conf ABUILD_USERCONF=/dev/null \
 		sh -e -c " . $FUNCS; echo \"\$CFLAGS\""
 
 	# user config ($HOME/.abuild/abuild.conf) wins over /etc/abuild.conf
-	ABUILD_DEFCONF="$PWD"/def.conf ABUILD_CONF="$PWD/etc.conf" ABUILD_USERCONF="$PWD/user.conf" \
 	atf_check \
 		-o match:"usercflags" \
+		env ABUILD_DEFCONF="$PWD"/def.conf ABUILD_CONF="$PWD/etc.conf" ABUILD_USERCONF="$PWD/user.conf" \
 		sh -e -c " . $FUNCS; echo \"\$CFLAGS\""
 
 	# environment wins
-	ABUILD_DEFCONF="$PWD"/def.conf ABUILD_CONF="$PWD/etc.conf" ABUILD_USERCONF="$PWD/user.conf" \
-		CFLAGS="envcflags" atf_check \
+	atf_check \
 		-o match:"envcflags" \
+		env ABUILD_DEFCONF="$PWD"/def.conf ABUILD_CONF="$PWD/etc.conf" ABUILD_USERCONF="$PWD/user.conf" \
+		CFLAGS="envcflags" \
 		sh -e -c " . $FUNCS; echo \"\$CFLAGS\""
 }

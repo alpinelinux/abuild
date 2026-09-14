@@ -51,40 +51,40 @@ abuild_keygen_non_interactive_body() {
 }
 
 abuild_keygen_append_body() {
-	PACKAGER="Test User <user@example.com>" \
-		atf_check -s exit:0 \
+	atf_check -s exit:0 \
 		\
 		-o empty \
 		-e match:"(Generating|writing) RSA" \
+		env PACKAGER="Test User <user@example.com>" \
 		abuild-keygen --append -n
 	grep '^PACKAGER_PRIVKEY=.*user@example.com' "$HOME"/.abuild/abuild.conf \
 		|| atf_fail 'PACKAGER_PRIVKEY not set in abuild.conf'
 }
 
 abuild_keygen_install_without_sudo_body() {
-	SUDO=false \
-		atf_check -s exit:1 \
+	atf_check -s exit:1 \
 		\
 		-o empty \
 		-e match:"(Generating|writing) RSA" \
+		env SUDO=false \
 		abuild-keygen --install -n
 }
 
 abuild_keygen_install_interactive_body() {
-	echo | abuild_keygen_install_root="$PWD" SUDO= \
-		atf_check -s exit:0 \
+	echo | atf_check -s exit:0 \
 		\
 		-o match:"Enter file" \
 		-e match:"(Generating|writing) RSA" \
+		env abuild_keygen_install_root="$PWD" SUDO= \
 		abuild-keygen --install
 }
 
 abuild_keygen_install_non_interactive_body() {
-	abuild_keygen_install_root="$PWD" SUDO= \
-		atf_check -s exit:0 \
+	atf_check -s exit:0 \
 		\
 		-o empty \
 		-e match:"(Generating|writing) RSA" \
+		env abuild_keygen_install_root="$PWD" SUDO= \
 		abuild-keygen --install -n
 }
 
@@ -97,11 +97,11 @@ abuild_keygen_install_doas_body() {
 	EOF
 	chmod +x bin/doas
 
-	PATH="$PWD/bin:$PATH" abuild_keygen_install_root="$PWD" \
-		atf_check -s exit:0 \
+	atf_check -s exit:0 \
 		\
 		-o match:"fake doas" \
 		-e match:"(Generating|writing) RSA" \
+		env PATH="$PWD/bin:$PATH" abuild_keygen_install_root="$PWD" \
 		abuild-keygen --install -n
 }
 
