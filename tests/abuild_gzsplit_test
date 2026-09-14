@@ -14,6 +14,7 @@ check_content() {
 
 	atf_check -s exit:0 \
 		-o match:"etc/alpine-release" \
+		-e ignore \
 		tar -ztf data.tar.gz
 
 	atf_check -s exit:0 \

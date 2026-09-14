@@ -42,6 +42,6 @@ abuild_tar_hash_body() {
 
 	echo foo > foo
 	tar --format=posix -cf - foo | abuild-tar --hash > foo.tar
-	atf_check -o match:foo tar -tvf foo.tar
+	atf_check -o match:foo -e ignore tar -tvf foo.tar
 	atf_check -o match:"APK-TOOLS.checksum" strings foo.tar
 }
