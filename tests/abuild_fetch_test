@@ -40,6 +40,7 @@ create_fake_wget() {
 		exit \${WGET_EXITCODE:-0}
 	EOF
 	chmod +x bin/wget
+	PATH="$PWD/bin:$PATH"
 }
 
 abuild_fetch_help_body() {
@@ -82,7 +83,7 @@ abuild_fetch_wget_fallback_body() {
 	atf_check -s exit:0 \
 		-o match:"Fake wget invoked" \
 		-e empty \
-		env PATH="$PWD/bin:$(atf_get_srcdir)/.." abuild-fetch -d "$PWD" https://example.com/non-existing
+		abuild-fetch -d "$PWD" https://example.com/non-existing
 }
 
 abuild_fetch_wget_failure_body() {
@@ -90,7 +91,7 @@ abuild_fetch_wget_failure_body() {
 	atf_check -s exit:1 \
 		-o match:"Fake wget invoked" \
 		-e empty \
-		env WGET_EXITCODE=1 PATH="$PWD/bin:$(atf_get_srcdir)/.." abuild-fetch -d "$PWD" https://example.com/non-existing
+		env WGET_EXITCODE=1 abuild-fetch -d "$PWD" https://example.com/non-existing
 }
 
 abuild_fetch_wget_http_body() {
@@ -98,7 +99,7 @@ abuild_fetch_wget_http_body() {
 	atf_check -s exit:0 \
 		-o match:"--no-check-certificate" \
 		-e empty \
-		env PATH="$PWD/bin:$(atf_get_srcdir)/.." abuild-fetch -d "$PWD" http://example.com/non-existing
+		abuild-fetch -d "$PWD" http://example.com/non-existing
 }
 
 abuild_fetch_locking_body() {
