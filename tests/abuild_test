@@ -212,7 +212,7 @@ abuild_dbg_subpackage_body() {
 		atf_fail "usr/lib/debug should not exist"
 	fi
 	atf_check -s exit:0 \
-		-e match:"nm: usr/bin/hello: no symbols" \
+		-e match:"usr/bin/hello: no symbols" \
 		nm usr/bin/hello
 
 	if ! [ usr/bin/hello -ef usr/bin/hello-hard ]; then
