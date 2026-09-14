@@ -211,8 +211,6 @@ abuild_dbg_subpackage_body() {
 	if [ -e usr/lib/debug ]; then
 		atf_fail "usr/lib/debug should not exist"
 	fi
-	debuginfo=$(readelf -wk usr/bin/hello | grep '^  Separate debug info file: [^/]*\.debug$')
-	debuginfo_file=${debuginfo#"  Separate debug info file: "}
 	atf_check -s exit:0 \
 		-e match:"nm: usr/bin/hello: no symbols" \
 		nm usr/bin/hello
@@ -230,14 +228,14 @@ abuild_dbg_subpackage_body() {
 	find usr
 	atf_check -s exit:0 \
 		-o match:"T main" \
-		nm usr/lib/debug/usr/bin/$debuginfo_file
+		nm usr/lib/debug/usr/bin/hello.debug
 
 	if [ -e usr/lib/debug/usr/bin/hello-sym.debug ]; then
 		atf_fail "usr/lib/debug/usr/bin/hello-sym.debug should not exist"
 	fi
 
-	if [ -e usr/lib/debug/usr/bin/hello.debug ] && [ -e usr/lib/debug/usr/bin/hello-hard.debug ]; then
-		atf_fail "only one of hello.debug and hello-hard.debug should exist"
+	if [ -e usr/lib/debug/usr/bin/hello-hard.debug ]; then
+		atf_fail "hello-hard.debug should not exist"
 	fi
 }
 
