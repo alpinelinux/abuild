@@ -1596,19 +1596,20 @@ scan_shared_objects() {
 
 	# now find the so dependencies
 	scanelf --nobanner --recursive --needed --etype ET_DYN,ET_EXEC "$datadir" |
-	awk -F '[ ]' -v somask="$somask" -v sonameprefix="$sonameprefix" -v provides="$controldir"/.provides-so 'BEGIN {
-		split(somask, skip_, /[ \t\n]/);
+	awk -F '[ ]' 'BEGIN {
+		split(ARGV[1], skip_, /[ \t\n]/);
 		for (i in skip_)
 			skip[skip_[i]] = "";
-		l = length("so:" sonameprefix) + 1
-		while (getline < provides)
+		l = length("so:" ARGV[2]) + 1
+		while (getline < ARGV[3])
 			skip[substr($0, l, index($0, "=")-l)] = "";
+		ARGC=1
 	} {
 		split($2, need, ",");
 		for (i in need)
 			if (!(need[i] in skip))
 				print(need[i]);
-	}' | sort -u > "$controldir"/.needs-so
+	}' "$somask" "$sonameprefix" "$controldir"/.provides-so | sort -u > "$controldir"/.needs-so
 }
 
 # normalize a symlink target path (1st arg)
@@ -1686,16 +1687,17 @@ scan_pkgconfig_depends() {
 	(
 		set -o pipefail
 		pkg-config --print-requires --print-requires-private "$@" |
-		awk -v provides="$controldir"/.provides-pc 'BEGIN {
-			while (getline < provides)
+		awk 'BEGIN {
+			while (getline < ARGV[1])
 				skip[substr($0, 4, index($0, "=")-4)] = "";
+			ARGC=1
 		} {
 			gsub(/[[:space:]]/, "");
 			if (match($0, /[<>=]/) == 0)
 				RSTART = length()+1;
 			if (!(substr($0, 0, RSTART-1) in skip))
 				print($0);
-		}' |
+		}' "$controldir"/.provides-pc |
 		while IFS= read -r pc; do
 			local v="${pc##*[<>=]}"
 			if [ "$v" != "$pc" ]; then
@@ -2581,7 +2583,10 @@ rootbld() {
 	fi
 
 	# busybox adduser/addgroup check if uid is 0 so we need to generate the files manually
-	awk -F: -v pkggroups="$pkggroups" -v pkgusers="$pkgusers" -v root="$BUILD_ROOT" 'BEGIN {
+	awk -F: 'BEGIN {
+		pkggroups = ARGV[1];
+		pkgusers = ARGV[2];
+		root = ARGV[3];
 		gid = 101;
 		split(pkggroups, arr, "[ \t\n]")
 		groups["user"] = "user:x:1000:user"
@@ -2604,7 +2609,7 @@ rootbld() {
 			printf("%s\n", groups[i]) > (root "/group")
 		for (i in users)
 			printf("%s\n", users[i]) > (root "/passwd")
-	}'
+	}' "$pkggroups" "$pkgusers" "$BUILD_ROOT"
 
 	local bwrap_opts=""
 	options_has "net" || bwrap_opts="$bwrap_opts --unshare-net"
