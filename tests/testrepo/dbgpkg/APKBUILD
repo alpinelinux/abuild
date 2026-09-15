@@ -9,6 +9,7 @@ license="MIT"
 subpackages="$pkgname-dbg"
 source="hello.c"
 builddir="$srcdir"
+options="!tracedeps"
 
 build() {
 	$CC -o hello hello.c

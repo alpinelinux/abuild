@@ -8,6 +8,7 @@ arch="all"
 license="MIT"
 source="hello.c"
 builddir="$srcdir"
+options="!tracedeps"
 
 build() {
 	$CC -o hello hello.c
