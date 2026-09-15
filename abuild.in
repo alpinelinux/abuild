@@ -820,10 +820,10 @@ postcheck() {
 		fi
 	done
 
-	# look for /etc/init.d and /etc/conf.d
-	if [ -e "$dir"/etc/init.d -o -e "$dir"/etc/conf.d ] \
+	# look for OpenRC service and config directories
+	if [ -e "$dir"/etc/init.d -o -e "$dir"/etc/conf.d -o -e "$dir"/usr/libexec/rc ] \
 			&& [ "${name%-openrc}" = "$name" ] && [ "$name" != openrc ]; then
-		warning "Found OpenRC directory (/etc/conf.d or /etc/init.d) but name doesn't end with -openrc"
+		warning "Found OpenRC directory (/usr/libexec/rc, /etc/conf.d or /etc/init.d) but name doesn't end with -openrc"
 	fi
 	# look for /usr/lib/systemd
 	if [ -e "$dir"/usr/lib/systemd ] \
@@ -2046,7 +2046,8 @@ default_openrc() {
 	pkgdesc="$pkgdesc (OpenRC init scripts)"
 	install_if="openrc ${subpkgname%-openrc}=$pkgver-r$pkgrel"
 
-	amove etc/conf.d etc/init.d etc/user/conf.d etc/user/init.d || :
+	amove etc/conf.d etc/init.d etc/user/conf.d etc/user/init.d \
+		usr/libexec/rc || :
 }
 
 openrc() {
