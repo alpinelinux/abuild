@@ -2109,6 +2109,7 @@ abuild_so_providers_body() {
 		arch="all"
 		license="MIT"
 		options="!check !strip !textrels !archcheck"
+		builddir="\$srcdir"
 
 		package() {
 			mkdir -p "\$(dirname "\$pkgdir"/usr/lib/\$ABUILD_FILENAME)"
@@ -2195,6 +2196,7 @@ abuild_so_depends_body() {
 		license="MIT"
 		options="!check !strip !textrels !archcheck"
 		subpackages="dummy"
+		builddir="\$srcdir"
 		somask="libmasked1.so.1 	libdummy3.so.1
 		libmasked3.so.1"
 		# sonameprefix
