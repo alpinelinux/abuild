@@ -822,7 +822,7 @@ postcheck() {
 
 	# look for /etc/init.d and /etc/conf.d
 	if [ -e "$dir"/etc/init.d -o -e "$dir"/etc/conf.d ] \
-			&& [ "${name%-openrc}" = "$name" ]; then
+			&& [ "${name%-openrc}" = "$name" ] && [ "$name" != openrc ]; then
 		warning "Found OpenRC directory (/etc/conf.d or /etc/init.d) but name doesn't end with -openrc"
 	fi
 	# look for /usr/lib/systemd
