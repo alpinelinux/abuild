@@ -245,9 +245,9 @@ or be set with the *local* shell extension.
 	instead. A custom split function name may be set by using _foo:funcname_.
 
 	By default *arch* determines whether or not a subpackage is considered
-	arch independant or not. Subpackages ending in *-doc*, *-openrc*,
+	arch independent or not. Subpackages ending in *-doc*, *-openrc*,
 	*-lang*, *sh-completion*, *-pyc*, *-nftrules*, *-systemd* or *-udev*
-	default to being arch independant regardless of *arch*. This may be
+	default to being arch independent regardless of *arch*. This may be
 	changed by using _foo::noarch_ or _foo:funcname:all_.
 
 	If mandatory a subpackage may be specified with _foo::$CBUILD_ or
