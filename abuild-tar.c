@@ -18,7 +18,9 @@
 #include <string.h>
 
 #include <openssl/evp.h>
+#if defined(OPENSSL_VERSION_MAJOR) && OPENSSL_VERSION_MAJOR < 3
 #include <openssl/engine.h>
+#endif
 
 #ifndef VERSION
 #define VERSION ""
