@@ -1809,7 +1809,7 @@ build_abuildrepo() {
 	fi
 	if ! apk_up2date || [ -n "$force" ]; then
 		# check early if we have abuild key
-		abuild-sign --installed
+		abuild-sign -e
 		logcmd "building $repo/$pkgname-$pkgver-r$pkgrel"
 		_starttime=$(date -u +%s)
 		msg "Building $repo/$pkgname $pkgver-r$pkgrel (using $program $program_version) started $(date -R)"
@@ -2469,7 +2469,7 @@ rootbld() {
 	logcmd "chroot building building $repo/$pkgname-$pkgver-r$pkgrel"
 
 	# check early if we have abuild key
-	abuild-sign --installed
+	abuild-sign -e
 
 	# make sure SOURCE_DATE_EPOCH is set
 	set_source_date

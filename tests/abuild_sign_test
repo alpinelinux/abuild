@@ -42,7 +42,7 @@ abuild_sign_missing_arg_body() {
 abuild_sign_installed_missing_body() {
 	atf_check -s exit:1 \
 		-e match:"No private key found" \
-		abuild-sign --installed
+		abuild-sign -e
 }
 
 abuild_sign_installed_missing_pub_body() {
@@ -50,7 +50,7 @@ abuild_sign_installed_missing_pub_body() {
 	rm .abuild/*.rsa.pub
 	atf_check -s exit:1 \
 		-e match:"rsa.pub: File not found" \
-		abuild-sign --installed
+		abuild-sign -e
 }
 
 abuild_sign_installed_missing_priv_body() {
@@ -58,13 +58,13 @@ abuild_sign_installed_missing_priv_body() {
 	rm .abuild/*.rsa
 	atf_check -s exit:1 \
 		-e match:"rsa: File not found" \
-		abuild-sign --installed
+		abuild-sign -e
 }
 
 abuild_sign_installed_body() {
 	init_keys
 	atf_check -s exit:0 \
-		abuild-sign --installed
+		abuild-sign -e
 }
 
 abuild_sign_owner_type_invalid_body() {
