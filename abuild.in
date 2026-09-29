@@ -896,7 +896,7 @@ postcheck() {
 		echo "$i"
 	fi
 	# check so we dont have any suid root binaries that are not PIE
-	i=$(find "$dir" -type f -perm /6000 -exec scanelf --nobanner --etype ET_EXEC {} + \
+	i=$(find "$dir" -type f \( -perm -u+s -o -perm -g+s \) -exec scanelf --nobanner --etype ET_EXEC {} + \
 		| sed -e 's/ET_EXEC /\t/')
 	if [ -n "$i" ]; then
 		warning "Found non-PIE files that have SUID:"
