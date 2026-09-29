@@ -40,29 +40,29 @@ arch_to_hostspec() {
 
 triplet_to_arch() {
 	case "$1" in
-	aarch64-*-*-*)		echo "aarch64" ;;
-	aarch64_be-*-*-*)	echo "aarch64_be" ;;
-	arm*-*-*-*eabi)		echo "armel" ;;
-	armv6*-*-*-*eabihf)	echo "armhf" ;;
-	armv7*-*-*-*eabihf)	echo "armv7" ;;
-	i[0-9]86-*-*-*)		echo "x86" ;;
-	loongarch32-*-*-*)	echo "loongarch32" ;;
-	loongarchx32-*-*-*)	echo "loongarchx32" ;;
-	loongarch64-*-*-*)	echo "loongarch64" ;;
-	mips-*-*-*)             echo "mips" ;;
-	mips64-*-*-*)           echo "mips64" ;;
-	mipsel-*-*-*)           echo "mipsel" ;;
-	mips64el-*-*-*)         echo "mips64el" ;;
-	powerpc-*-*-*)		echo "ppc" ;;
-	powerpc64-*-*-*)	echo "ppc64" ;;
-	powerpc64le-*-*-*)	echo "ppc64le" ;;
-	riscv32-*-*-*)		echo "riscv32" ;;
-	riscv64-*-*-*)		echo "riscv64" ;;
-	s390x-*-*-*)		echo "s390x" ;;
-	sh2eb-*-*-*)		echo "sh2eb" ;;
-	sh3-*-*-*)		echo "sh3" ;;
-	sh4-*-*-*)		echo "sh4" ;;
-	x86_64-*-*-*)		echo "x86_64" ;;
+	aarch64-*)	echo "aarch64" ;;
+	aarch64_be-*)	echo "aarch64_be" ;;
+	arm*-*eabi)	echo "armel" ;;
+	armv6*-*eabihf)	echo "armhf" ;;
+	armv7*-*eabihf)	echo "armv7" ;;
+	i[0-9]86-*)	echo "x86" ;;
+	loongarch32-*)	echo "loongarch32" ;;
+	loongarchx32-*)	echo "loongarchx32" ;;
+	loongarch64-*)	echo "loongarch64" ;;
+	mips-*)         echo "mips" ;;
+	mips64-*)       echo "mips64" ;;
+	mipsel-*)       echo "mipsel" ;;
+	mips64el-*)     echo "mips64el" ;;
+	powerpc-*)	echo "ppc" ;;
+	powerpc64-*)	echo "ppc64" ;;
+	powerpc64le-*)	echo "ppc64le" ;;
+	riscv32-*)	echo "riscv32" ;;
+	riscv64-*)	echo "riscv64" ;;
+	s390x-*)	echo "s390x" ;;
+	sh2eb-*)	echo "sh2eb" ;;
+	sh3-*)		echo "sh3" ;;
+	sh4-*)		echo "sh4" ;;
+	x86_64-*)	echo "x86_64" ;;
 	*)
 		echo "Couldn't determine arch from triplet: $1" >&2
 		exit 1
