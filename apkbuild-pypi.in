@@ -231,7 +231,7 @@ sub write_apkbuild {
         pkgver   => $distdata->{info}{version},
         pkgrel	 => $pkgrel,
         source   => format_source($srcurl, $orig_source),
-        license  => ($license or map_license($distdata->{info}{license})),
+        license  => ($license or $distdata->{info}{license_expression} or map_license($distdata->{info}{license})),
         url      => ($url or "https://pypi.org/project/${pkgreal}/"),
         pkgdesc  => ($pkgdesc or $distdata->{info}{summary} or "Python module for $pkgreal"),
         builddir => ($builddir or ''),
