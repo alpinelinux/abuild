@@ -111,6 +111,7 @@ sub map_license {
     my ($license) = @_;
 
     $license //= '';
+    $license = 'FIXME' if $license eq '';
     $license =~ s/ or / /g;
 
     return $license;
