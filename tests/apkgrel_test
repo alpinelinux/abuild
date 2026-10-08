@@ -4,8 +4,6 @@
 init_tests \
 	apkgrel_usage
 
-export ABUILD_SHAREDIR=$(atf_get_srcdir)/..
-
 apkgrel_usage_body() {
 	atf_check -o match:"usage" apkgrel -h
 	atf_check -s exit:2 -e match:"usage" apkgrel -Z

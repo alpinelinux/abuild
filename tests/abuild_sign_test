@@ -14,7 +14,6 @@ init_tests \
 	abuild_sign_owner_type_rsa \
 	abuild_sign_owner_type_rsa256
 
-export ABUILD_SHAREDIR="$(atf_get_srcdir)/.."
 export ABUILD_USERDIR="$HOME"/.abuild
 
 init_keys() {

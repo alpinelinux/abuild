@@ -8,13 +8,8 @@ init_tests \
 	abump_simple_bump \
 	abump_isolates_apkbuild
 
-export ABUILD_SHAREDIR=$(atf_get_srcdir)/..
-export ABUILD_CONF=/dev/null
-export ABUILD_USERDIR="$HOME"/.abuild
-export GIT_CONFIG_GLOBAL="$(atf_get_srcdir)/testdata/gitconfig"
 export APORTSDIR="$PWD"
 export ABUILD_OPTS=""
-export APK="apk --keys-dir $(atf_get_srcdir)/testdata/.abuild"
 export REPODEST="$PWD"/packages
 
 abump_help_body() {
@@ -36,7 +31,6 @@ abump_missing_args_body() {
 }
 
 abump_simple_bump_body() {
-	cp -R "$(atf_get_srcdir)"/testdata/.abuild .
 	git init
 	mkdir -p main/foo
 	cd main/foo
@@ -83,7 +77,6 @@ abump_simple_bump_body() {
 }
 
 abump_isolates_apkbuild_body() {
-	cp -R "$(atf_get_srcdir)"/testdata/.abuild .
 	git init
 	mkdir -p main/bar
 	cd main/bar
