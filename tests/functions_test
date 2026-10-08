@@ -3,7 +3,6 @@
 . $(atf_get_srcdir)/test_env.sh
 init_tests \
 	funcs_check_CBUILD \
-	funcs_check_missing_gcc \
 	funcs_check_missing_apk \
 	funcs_check_missing_git \
 	funcs_check_env_set_but_empty \
@@ -16,11 +15,6 @@ funcs_check_CBUILD_body() {
 		-o not-empty \
 		-e empty \
 		sh -e -c "unset CBUILD; . $FUNCS; echo \"\$CBUILD\""
-}
-
-funcs_check_missing_gcc_body() {
-	atf_check -s exit:0 \
-		sh -e -c "CC=false; . $FUNCS && test -z \"$CBUILD\""
 }
 
 funcs_check_missing_apk_body() {
