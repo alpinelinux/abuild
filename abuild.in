@@ -970,7 +970,7 @@ default_lang() {
 	install_if="$pkgname=$pkgver-r$pkgrel lang"
 	depends="$depends_lang"
 
-	amove ${langdir:-/usr/share/locale}
+	amove ${langdir:-usr/share/locale}
 }
 
 lang() {

@@ -392,8 +392,8 @@ or be set with the *local* shell extension.
 	When set to a non-empty value it should end with a colon.
 
 *langdir*
-	Used by *default_lang* to amove language files. Defaults to
-	*/usr/share/locale*.
+	Relative path pattern used to amove language files in *default_lang*.
+	Using *usr/share/locale* if not set.
 
 *somask*
 	List of sonames that will be ignored when tracing providers and
